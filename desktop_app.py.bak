@@ -30,7 +30,16 @@ def _safe_event_bind(self, *args, **kwargs):
         except Exception:
             return None
 
-EventDispatcher.bind = _safe_event_bind
+try:
+    EventDispatcher.bind = _safe_event_bind
+except Exception:
+    try:
+        # Some Kivy builds expose EventDispatcher as an immutable C type.
+        # Fall back to patching `Widget.bind` so instances use the safe wrapper.
+        Widget.bind = _safe_event_bind
+    except Exception:
+        # Give up silently; runtime will use original behavior.
+        pass
 
 # Emulate mobile window size for desktop preview
 from kivy.core.window import Window
@@ -91,6 +100,35 @@ class WatchlistTab(BoxLayout):
         top_area.add_widget(btn_row)
         top_area.add_widget(card_row)
         self.add_widget(top_area)
+        # wire actions for select and delete buttons
+        def on_select(instance):
+            # open a popup to add a symbol to watchlist
+            ti = TextInput(text='', hint_text='Symbol (e.g. BBCA)', multiline=False)
+            def do_add(_):
+                sym = ti.text.strip().upper()
+                if sym:
+                    if sym not in self.watchlist:
+                        self.watchlist.append(sym)
+                        safe_refresh()
+                popup.dismiss()
+            popup = Popup(title='Tambah Saham ke Watchlist', content=BoxLayout(orientation='vertical', children=[ti, Button(text='Tambah', size_hint_y=None, height=40, on_press=do_add)]), size_hint=(0.9, None), height=160)
+            popup.open()
+        def on_delete(instance):
+            # open popup to remove symbol
+            ti = TextInput(text='', hint_text='Symbol to remove', multiline=False)
+            def do_remove(_):
+                sym = ti.text.strip().upper()
+                if sym and sym in self.watchlist:
+                    try:
+                        self.watchlist.remove(sym)
+                    except Exception:
+                        pass
+                    safe_refresh()
+                popup.dismiss()
+            popup = Popup(title='Hapus Saham dari Watchlist', content=BoxLayout(orientation='vertical', children=[ti, Button(text='Hapus', size_hint_y=None, height=40, on_press=do_remove)]), size_hint=(0.9, None), height=160)
+            popup.open()
+        select_btn.bind(on_press=on_select)
+        del_btn.bind(on_press=on_delete)
         # Holdings title
         self.add_widget(Label(text='[b]Holdings[/b]', markup=True, font_size=18, color=(1,1,1,1), size_hint_y=None, height=34))
         # Table header (green strip)
@@ -177,14 +215,93 @@ class WatchlistTab(BoxLayout):
 class DashboardTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Dashboard Utama[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
-        self.add_widget(Label(text='[Konten dashboard utama]', font_size=16, color=(0.7,0.7,0.7,1)))
+        # Implement Top 10 view: list top 10 symbols from sample_stocks and fetch prices
+        from modules.data_fetcher import DataFetcher
+        from modules.tradingview_fetcher import fetch_tradingview_snapshot
+        df = DataFetcher()
+        self.add_widget(Label(text='[b]Top 10 Saham[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        # add refresh controls and list area
+        from kivy.uix.anchorlayout import AnchorLayout
+        refresh_btn = Button(text='Refresh', size_hint=(None, None), size=(80, 36))
+        top_controls = AnchorLayout(size_hint_y=None, height=44, anchor_x='right', anchor_y='top', padding=(8,4))
+        top_controls.add_widget(refresh_btn)
+        self.add_widget(top_controls)
+
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=6, size_hint_y=None, padding=(8,8))
+        grid.bind(minimum_height=grid.setter('height'))
+        scroll.add_widget(grid)
+        self.add_widget(scroll)
+
+        def populate():
+            grid.clear_widgets()
+            top = getattr(df, 'sample_stocks', [])[:10]
+            symbols = [s.get('symbol') for s in top if s.get('symbol')]
+            try:
+                tv = fetch_tradingview_snapshot(symbols)
+            except Exception:
+                tv = {}
+            if not symbols:
+                for i in range(10):
+                    grid.add_widget(Label(text=f'{i+1}. -', size_hint_y=None, height=36, font_size=16))
+            else:
+                for i, s in enumerate(top[:10]):
+                    sym = s.get('symbol', f'#{i+1}')
+                    name = s.get('company_name', '')
+                    data = tv.get(sym, {})
+                    price = data.get('price', '-')
+                    change = data.get('change_percent', data.get('change', '-'))
+                    lbl = Label(text=f"{i+1}. {sym} — {name}  |  {price}  ({change})", size_hint_y=None, height=36, font_size=16)
+                    # enable shorten to avoid overflow
+                    try:
+                        lbl.shorten = True
+                        lbl.shorten_from = 'right'
+                    except Exception:
+                        pass
+                    grid.add_widget(lbl)
+
+        # wire refresh button and auto-refresh every 30s
+        refresh_btn.bind(on_press=lambda *_: populate())
+        try:
+            Clock.schedule_interval(lambda dt: populate(), 30)
+        except Exception:
+            pass
+        # initial populate
+        populate()
 
 class CekSahamTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Cek Saham[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
-        self.add_widget(Label(text='[Fitur cek saham]', font_size=16, color=(0.7,0.7,0.7,1)))
+        from modules.tradingview_fetcher import fetch_tradingview_snapshot
+        self.add_widget(Label(text='[b]Cek Emiten[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        # search input + button
+        search_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=44, padding=(8,8), spacing=8)
+        ti = TextInput(text='', hint_text='Symbol (e.g. BBCA)', multiline=False)
+        btn = Button(text='Cek', size_hint_x=None, width=80)
+        search_row.add_widget(ti)
+        search_row.add_widget(btn)
+        self.add_widget(search_row)
+        # result area
+        self.result_area = BoxLayout(orientation='vertical')
+        self.add_widget(self.result_area)
+        def do_check(_):
+            sym = ti.text.strip().upper()
+            self.result_area.clear_widgets()
+            if not sym:
+                self.result_area.add_widget(Label(text='Masukkan symbol', size_hint_y=None, height=40))
+                return
+            try:
+                data = fetch_tradingview_snapshot([sym]).get(sym, {})
+            except Exception:
+                data = {}
+            price = data.get('price', '-')
+            prev = data.get('prev_close', '-')
+            vol = data.get('volume', '-')
+            self.result_area.add_widget(Label(text=f'Symbol: {sym}', size_hint_y=None, height=36))
+            self.result_area.add_widget(Label(text=f'Harga sekarang: {price}', size_hint_y=None, height=36))
+            self.result_area.add_widget(Label(text=f'Penutupan kemarin: {prev}', size_hint_y=None, height=36))
+            self.result_area.add_widget(Label(text=f'Volume: {vol}', size_hint_y=None, height=36))
+        btn.bind(on_press=do_check)
 
 class ScreeningTab(BoxLayout):
     def __init__(self, **kwargs):
@@ -195,41 +312,53 @@ class ScreeningTab(BoxLayout):
 class InvestasiTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Investasi Saya[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
-        self.add_widget(Label(text='[Portofolio investasi]', font_size=16, color=(0.7,0.7,0.7,1)))
+        # Portfolio view: reuse Watchlist styling to show holdings
+        from modules.data_fetcher import DataFetcher
+        df = DataFetcher()
+        self.add_widget(Label(text='[b]Portfolio Saya[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=6, size_hint_y=None, padding=(8,8))
+        grid.bind(minimum_height=grid.setter('height'))
+        scroll.add_widget(grid)
+        self.add_widget(scroll)
+        holdings = getattr(df, 'portfolio_stocks', None) or getattr(df, 'sample_stocks', [])[:5]
+        if not holdings:
+            grid.add_widget(Label(text='Tidak ada portfolio', size_hint_y=None, height=40))
+        else:
+            for h in holdings:
+                sym = h.get('symbol', '-')
+                name = h.get('company_name', '')
+                grid.add_widget(Label(text=f'{sym} — {name}', size_hint_y=None, height=48))
 
 class MainStockbitApp(App):
     def build(self):
-        self.tab_names = ['Watchlist', 'Dashboard', 'Cek Saham', 'Screening', 'Investasi']
-        # Use factories (callables) instead of storing widget instances to avoid
-        # re-adding the same widget instance to multiple parents which causes
-        # Kivy WidgetException. Each switch creates a fresh instance.
-        self.tab_factories = [WatchlistTab, DashboardTab, CekSahamTab, ScreeningTab, InvestasiTab]
-        self.tab_icons = ['📋', '📊', '🔍', '🧮', '💼']
-        self.current_tab = 0
+        # Bottom navigation labels requested by user
+        self.tab_names = ['Watchlist', 'Top 10', 'Portfolio', 'Screening', 'Cek Emiten']
+        # Map new labels to existing tab factories. Use DashboardTab for Top 10,
+        # InvestasiTab for Portfolio, and CekSahamTab for Cek Emiten.
+        self.tab_factories = [WatchlistTab, DashboardTab, InvestasiTab, ScreeningTab, CekSahamTab]
+        # Icons (emoji fallback) for visual clarity
+        self.tab_icons = ['⭐', '🔥', '💼', '🔎', '🏢']
+        # start with Top 10 visible so changes are obvious on preview
+        self.current_tab = 1
         root = BoxLayout(orientation='vertical')
-        # Top rounded header (teal) like screenshot
-        from kivy.graphics import Color, RoundedRectangle
-        header_box = BoxLayout(orientation='vertical', size_hint_y=None, height=110, padding=(12,12))
-        with header_box.canvas.before:
-            Color(0.37,0.67,0.74,1)
-            header_box._bg = RoundedRectangle(pos=header_box.pos, size=header_box.size, radius=[16])
-        def _upd_header_box(_, __):
-            try:
-                header_box._bg.pos = header_box.pos
-                header_box._bg.size = header_box.size
-            except Exception:
-                pass
-        header_box.bind(pos=_upd_header_box, size=_upd_header_box)
-        header_box.add_widget(Label(text='[b]Jurnal Screening Saham IHSG[/b]', markup=True, font_size=20, color=(1,1,1,1)))
-        header_box.add_widget(Label(text='v0.1.34 • android', font_size=14, color=(1,1,1,1)))
-        root.add_widget(header_box)
+        # Remove top header for a cleaner desktop preview; add small spacer
+        from kivy.uix.widget import Widget
+        spacer = Widget(size_hint_y=None, height=6)
+        root.add_widget(spacer)
 
         # Tab container (content area)
         self.tab_container = BoxLayout(orientation='vertical')
         root.add_widget(self.tab_container)
-        # show initial tab (Watchlist)
-        self.switch_tab(0)
+        # show initial tab (Top 10) for preview
+        try:
+            self.switch_tab(self.current_tab)
+        except Exception:
+            # fallback to Watchlist if Top 10 fails
+            try:
+                self.switch_tab(0)
+            except Exception:
+                pass
         # Bottom navigation ala Stockbit (vertical icon + label buttons)
         from kivy.graphics import Color, Rectangle
         nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=64, spacing=0)
