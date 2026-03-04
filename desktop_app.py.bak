@@ -361,12 +361,12 @@ class MainStockbitApp(App):
                 pass
         # Bottom navigation ala Stockbit (vertical icon + label buttons)
         from kivy.graphics import Color, Rectangle
-        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=64, spacing=0)
+        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=74, spacing=0)
         # draw background and top border
         with nav.canvas.before:
-            Color(0.06, 0.06, 0.06, 1)
+            Color(0.10, 0.10, 0.10, 1)
             nav._bg = Rectangle(pos=nav.pos, size=nav.size)
-            Color(0.15, 0.15, 0.15, 1)
+            Color(0.22, 0.22, 0.22, 1)
             nav._top = Rectangle(pos=(nav.x, nav.y + nav.height - 1), size=(nav.width, 1))
         def _update_nav(_, __):
             nav._bg.pos = nav.pos
@@ -379,8 +379,8 @@ class MainStockbitApp(App):
         def make_nav(icon_text, label_text, handler, active=False):
             b = Button(background_normal='', background_color=(0,0,0,0), size_hint_x=1)
             box = BoxLayout(orientation='vertical', padding=(0,6))
-            icon = Label(text=icon_text, font_size=22, size_hint_y=None, height=28, color=(0.7,0.7,0.7,1))
-            txt = Label(text=label_text, font_size=11, size_hint_y=None, height=18, color=(0.7,0.7,0.7,1))
+            icon = Label(text=icon_text, font_size=22, size_hint_y=None, height=28, color=(0.9,0.9,0.9,1))
+            txt = Label(text=label_text, font_size=11, size_hint_y=None, height=18, color=(0.9,0.9,0.9,1))
             box.add_widget(icon)
             box.add_widget(txt)
             b.add_widget(box)
@@ -390,7 +390,7 @@ class MainStockbitApp(App):
                     # active color (green-ish like Stockbit)
                     icon.color = (0.11, 0.75, 0.36, 1)
                     txt.color = (0.11, 0.75, 0.36, 1)
-                    b.background_color = (0.11, 0.75, 0.36, 0.08)
+                    b.background_color = (0.11, 0.75, 0.36, 0.12)
                 else:
                     icon.color = (0.7,0.7,0.7,1)
                     txt.color = (0.7,0.7,0.7,1)
