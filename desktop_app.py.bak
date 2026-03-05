@@ -14,6 +14,7 @@ from kivy.utils import get_color_from_hex
 from kivy.clock import Clock
 import random
 from kivy.event import EventDispatcher
+from kivy.properties import NumericProperty
 
 # Safety: some recovered bytecode calls `bind` with None callbacks which
 # raises AssertionError in Kivy. Wrap EventDispatcher.bind to ignore None
@@ -59,6 +60,100 @@ class StockbitTab(BoxLayout):
         self.add_widget(header)
         self.add_widget(content)
 
+
+class SwipeToDeleteRow(Widget):
+    dx = NumericProperty(0)
+
+    def __init__(self, content, on_delete=None, delete_width=110, **kwargs):
+        super().__init__(**kwargs)
+        from kivy.uix.floatlayout import FloatLayout
+        self.size_hint_y = None
+        self.height = kwargs.get('height', 92)
+        self._delete_width = delete_width
+        self._on_delete = on_delete
+        self._touch_start_x = None
+        self._start_dx = 0
+        self._dragging = False
+
+        self._root = FloatLayout()
+        self.add_widget(self._root)
+
+        self._delete_btn = Button(
+            text='Hapus',
+            size_hint=(None, 1),
+            width=self._delete_width,
+            pos_hint={'right': 1, 'y': 0},
+            background_normal='',
+            background_color=(0.92, 0.26, 0.20, 1),
+            color=(1, 1, 1, 1),
+        )
+        self._root.add_widget(self._delete_btn)
+
+        self._content = content
+        self._content.size_hint = (None, None)
+        self._content.height = self.height
+        self._root.add_widget(self._content)
+
+        def _sync_layout(*_):
+            self._root.pos = self.pos
+            self._root.size = self.size
+            self._delete_btn.height = self.height
+            self._delete_btn.x = self.x + self.width - self._delete_width
+            self._delete_btn.y = self.y
+            self._content.size = (self.width, self.height)
+            self._content.pos = (self.x + self.dx, self.y)
+
+        self.bind(pos=_sync_layout, size=_sync_layout, dx=_sync_layout)
+        _sync_layout()
+
+        def _do_delete(_):
+            if callable(self._on_delete):
+                try:
+                    self._on_delete()
+                except Exception:
+                    pass
+        self._delete_btn.bind(on_press=_do_delete)
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return super().on_touch_down(touch)
+        self._touch_start_x = touch.x
+        self._start_dx = self.dx
+        self._dragging = False
+        touch.grab(self)
+        return True
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is not self:
+            return super().on_touch_move(touch)
+        if self._touch_start_x is None:
+            return True
+        delta = touch.x - self._touch_start_x
+        if abs(delta) > 10:
+            self._dragging = True
+        if self._dragging:
+            new_dx = self._start_dx + delta
+            # constrain: 0 (closed) .. -delete_width (open)
+            if new_dx > 0:
+                new_dx = 0
+            if new_dx < -self._delete_width:
+                new_dx = -self._delete_width
+            self.dx = new_dx
+        return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is not self:
+            return super().on_touch_up(touch)
+        touch.ungrab(self)
+        # snap
+        if self.dx < -self._delete_width * 0.4:
+            self.dx = -self._delete_width
+        else:
+            self.dx = 0
+        self._touch_start_x = None
+        self._dragging = False
+        return True
+
 class WatchlistTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
@@ -66,109 +161,160 @@ class WatchlistTab(BoxLayout):
         from modules.tradingview_fetcher import fetch_tradingview_snapshot
         self.data_fetcher = DataFetcher()
         self.watchlist = [s['symbol'] for s in self.data_fetcher.sample_stocks]
-        # Top action row: title and primary actions (styled like screenshot)
-        top_area = BoxLayout(orientation='vertical', size_hint_y=None, height=140, padding=(12,8))
-        title = Label(text='[b]Portfolio Saham[/b]', markup=True, font_size=20, color=(1,1,1,1), size_hint_y=None, height=36)
-        btn_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=44, spacing=10)
-        select_btn = Button(text='Pilih Saham', size_hint_x=0.78, background_color=(0.12,0.16,0.2,1), color=(1,1,1,1))
-        del_btn = Button(text='Hapus', size_hint_x=0.22, background_color=(1,0.43,0.43,1), color=(1,1,1,1))
-        btn_row.add_widget(select_btn)
-        btn_row.add_widget(del_btn)
-        # metric cards
-        card_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=64, spacing=12, padding=(0,8))
-        def make_card(title_txt, subtitle_txt):
-            c = BoxLayout(orientation='vertical', padding=8, size_hint_x=1)
-            with c.canvas.before:
-                from kivy.graphics import Color, RoundedRectangle
-                Color(0.09,0.11,0.13,1)
-                c._bg = RoundedRectangle(pos=c.pos, size=c.size, radius=[8])
-            def _upd(_, __):
+        # Header like Stockbit screenshot (avatar left, title center, menu right)
+        header = BoxLayout(orientation='horizontal', size_hint_y=None, height=72, padding=(12, 10), spacing=8)
+        from kivy.graphics import Color, Ellipse
+        avatar = Widget(size_hint=(None, None), size=(44, 44))
+        with avatar.canvas.before:
+            Color(0.18, 0.22, 0.30, 1)
+            avatar._circ = Ellipse(pos=avatar.pos, size=avatar.size)
+        avatar.bind(pos=lambda *_: setattr(avatar._circ, 'pos', avatar.pos), size=lambda *_: setattr(avatar._circ, 'size', avatar.size))
+        header.add_widget(avatar)
+        header.add_widget(Widget())
+        title = Label(text='[b]Stockbit[/b]', markup=True, font_size=28, color=(1,1,1,1))
+        header.add_widget(title)
+        header.add_widget(Widget())
+        menu_btn = Button(text='⋮', size_hint=(None, None), size=(44, 44), background_normal='', background_color=(0.12, 0.12, 0.12, 1), color=(1,1,1,1))
+        header.add_widget(menu_btn)
+        self.add_widget(header)
+
+        # Scrollable list
+        scroll = ScrollView(bar_width=4)
+        self._list = GridLayout(cols=1, spacing=0, size_hint_y=None)
+        self._list.bind(minimum_height=self._list.setter('height'))
+        scroll.add_widget(self._list)
+        self.add_widget(scroll)
+
+        def open_menu(_):
+            root = BoxLayout(orientation='vertical', spacing=8, padding=8)
+            add_btn = Button(text='Tambah saham', size_hint_y=None, height=44)
+            rm_btn = Button(text='Hapus saham', size_hint_y=None, height=44)
+            root.add_widget(add_btn)
+            root.add_widget(rm_btn)
+            popup = Popup(title='Watchlist', content=root, size_hint=(0.8, None), height=180)
+            def do_add(__):
+                popup.dismiss()
+                ti = TextInput(text='', hint_text='Symbol (e.g. BBCA)', multiline=False)
+                def ok_add(___):
+                    sym = ti.text.strip().upper()
+                    if sym and sym not in self.watchlist:
+                        self.watchlist.insert(0, sym)
+                        refresh()
+                    p2.dismiss()
+                p2 = Popup(title='Tambah saham', content=BoxLayout(orientation='vertical', children=[ti, Button(text='Tambah', size_hint_y=None, height=44, on_press=ok_add)]), size_hint=(0.85, None), height=160)
+                p2.open()
+            def do_rm(__):
+                popup.dismiss()
+                ti = TextInput(text='', hint_text='Symbol to remove', multiline=False)
+                def ok_rm(___):
+                    sym = ti.text.strip().upper()
+                    if sym in self.watchlist:
+                        try:
+                            self.watchlist.remove(sym)
+                        except Exception:
+                            pass
+                        refresh()
+                    p2.dismiss()
+                p2 = Popup(title='Hapus saham', content=BoxLayout(orientation='vertical', children=[ti, Button(text='Hapus', size_hint_y=None, height=44, on_press=ok_rm)]), size_hint=(0.85, None), height=160)
+                p2.open()
+            add_btn.bind(on_press=do_add)
+            rm_btn.bind(on_press=do_rm)
+            popup.open()
+        menu_btn.bind(on_press=open_menu)
+
+        def refresh():
+            self._list.clear_widgets()
+            # Fetch latest data
+            try:
+                tvdata = fetch_tradingview_snapshot(self.watchlist)
+            except Exception:
+                tvdata = {}
+            symbol_to_name = {s['symbol']: s.get('company_name', '') for s in getattr(self.data_fetcher, 'sample_stocks', [])}
+            row_h = 92
+
+            def make_row(symbol: str):
+                d = tvdata.get(symbol, {})
+                name = symbol_to_name.get(symbol, '')
+                price = d.get('price', '-')
+                chg = d.get('change', d.get('change_abs', 0))
+                chg_pct = d.get('change_percent', d.get('change_pct', 0))
                 try:
-                    c._bg.pos = c.pos
-                    c._bg.size = c.size
+                    chg_val = float(chg)
+                except Exception:
+                    chg_val = 0.0
+                color_down = (0.86, 0.25, 0.25, 1)
+                color_up = (0.11, 0.75, 0.36, 1)
+                chg_color = color_up if chg_val >= 0 else color_down
+
+                row = BoxLayout(orientation='horizontal', padding=(12, 8), spacing=10)
+                row.size_hint = (None, None)
+                row.height = row_h
+                row.width = self.width
+
+                with row.canvas.before:
+                    from kivy.graphics import Color, Rectangle
+                    Color(0.06, 0.06, 0.06, 1)
+                    row._bg = Rectangle(pos=row.pos, size=row.size)
+                    Color(0.12, 0.12, 0.12, 1)
+                    row._sep = Rectangle(pos=(row.x, row.y), size=(row.width, 1))
+                def _upd(*_):
+                    row._bg.pos = row.pos
+                    row._bg.size = row.size
+                    row._sep.pos = (row.x, row.y)
+                    row._sep.size = (row.width, 1)
+                row.bind(pos=_upd, size=_upd)
+
+                logo = Widget(size_hint=(None, None), size=(52, 52))
+                with logo.canvas.before:
+                    from kivy.graphics import Color, Ellipse
+                    Color(0.22, 0.25, 0.33, 1)
+                    logo._e = Ellipse(pos=logo.pos, size=logo.size)
+                logo.bind(pos=lambda *_: setattr(logo._e, 'pos', logo.pos), size=lambda *_: setattr(logo._e, 'size', logo.size))
+                row.add_widget(logo)
+
+                mid = BoxLayout(orientation='vertical', spacing=2)
+                top_line = BoxLayout(orientation='horizontal', size_hint_y=None, height=28, spacing=6)
+                sym_lbl = Label(text=f'[b]{symbol}[/b]', markup=True, font_size=24, color=(0.9,0.9,0.9,1), halign='left', valign='middle')
+                ref_lbl = Label(text='⟳', font_size=16, color=(0.55,0.55,0.55,1), size_hint_x=None, width=18)
+                top_line.add_widget(sym_lbl)
+                top_line.add_widget(ref_lbl)
+                mid.add_widget(top_line)
+
+                name_lbl = Label(text=name, font_size=16, color=(0.55,0.55,0.55,1), halign='left', valign='middle', size_hint_y=None, height=22)
+                try:
+                    name_lbl.shorten = True
+                    name_lbl.shorten_from = 'right'
                 except Exception:
                     pass
-            c.bind(pos=_upd, size=_upd)
-            c.add_widget(Label(text=title_txt, font_size=14, color=(0.9,0.9,0.9,1), size_hint_y=None, height=22))
-            c.add_widget(Label(text=subtitle_txt, font_size=16, bold=True, color=(0.9,0.9,0.9,1)))
-            return c
-        card_row.add_widget(make_card('Total Invested','Rp 0'))
-        card_row.add_widget(make_card('Total P/L','Rp 0\n(+0.00%)'))
-        card_row.add_widget(make_card('Num Stocks','0'))
+                mid.add_widget(name_lbl)
+                row.add_widget(mid)
 
-        top_area.add_widget(title)
-        top_area.add_widget(btn_row)
-        top_area.add_widget(card_row)
-        self.add_widget(top_area)
-        # wire actions for select and delete buttons
-        def on_select(instance):
-            # open a popup to add a symbol to watchlist
-            ti = TextInput(text='', hint_text='Symbol (e.g. BBCA)', multiline=False)
-            def do_add(_):
-                sym = ti.text.strip().upper()
-                if sym:
-                    if sym not in self.watchlist:
-                        self.watchlist.append(sym)
-                        safe_refresh()
-                popup.dismiss()
-            popup = Popup(title='Tambah Saham ke Watchlist', content=BoxLayout(orientation='vertical', children=[ti, Button(text='Tambah', size_hint_y=None, height=40, on_press=do_add)]), size_hint=(0.9, None), height=160)
-            popup.open()
-        def on_delete(instance):
-            # open popup to remove symbol
-            ti = TextInput(text='', hint_text='Symbol to remove', multiline=False)
-            def do_remove(_):
-                sym = ti.text.strip().upper()
-                if sym and sym in self.watchlist:
+                right = BoxLayout(orientation='vertical', size_hint_x=None, width=140, spacing=2)
+                price_lbl = Label(text=str(price), font_size=26, color=(0.85,0.85,0.85,1), halign='right', valign='middle', size_hint_y=None, height=30)
+                price_lbl.text_size = (right.width, None)
+                change_lbl = Label(text=f'{chg} ({chg_pct}%)', font_size=18, color=chg_color, halign='right', valign='middle', size_hint_y=None, height=26)
+                change_lbl.text_size = (right.width, None)
+                right.add_widget(price_lbl)
+                right.add_widget(change_lbl)
+                row.add_widget(right)
+
+                return row
+
+            def delete_symbol(sym):
+                if sym in self.watchlist:
                     try:
                         self.watchlist.remove(sym)
                     except Exception:
                         pass
-                    safe_refresh()
-                popup.dismiss()
-            popup = Popup(title='Hapus Saham dari Watchlist', content=BoxLayout(orientation='vertical', children=[ti, Button(text='Hapus', size_hint_y=None, height=40, on_press=do_remove)]), size_hint=(0.9, None), height=160)
-            popup.open()
-        select_btn.bind(on_press=on_select)
-        del_btn.bind(on_press=on_delete)
-        # Holdings title
-        self.add_widget(Label(text='[b]Holdings[/b]', markup=True, font_size=18, color=(1,1,1,1), size_hint_y=None, height=34))
-        # Table header (green strip)
-        header = BoxLayout(orientation='horizontal', size_hint_y=None, height=44, padding=(8,0))
-        with header.canvas.before:
-            from kivy.graphics import Color, Rectangle
-            Color(0.06,0.34,0.31,1)
-            header._bg = Rectangle(pos=header.pos, size=header.size)
-        def _upd_header(_, __):
-            try:
-                header._bg.pos = header.pos
-                header._bg.size = header.size
-            except Exception:
-                pass
-        header.bind(pos=_upd_header, size=_upd_header)
-        header.add_widget(Label(text='SAHAM', size_hint_x=0.5, bold=True, color=(1,1,1,1)))
-        header.add_widget(Label(text='HARGA', size_hint_x=0.25, bold=True, color=(1,1,1,1)))
-        header.add_widget(Label(text='KEMARIN', size_hint_x=0.25, bold=True, color=(1,1,1,1)))
-        self.add_widget(header)
+                    refresh()
 
-        # Scrollable table
-        scroll = ScrollView()
-        grid = GridLayout(cols=1, spacing=6, size_hint_y=None, padding=(8,8))
-        grid.bind(minimum_height=grid.setter('height'))
-        scroll.add_widget(grid)
-        self.add_widget(scroll)
-        self.loading_label = Label(text='Loading data...', font_size=16, color=(0.7,0.7,0.7,1), size_hint_y=None, height=56)
-        grid.add_widget(self.loading_label)
-        def safe_refresh():
-            try:
-                self.refresh_table(grid)
-                # Use the last-added widget (children[0]) as the active/selected widget.
-                if grid.children:
-                    last_added = grid.children[0]
-                    if len(grid.children) == 1 and last_added == self.loading_label:
-                        self.loading_label.text = 'No data found.'
-            except Exception as e:
-                grid.clear_widgets()
-                grid.add_widget(Label(text=f'Error loading data: {e}', color=(1,0.2,0.2,1), font_size=16, size_hint_y=None, height=40))
-        Clock.schedule_once(lambda dt: safe_refresh(), 0.1)
+            for symbol in list(self.watchlist):
+                row = make_row(symbol)
+                swipe = SwipeToDeleteRow(row, on_delete=lambda s=symbol: delete_symbol(s), height=row_h)
+                self._list.add_widget(swipe)
+
+        self.bind(width=lambda *_: refresh())
+        Clock.schedule_once(lambda dt: refresh(), 0.1)
 
     def refresh_table(self, grid):
         grid.clear_widgets()
@@ -361,7 +507,7 @@ class MainStockbitApp(App):
                 pass
         # Bottom navigation ala Stockbit (vertical icon + label buttons)
         from kivy.graphics import Color, Rectangle
-        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=92, spacing=0)
+        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=104, spacing=0)
         # draw background and top border
         with nav.canvas.before:
             Color(0.10, 0.10, 0.10, 1)
@@ -380,7 +526,7 @@ class MainStockbitApp(App):
             # IMPORTANT: Button is not a Layout; adding children won't auto-position/size them.
             # Use markup text so icon + label are guaranteed to render.
             b = Button(
-                text=f"[b][size=26]{icon_text}[/size][/b]\n[size=15]{label_text}[/size]",
+                text=f"[b][size=30]{icon_text}[/size][/b]\n[size=16]{label_text}[/size]",
                 markup=True,
                 background_normal='',
                 background_color=(0.10, 0.10, 0.10, 1),
@@ -422,8 +568,8 @@ class MainStockbitApp(App):
             nav_buttons.append(b)
             return b
 
-        # choose icons: prefer basic Unicode symbols that render reliably on desktop fonts
-        icons = ['★', '▲', '◼', '⌕', 'ⓘ']
+        # choose icons: use plain ASCII so they always render
+        icons = ['W', 'T', 'P', 'S', 'E']
         labels = self.tab_names
         # bottom nav handlers must capture index in loop (use default arg)
         for i in range(len(labels)):
