@@ -361,7 +361,7 @@ class MainStockbitApp(App):
                 pass
         # Bottom navigation ala Stockbit (vertical icon + label buttons)
         from kivy.graphics import Color, Rectangle
-        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=74, spacing=0)
+        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=92, spacing=0)
         # draw background and top border
         with nav.canvas.before:
             Color(0.10, 0.10, 0.10, 1)
@@ -380,7 +380,7 @@ class MainStockbitApp(App):
             # IMPORTANT: Button is not a Layout; adding children won't auto-position/size them.
             # Use markup text so icon + label are guaranteed to render.
             b = Button(
-                text=f"[size=24]{icon_text}[/size]\n[size=12]{label_text}[/size]",
+                text=f"[b][size=26]{icon_text}[/size][/b]\n[size=15]{label_text}[/size]",
                 markup=True,
                 background_normal='',
                 background_color=(0.10, 0.10, 0.10, 1),
@@ -422,8 +422,8 @@ class MainStockbitApp(App):
             nav_buttons.append(b)
             return b
 
-        # choose icons (emoji fallback)
-        icons = ['⭐', '🏠', '🔍', '💬', '📈']
+        # choose icons: prefer basic Unicode symbols that render reliably on desktop fonts
+        icons = ['★', '▲', '◼', '⌕', 'ⓘ']
         labels = self.tab_names
         # bottom nav handlers must capture index in loop (use default arg)
         for i in range(len(labels)):
