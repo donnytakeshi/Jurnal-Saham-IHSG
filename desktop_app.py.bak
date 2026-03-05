@@ -377,25 +377,32 @@ class MainStockbitApp(App):
 
         nav_buttons = []
         def make_nav(icon_text, label_text, handler, active=False):
-            # Use solid backgrounds so the nav is always visible on dark screens
-            b = Button(background_normal='', background_color=(0.10, 0.10, 0.10, 1), size_hint_x=1)
-            box = BoxLayout(orientation='vertical', padding=(0,8))
-            icon = Label(text=icon_text, font_size=24, size_hint_y=None, height=30, color=(0.92,0.92,0.92,1))
-            txt = Label(text=label_text, font_size=12, size_hint_y=None, height=20, color=(0.92,0.92,0.92,1))
-            box.add_widget(icon)
-            box.add_widget(txt)
-            b.add_widget(box)
+            # IMPORTANT: Button is not a Layout; adding children won't auto-position/size them.
+            # Use markup text so icon + label are guaranteed to render.
+            b = Button(
+                text=f"[size=24]{icon_text}[/size]\n[size=12]{label_text}[/size]",
+                markup=True,
+                background_normal='',
+                background_color=(0.10, 0.10, 0.10, 1),
+                size_hint_x=1,
+            )
+            b.halign = 'center'
+            b.valign = 'middle'
+            # keep centered when resized
+            try:
+                b.text_size = b.size
+                b.bind(size=lambda inst, val: setattr(inst, 'text_size', val))
+            except Exception:
+                pass
 
             def set_active(state: bool):
                 if state:
                     # active color (green-ish like Stockbit)
-                    icon.color = (0.11, 0.75, 0.36, 1)
-                    txt.color = (0.11, 0.75, 0.36, 1)
                     b.background_color = (0.06, 0.14, 0.10, 1)
+                    b.color = (0.11, 0.75, 0.36, 1)
                 else:
-                    icon.color = (0.88,0.88,0.88,1)
-                    txt.color = (0.88,0.88,0.88,1)
                     b.background_color = (0.10, 0.10, 0.10, 1)
+                    b.color = (0.88, 0.88, 0.88, 1)
 
             def _on_press(instance, *_):
                 for other in nav_buttons:
