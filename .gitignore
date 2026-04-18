@@ -1,46 +1,68 @@
-.DS_Store
-
 # Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
 
-# Virtualenvs
+# Virtualenvs / envs
 .venv/
-.venv-android/
 venv/
+env/
+.venv*/
+.venv311/
+.Python
 
-# Build outputs
+# Build / dist
 build/
 dist/
-output/
-.bin/
+eggs/
+*.egg-info/
+pip-wheel-metadata/
 
-# Local build artifacts / reverse-engineering outputs
-_archive/
-apk_mod/
-decompiled_output/
-extracted_apk_*/
-installed_apk_from_device/
-reconstructed_from_apk/
-tmp_apk_analysis/
-tmp_repack/
-build_logs/
-
-# Local logs/pids
-device_log_*.log
-*.pid
-crash_log.txt
-kivy_app.log
-.buildozer_build.log
-
-# Buildozer
+# Kivy / Buildozer / p4a
 .buildozer/
+.p4a/
+bin/
+hooks/
+*.apk
+*.aab
 
-# Local app data
-data/
+# Logs / temp
+*.log
+*.log.*
+*.tmp
+*.swp
+*.pid
 
-# Signing keys (DO NOT COMMIT)
-keystore/
-*.keystore
-*.jks
+# Backups / editors
+*.bak
+*_bak.py
+*~ 
+*.orig
+.vscode/
+.idea/
+.DS_Store
+
+# Large device / debug logs (project-specific)
+device_logcat*.txt
+device_launch*.log
+device_startup*.log
+.venv311_build.log
+
+# Local config (keep secrets out of git — use env vars)
+supabase_config_local.json
+.env
+.env.local
+
+# Media / assets (if you prefer storing via LFS)
+# If you want to keep images in repo, remove these lines and use Git LFS instead.
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.dmg
+
+# Python bytecode / caches
+__pycache__/
+*.pyc
