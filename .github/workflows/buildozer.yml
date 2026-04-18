@@ -1,0 +1,309 @@
+name: Build Android APK (Buildozer)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-py3.11-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Cache python-for-android
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/python-for-android
+            ~/.buildozer
+            ~/.cache/pip
+          key: p4a-${{ runner.os }}-py3.11-${{ hashFiles('**/buildozer.spec') }}
+
+      - name: Cache Buildozer state
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./.buildozer
+            ${{ runner.temp }}/android-sdk
+          key: buildozer-${{ runner.os }}-p4a-${{ hashFiles('**/buildozer.spec') }}
+
+      - name: Install Buildozer and Cython
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install buildozer cython==0.29.33
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Android command-line tools and SDK components
+        run: |
+          set -e
+          sdk_root="$ANDROID_SDK_ROOT"
+          mkdir -p "$sdk_root"
+          cd "$sdk_root"
+          # download command line tools if missing
+          if [ ! -d "$sdk_root/cmdline-tools/latest" ]; then
+            curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -o cmdline.zip
+            unzip -q cmdline.zip -d cmdline-tools
+            mkdir -p cmdline-tools/latest
+            mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/ || true
+          fi
+          export PATH="$sdk_root/cmdline-tools/latest/bin:$PATH"
+          yes | sdkmanager --sdk_root="$sdk_root" --licenses || true
+          sdkmanager --sdk_root="$sdk_root" "platform-tools" "platforms;android-31" "build-tools;33.0.2" "ndk;25.1.8937393"
+
+      - name: Prepare environment for Buildozer
+        run: |
+          python -m pip --version
+          buildozer --version || true
+
+      - name: Prepare keystore
+        run: |
+          mkdir -p keystore
+          if [ -n "${{ secrets.APK_KEYSTORE_BASE64 }}" ]; then
+            echo "$""${{ secrets.APK_KEYSTORE_BASE64 }}"" | base64 --decode > keystore/release.keystore
+            echo "Using provided keystore from secrets"
+          else
+            echo "No keystore secret provided; generating temporary debug keystore"
+            keytool -genkeypair -v -storepass android -keypass android \
+              -keystore keystore/release.keystore -alias releasekey -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, S=Unknown, C=US"
+          fi
+
+      - name: Inject keystore secrets into buildozer.spec
+        if: always()
+        run: |
+          set -e
+          # Only inject passwords if secrets are provided
+          if [ -n "${{ secrets.APK_KEYSTORE_PASSWORD }}" ] && [ -n "${{ secrets.APK_KEY_PASSWORD }}" ]; then
+            echo "Injecting keystore passwords into buildozer.spec"
+            # Remove any existing lines to avoid duplicates
+            sed -i '/android.release_keystore_passwd/d' buildozer.spec || true
+            sed -i '/android.release_keyalias_passwd/d' buildozer.spec || true
+            printf "\n# Injected by CI from secrets\nandroid.release_keystore_passwd = %s\nandroid.release_keyalias_passwd = %s\n" "${{ secrets.APK_KEYSTORE_PASSWORD }}" "${{ secrets.APK_KEY_PASSWORD }}" >> buildozer.spec
+          else
+            echo "Keystore password secrets not provided; skipping injection"
+          fi
+
+      - name: Run Buildozer (capture logs)
+        id: build
+        run: |
+          set -o pipefail
+          mkdir -p build_logs
+          echo "GITHUB_REF=${GITHUB_REF}  event=${GITHUB_EVENT_NAME}"
+          # run release on main branch, debug otherwise
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Main branch detected — running release build"
+            buildozer -v android release 2>&1 | tee build_logs/buildozer.log
+          else
+            echo "Not main branch — running debug build"
+            buildozer -v android debug 2>&1 | tee build_logs/buildozer.log
+          fi
+
+      - name: Upload APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: |
+            bin/*.apk
+            bin/*.aab
+            ./.buildozer/android/platform/build-*/bin/*.apk
+            ./.buildozer/android/platform/build-*/bin/*.aab
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: build_logs
+
+      # release creation happens only in the release-build job below
+
+      # release creation moved to the dedicated release-build job
+
+  release-build:
+    # only run this job for pushes to main from the canonical repository (prevent forks running releases)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.repository.fork == false
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    concurrency:
+      group: release-build-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Safety: ensure this is not a fork
+        run: |
+          # when job-level if passes this should be safe, but double-check and abort if running on a fork
+          echo "Checking if repository is a fork..."
+          if [ "${{ toJson(github.event.repository.fork) }}" = "true" ]; then
+            echo "Repository is a fork; aborting release job for safety." >&2
+            exit 2
+          fi
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip and p4a
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/python-for-android
+            ./.buildozer
+            ~/.cache/pip
+          key: release-p4a-${{ runner.os }}-py3.11-${{ hashFiles('**/buildozer.spec') }}
+
+      - name: Install Buildozer and Cython
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install buildozer cython==0.29.33
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Android command-line tools and SDK components
+        run: |
+          set -e
+          sdk_root="$ANDROID_SDK_ROOT"
+          mkdir -p "$sdk_root"
+          cd "$sdk_root"
+          if [ ! -d "$sdk_root/cmdline-tools/latest" ]; then
+            curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -o cmdline.zip
+            unzip -q cmdline.zip -d cmdline-tools
+            mkdir -p cmdline-tools/latest
+            mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/ || true
+          fi
+          export PATH="$sdk_root/cmdline-tools/latest/bin:$PATH"
+          yes | sdkmanager --sdk_root="$sdk_root" --licenses || true
+          sdkmanager --sdk_root="$sdk_root" "platform-tools" "platforms;android-31" "build-tools;33.0.2" "ndk;25.1.8937393"
+
+      - name: Prepare keystore
+        run: |
+          mkdir -p keystore
+          if [ -n "${{ secrets.APK_KEYSTORE_BASE64 }}" ]; then
+            echo "$""${{ secrets.APK_KEYSTORE_BASE64 }}"" | base64 --decode > keystore/release.keystore
+            echo "Using provided keystore from secrets"
+          else
+            echo "No keystore secret provided; generating temporary debug keystore"
+            keytool -genkeypair -v -storepass android -keypass android \
+              -keystore keystore/release.keystore -alias releasekey -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, S=Unknown, C=US"
+          fi
+
+      - name: Inject keystore secrets into buildozer.spec
+        run: |
+          set -e
+          if [ -n "${{ secrets.APK_KEYSTORE_PASSWORD }}" ] && [ -n "${{ secrets.APK_KEY_PASSWORD }}" ]; then
+            sed -i '/android.release_keystore_passwd/d' buildozer.spec || true
+            sed -i '/android.release_keyalias_passwd/d' buildozer.spec || true
+            printf "\n# Injected by CI from secrets\nandroid.release_keystore_passwd = %s\nandroid.release_keyalias_passwd = %s\n" "${{ secrets.APK_KEYSTORE_PASSWORD }}" "${{ secrets.APK_KEY_PASSWORD }}" >> buildozer.spec
+          else
+            echo "Keystore password secrets not provided; skipping injection"
+          fi
+
+      - name: Run Buildozer (release)
+        run: |
+          set -o pipefail
+          mkdir -p build_logs
+          buildozer -v android release 2>&1 | tee build_logs/buildozer.log
+
+      - name: Upload release APK/AAB
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-artifacts
+          path: |
+            bin/*.apk
+            bin/*.aab
+            ./.buildozer/android/platform/build-*/bin/*.apk
+            ./.buildozer/android/platform/build-*/bin/*.aab
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: build_logs
+
+      - name: Set release tag from buildozer.spec
+        if: always()
+        run: |
+          set -e
+          VERSION=$(sed -n 's/^version =[ \t]*\(.*\)/\1/p' buildozer.spec | tr -d ' ')
+          if [ -z "$VERSION" ]; then VERSION="0.0.0"; fi
+          TAG="v${VERSION}"
+          RELEASE_NAME="${TAG} (${GITHUB_SHA::7})"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+
+      - name: Create GitHub Release and attach artifacts
+        if: always()
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.TAG }}
+          name: ${{ env.RELEASE_NAME }}
+          files: |
+            bin/*.apk
+            bin/*.aab
+            build_logs/buildozer.log
+
+      - name: Auto-bump version (optional)
+        if: always() && env.AUTO_BUMP == 'true'
+        env:
+          AUTO_BUMP: ${{ secrets.AUTO_BUMP }}
+        run: |
+          set -e
+          echo "AUTO_BUMP=${AUTO_BUMP}"
+          if [ "${AUTO_BUMP}" != "true" ]; then
+            echo "Auto bump disabled; skipping"
+            exit 0
+          fi
+          git fetch origin main
+          git checkout main
+          git pull --rebase origin main
+          VERSION=$(sed -n 's/^version =[ \t]*\(.*\)/\1/p' buildozer.spec | tr -d ' ')
+          if [ -z "$VERSION" ]; then VERSION="0.0.0"; fi
+          IFS='.' read -r MAJ MIN PATCH <<< "$VERSION"
+          MAJ=${MAJ:-0}; MIN=${MIN:-0}; PATCH=${PATCH:-0}
+          NEWPATCH=$((PATCH+1))
+          NEWVERSION="${MAJ}.${MIN}.${NEWPATCH}"
+          echo "Bumping version: $VERSION -> $NEWVERSION"
+          sed -i "s/^version = .*/version = ${NEWVERSION}/" buildozer.spec
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add buildozer.spec
+          git commit -m "ci: bump version to ${NEWVERSION} [ci skip]" || echo "No changes to commit"
+          git push origin main

@@ -1,0 +1,274 @@
+
+# --- Stockbit-style Bottom Navigation App ---
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.widget import Widget
+from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
+from kivy.utils import get_color_from_hex
+from kivy.clock import Clock
+import random
+
+class StockbitTab(BoxLayout):
+    def __init__(self, title, content, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        # Header ala Stockbit
+        header = BoxLayout(orientation='vertical', size_hint_y=None, height=70, padding=(0,0,0,0), spacing=0)
+        title_label = Label(text=f'[b]{title}[/b]', markup=True, font_size=22, color=(1,1,1,1), size_hint_y=None, height=38, halign='center', valign='middle')
+        header.add_widget(title_label)
+        header.add_widget(Widget(size_hint_y=None, height=8))
+        self.add_widget(header)
+        self.add_widget(content)
+
+class WatchlistTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        from modules.data_fetcher import DataFetcher
+        from modules.tradingview_fetcher import fetch_tradingview_snapshot
+        self.data_fetcher = DataFetcher()
+        self.watchlist = [s['symbol'] for s in self.data_fetcher.sample_stocks]
+        # Top action row: title and primary actions (styled like screenshot)
+        top_area = BoxLayout(orientation='vertical', size_hint_y=None, height=140, padding=(12,8))
+        title = Label(text='[b]Portfolio Saham[/b]', markup=True, font_size=20, color=(1,1,1,1), size_hint_y=None, height=36)
+        btn_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=44, spacing=10)
+        select_btn = Button(text='Pilih Saham', size_hint_x=0.78, background_color=(0.12,0.16,0.2,1), color=(1,1,1,1))
+        del_btn = Button(text='Hapus', size_hint_x=0.22, background_color=(1,0.43,0.43,1), color=(1,1,1,1))
+        btn_row.add_widget(select_btn)
+        btn_row.add_widget(del_btn)
+        # metric cards
+        card_row = BoxLayout(orientation='horizontal', size_hint_y=None, height=64, spacing=12, padding=(0,8))
+        def make_card(title_txt, subtitle_txt):
+            c = BoxLayout(orientation='vertical', padding=8, size_hint_x=1)
+            with c.canvas.before:
+                from kivy.graphics import Color, RoundedRectangle
+                Color(0.09,0.11,0.13,1)
+                c._bg = RoundedRectangle(pos=c.pos, size=c.size, radius=[8])
+            def _upd(_, __):
+                try:
+                    c._bg.pos = c.pos
+                    c._bg.size = c.size
+                except Exception:
+                    pass
+            c.bind(pos=_upd, size=_upd)
+            c.add_widget(Label(text=title_txt, font_size=14, color=(0.9,0.9,0.9,1), size_hint_y=None, height=22))
+            c.add_widget(Label(text=subtitle_txt, font_size=16, bold=True, color=(0.9,0.9,0.9,1)))
+            return c
+        card_row.add_widget(make_card('Total Invested','Rp 0'))
+        card_row.add_widget(make_card('Total P/L','Rp 0\n(+0.00%)'))
+        card_row.add_widget(make_card('Num Stocks','0'))
+
+        top_area.add_widget(title)
+        top_area.add_widget(btn_row)
+        top_area.add_widget(card_row)
+        self.add_widget(top_area)
+        # Holdings title
+        self.add_widget(Label(text='[b]Holdings[/b]', markup=True, font_size=18, color=(1,1,1,1), size_hint_y=None, height=34))
+        # Table header (green strip)
+        header = BoxLayout(orientation='horizontal', size_hint_y=None, height=44, padding=(8,0))
+        with header.canvas.before:
+            from kivy.graphics import Color, Rectangle
+            Color(0.06,0.34,0.31,1)
+            header._bg = Rectangle(pos=header.pos, size=header.size)
+        def _upd_header(_, __):
+            try:
+                header._bg.pos = header.pos
+                header._bg.size = header.size
+            except Exception:
+                pass
+        header.bind(pos=_upd_header, size=_upd_header)
+        header.add_widget(Label(text='SAHAM', size_hint_x=0.5, bold=True, color=(1,1,1,1)))
+        header.add_widget(Label(text='HARGA', size_hint_x=0.25, bold=True, color=(1,1,1,1)))
+        header.add_widget(Label(text='KEMARIN', size_hint_x=0.25, bold=True, color=(1,1,1,1)))
+        self.add_widget(header)
+
+        # Scrollable table
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=6, size_hint_y=None, padding=(8,8))
+        grid.bind(minimum_height=grid.setter('height'))
+        scroll.add_widget(grid)
+        self.add_widget(scroll)
+        self.loading_label = Label(text='Loading data...', font_size=16, color=(0.7,0.7,0.7,1), size_hint_y=None, height=56)
+        grid.add_widget(self.loading_label)
+        def safe_refresh():
+            try:
+                self.refresh_table(grid)
+                if len(grid.children) == 1 and grid.children[0] == self.loading_label:
+                    self.loading_label.text = 'No data found.'
+            except Exception as e:
+                grid.clear_widgets()
+                grid.add_widget(Label(text=f'Error loading data: {e}', color=(1,0.2,0.2,1), font_size=16, size_hint_y=None, height=40))
+        Clock.schedule_once(lambda dt: safe_refresh(), 0.1)
+
+    def refresh_table(self, grid):
+        grid.clear_widgets()
+        from modules.tradingview_fetcher import fetch_tradingview_snapshot
+        # Ambil nama perusahaan dari sample_stocks
+        symbol_to_name = {s['symbol']: s['company_name'] for s in self.data_fetcher.sample_stocks}
+        # Ambil data realtime TradingView
+        tvdata = fetch_tradingview_snapshot(self.watchlist)
+        # Use fixed row height to match previous device layout and screenshot
+        row_h = 56
+        # helper to create styled label for table rows
+        def make_lbl(txt, size_hint_x=None, font_size=16, color=(1,1,1,1), bold=False, halign='left'):
+            lbl = Label(text=txt, size_hint_x=size_hint_x, size_hint_y=None, font_size=font_size, color=color, markup=bold)
+            lbl.height = row_h
+            lbl.halign = halign
+            lbl.valign = 'middle'
+            return lbl
+
+        for symbol in self.watchlist:
+            d = tvdata.get(symbol, {})
+            row = BoxLayout(orientation='horizontal', size_hint_y=None, height=row_h, padding=(8,0))
+            # dark row background
+            with row.canvas.before:
+                from kivy.graphics import Color, Rectangle
+                Color(0.06,0.08,0.1,1)
+                row._bg = Rectangle(pos=row.pos, size=row.size)
+            def _update_row(_, __):
+                try:
+                    row._bg.pos = row.pos
+                    row._bg.size = row.size
+                except Exception:
+                    pass
+            row.bind(pos=_update_row, size=_update_row)
+
+            sym_lbl = make_lbl(symbol, size_hint_x=0.5, font_size=18, color=(0.05,0.8,0.66,1))
+            price_lbl = make_lbl(str(d.get('price', '-')), size_hint_x=0.25, font_size=18, color=(0.11,0.75,0.36,1))
+            yest_lbl = make_lbl(str(d.get('yesterday', d.get('prev_close', '-'))), size_hint_x=0.25, font_size=16, color=(0.9,0.9,0.9,1))
+
+            row.add_widget(sym_lbl)
+            row.add_widget(price_lbl)
+            row.add_widget(yest_lbl)
+            grid.add_widget(row)
+
+class DashboardTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.add_widget(Label(text='[b]Dashboard Utama[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        self.add_widget(Label(text='[Konten dashboard utama]', font_size=16, color=(0.7,0.7,0.7,1)))
+
+class CekSahamTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.add_widget(Label(text='[b]Cek Saham[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        self.add_widget(Label(text='[Fitur cek saham]', font_size=16, color=(0.7,0.7,0.7,1)))
+
+class ScreeningTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.add_widget(Label(text='[b]Hasil Screening[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        self.add_widget(Label(text='[Hasil screening saham]', font_size=16, color=(0.7,0.7,0.7,1)))
+
+class InvestasiTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.add_widget(Label(text='[b]Investasi Saya[/b]', markup=True, font_size=20, color=(0.2,0.5,1,1), size_hint_y=None, height=48))
+        self.add_widget(Label(text='[Portofolio investasi]', font_size=16, color=(0.7,0.7,0.7,1)))
+
+class MainStockbitApp(App):
+    def build(self):
+        self.tab_names = ['Watchlist', 'Dashboard', 'Cek Saham', 'Screening', 'Investasi']
+        self.tabs = [WatchlistTab(), DashboardTab(), CekSahamTab(), ScreeningTab(), InvestasiTab()]
+        self.tab_icons = ['📋', '📊', '🔍', '🧮', '💼']
+        self.current_tab = 0
+        root = BoxLayout(orientation='vertical')
+        # Top rounded header (teal) like screenshot
+        from kivy.graphics import Color, RoundedRectangle
+        header_box = BoxLayout(orientation='vertical', size_hint_y=None, height=110, padding=(12,12))
+        with header_box.canvas.before:
+            Color(0.37,0.67,0.74,1)
+            header_box._bg = RoundedRectangle(pos=header_box.pos, size=header_box.size, radius=[16])
+        def _upd_header_box(_, __):
+            try:
+                header_box._bg.pos = header_box.pos
+                header_box._bg.size = header_box.size
+            except Exception:
+                pass
+        header_box.bind(pos=_upd_header_box, size=_upd_header_box)
+        header_box.add_widget(Label(text='[b]Jurnal Screening Saham IHSG[/b]', markup=True, font_size=20, color=(1,1,1,1)))
+        header_box.add_widget(Label(text='v0.1.34 • android', font_size=14, color=(1,1,1,1)))
+        root.add_widget(header_box)
+
+        # Tab container (content area)
+        self.tab_container = BoxLayout(orientation='vertical')
+        root.add_widget(self.tab_container)
+        # show initial tab (Watchlist)
+        self.switch_tab(0)
+        # Bottom navigation ala Stockbit (vertical icon + label buttons)
+        from kivy.graphics import Color, Rectangle
+        nav = BoxLayout(orientation='horizontal', size_hint_y=None, height=64, spacing=0)
+        # draw background and top border
+        with nav.canvas.before:
+            Color(0.06, 0.06, 0.06, 1)
+            nav._bg = Rectangle(pos=nav.pos, size=nav.size)
+            Color(0.15, 0.15, 0.15, 1)
+            nav._top = Rectangle(pos=(nav.x, nav.y + nav.height - 1), size=(nav.width, 1))
+        def _update_nav(_, __):
+            nav._bg.pos = nav.pos
+            nav._bg.size = nav.size
+            nav._top.pos = (nav.x, nav.y + nav.height - 1)
+            nav._top.size = (nav.width, 1)
+        nav.bind(pos=_update_nav, size=_update_nav)
+
+        nav_buttons = []
+        def make_nav(icon_text, label_text, handler, active=False):
+            b = Button(background_normal='', background_color=(0,0,0,0), size_hint_x=1)
+            box = BoxLayout(orientation='vertical', padding=(0,6))
+            icon = Label(text=icon_text, font_size=22, size_hint_y=None, height=28, color=(0.7,0.7,0.7,1))
+            txt = Label(text=label_text, font_size=11, size_hint_y=None, height=18, color=(0.7,0.7,0.7,1))
+            box.add_widget(icon)
+            box.add_widget(txt)
+            b.add_widget(box)
+
+            def set_active(state: bool):
+                if state:
+                    # active color (green-ish like Stockbit)
+                    icon.color = (0.11, 0.75, 0.36, 1)
+                    txt.color = (0.11, 0.75, 0.36, 1)
+                    b.background_color = (0.11, 0.75, 0.36, 0.08)
+                else:
+                    icon.color = (0.7,0.7,0.7,1)
+                    txt.color = (0.7,0.7,0.7,1)
+                    b.background_color = (0,0,0,0)
+
+            def _on_press(instance, *_):
+                for other in nav_buttons:
+                    try:
+                        other.set_active(False)
+                    except Exception:
+                        pass
+                set_active(True)
+                try:
+                    handler()
+                except Exception:
+                    pass
+
+            b.set_active = set_active
+            b.bind(on_press=_on_press)
+            set_active(active)
+            nav_buttons.append(b)
+            return b
+
+        # choose icons (emoji fallback)
+        icons = ['⭐', '🏠', '🔍', '💬', '📈']
+        labels = self.tab_names
+        handlers = [lambda: self.switch_tab(0), lambda: self.switch_tab(1), lambda: self.switch_tab(2), lambda: self.switch_tab(3), lambda: self.switch_tab(4)]
+
+        for i in range(len(labels)):
+            btn = make_nav(icons[i], labels[i], handlers[i], active=(i==self.current_tab))
+            nav.add_widget(btn)
+
+        root.add_widget(nav)
+        return root
+    def switch_tab(self, idx):
+        self.tab_container.clear_widgets()
+        self.tab_container.add_widget(self.tabs[idx])
+        self.current_tab = idx
+
+# Entry point for main.py
+JurnalSahamApp = MainStockbitApp

@@ -14,6 +14,7 @@ try:
 except Exception:
     ZoneInfo = None
 
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -29,111 +30,266 @@ from kivy.properties import ListProperty, NumericProperty
 from kivy.event import EventDispatcher
 from kivy.utils import get_color_from_hex, platform as _kivy_platform
 from kivy.clock import Clock
+# --- Jurnal Saham IHSG - Enhanced Unified Kivy Modular UI ---
+import json
+import csv
+import os
+import threading
+import traceback
+import random
+from datetime import datetime
+
+try:
+    from zoneinfo import ZoneInfo
+except Exception:
+    ZoneInfo = None
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.widget import Widget
+from kivy.uix.textinput import TextInput
+from kivy.properties import ListProperty, NumericProperty, StringProperty
+from kivy.utils import get_color_from_hex
+from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse
 from kivy.core.window import Window
 
-# --- Mock Modules for Visual consistency if real ones aren't present ---
-class MockDataFetcher:
-    sample_stocks = [
-        {'symbol': 'BBCA', 'company_name': 'Bank Central Asia Tbk.'},
-        {'symbol': 'BBRI', 'company_name': 'Bank Rakyat Indonesia Tbk.'},
-        {'symbol': 'TLKM', 'company_name': 'Telkom Indonesia Tbk.'},
-        {'symbol': 'ASII', 'company_name': 'Astra International Tbk.'},
-        {'symbol': 'GOTO', 'company_name': 'GoTo Gojek Tokopedia Tbk.'},
-        {'symbol': 'BMRI', 'company_name': 'Bank Mandiri (Persero) Tbk.'},
-        {'symbol': 'UNVR', 'company_name': 'Unilever Indonesia Tbk.'},
-        {'symbol': 'AMRT', 'company_name': 'Sumber Alfaria Trijaya Tbk.'},
-    ]
-    portfolio_stocks = sample_stocks[:5]
+# --- THEME CONFIG (Quant Edge) ---
+class ThemeConfig:
+    BG_MAIN = get_color_from_hex('#101419')
+    SURFACE = get_color_from_hex('#181c21')
+    SURFACE_LIGHT = get_color_from_hex('#1c2127')
+    ACCENT = get_color_from_hex('#159D91')  # Teal
+    
+    GREEN = get_color_from_hex('#67d9cb')
+    RED = get_color_from_hex('#ff5e5e')
+    YELLOW = get_color_from_hex('#f2d18f')
+    BORDER = get_color_from_hex('#2d3432')
+    
+    TEXT_BRIGHT = get_color_from_hex('#ffffff')
+    TEXT_DEFAULT = get_color_from_hex('#bcc9c6')
+    TEXT_MUTED = get_color_from_hex('#41493e')
+    
+    ROUNDNESS = 12
 
-# --- UI Helpers & Styling ---
-def ui_dp(value):
+# --- UI Helpers ---
+def ui_dp(v):
     from kivy.metrics import dp
-    return dp(value)
+    return dp(v)
 
-def ui_sp(value):
+def ui_sp(v):
     from kivy.metrics import sp
-    return sp(value)
+    return sp(v)
 
-def _format_id_number(value, decimals=0):
-    try:
-        n = float(value)
-    except Exception:
-        return str(value)
-    fmt = f"{{:,.{decimals}f}}".format(n)
-    return fmt.replace(',', 'X').replace('.', ',').replace('X', '.').replace(',00', '') if decimals == 0 else fmt.replace(',', 'X').replace('.', ',').replace('X', '.')
+# --- REUSABLE COMPONENTS ---
+class Card(BoxLayout):
+    def __init__(self, bg_color=ThemeConfig.SURFACE, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.padding = ui_dp(12)
+        with self.canvas.before:
+            Color(rgb=bg_color)
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[ui_dp(ThemeConfig.ROUNDNESS)])
+        self.bind(pos=self._update, size=self._update)
+    def _update(self, *_):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
-def _format_price(value):
-    if value in (None, '', '-'): return '-'
-    try:
-        n = float(value)
-        return _format_id_number(n, decimals=0)
-    except: return str(value)
+class Badge(Label):
+    def __init__(self, text, bg_color=ThemeConfig.ACCENT, **kwargs):
+        super().__init__(text=text, **kwargs)
+        self.font_size = ui_sp(10)
+        self.bold = True
+        self.color = ThemeConfig.TEXT_BRIGHT
+        self.size_hint = (None, None)
+        self.height = ui_dp(20)
+        self.padding = (ui_dp(8), ui_dp(4))
+        with self.canvas.before:
+            Color(rgb=bg_color)
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[ui_dp(10)])
+        self.bind(pos=self._update, size=self._update)
+        self._update_width()
 
-def _format_compact_number(value):
-    if value in (None, '', '-'): return '-'
-    try:
-        n = float(value)
-        abs_n = abs(n)
-        if abs_n >= 1_000_000_000: return f"{n/1_000_000_000:.2f}B".rstrip('0').rstrip('.')
-        if abs_n >= 1_000_000: return f"{n/1_000_000:.2f}M".rstrip('0').rstrip('.')
-        if abs_n >= 1_000: return f"{n/1_000:.2f}K".rstrip('0').rstrip('.')
-        return _format_id_number(n, decimals=0)
-    except: return str(value)
+    def _update(self, *_):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
-def _to_float(value, default=0.0):
-    try:
-        return float(str(value).replace(',', ''))
-    except: return default
+    def _update_width(self, *_):
+        self.texture_update()
+        self.width = self.texture_size[0] + ui_dp(16)
 
-# --- Custom Widgets ---
-class ClickableLabel(ButtonBehavior, Label):
-    pass
-
-class SparklineWidget(Widget):
+class Sparkline(Widget):
     values = ListProperty([])
-    line_color = ListProperty([0.11, 0.75, 0.36, 1])
+    line_color = ListProperty(ThemeConfig.ACCENT)
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bind(pos=self._redraw, size=self._redraw, values=self._redraw, line_color=self._redraw)
-    def _redraw(self, *_):
+        self.bind(pos=self._draw, size=self._draw, values=self._draw)
+    def _draw(self, *_):
         self.canvas.clear()
         if not self.values or len(self.values) < 2: return
-        w, h = max(1.0, float(self.width)), max(1.0, float(self.height))
-        pad = ui_dp(2)
+        w, h = self.width, self.height
         vmin, vmax = min(self.values), max(self.values)
-        flat = (vmax - vmin) == 0
-        denom = (vmax - vmin) if not flat else 1.0
-        xs = []
+        diff = (vmax - vmin) if vmax != vmin else 1
+        points = []
         for i, v in enumerate(self.values):
-            x = self.x + pad + (w - pad * 2) * (i / (len(self.values) - 1))
-            y = self.y + pad + (h - pad * 2) * (0.5 if flat else ((v - vmin) / denom))
-            xs.extend([x, y])
+            x = self.x + (i / (len(self.values)-1)) * w
+            y = self.y + ((v - vmin) / diff) * h
+            points.extend([x, y])
         with self.canvas:
             Color(*self.line_color)
-            Line(points=xs, width=ui_dp(1.5), cap='round', joint='round')
+            Line(points=points, width=ui_dp(1.5), cap='round', joint='round')
 
-class NavIcon(Widget):
-    icon_type = ''
-    color = ListProperty([0.7, 0.7, 0.7, 1])
-    def __init__(self, icon_type='', **kwargs):
-        super().__init__(**kwargs)
-        self.icon_type = icon_type.lower()
-        self.bind(pos=self._redraw, size=self._redraw, color=self._redraw)
-    def _redraw(self, *_):
-        self.canvas.clear()
-        cx, cy = self.center_x, self.center_y
-        r = min(self.width, self.height) * 0.4
-        with self.canvas:
-            Color(*self.color)
-            Line(circle=(cx, cy, r), width=ui_dp(1.5))
+# --- ENHANCED TAB CLASSES ---
+
+class ScreeningTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', padding=ui_dp(8), spacing=ui_dp(8), **kwargs)
+        
+        # Live Header
+        header = BoxLayout(size_hint_y=None, height=ui_dp(40), spacing=ui_dp(10))
+        header.add_widget(Label(text='Screening Live', font_size=ui_sp(18), bold=True, color=ThemeConfig.TEXT_BRIGHT, halign='left'))
+        header.add_widget(Widget())
+        header.add_widget(Badge('LIVE', bg_color=ThemeConfig.RED))
+        self.add_widget(header)
+        
+        # Table Headers
+        table_hdr = BoxLayout(size_hint_y=None, height=ui_dp(30), padding=(ui_dp(10), 0))
+        headers = ['SAHAM', 'PRICE / %', 'RVOL', 'STRENGTH']
+        for h in headers:
+            table_hdr.add_widget(Label(text=h, font_size=ui_sp(10), bold=True, color=ThemeConfig.TEXT_MUTED))
+        self.add_widget(table_hdr)
+        
+        # List
+        sv = ScrollView(bar_width=0)
+        grid = GridLayout(cols=1, spacing=ui_dp(2), size_hint_y=None)
+        grid.bind(minimum_height=grid.setter('height'))
+        
+        stocks = [
+            ('BBRI', '6.125', '+2.51%', '2.4x', 0.8),
+            ('ASII', '5.150', '-1.43%', '0.8x', 0.2),
+            ('BBNI', '5.950', '+3.48%', '1.9x', 0.9),
+            ('GOTO', '64', '0.00%', '1.1x', 0.5),
+            ('UNVR', '2.650', '-0.75%', '1.5x', 0.4),
+        ]
+        
+        for sym, price, pct, rvol, str_val in stocks:
+            row = Card(bg_color=ThemeConfig.SURFACE_LIGHT, size_hint_y=None, height=ui_dp(60), orientation='horizontal', padding=ui_dp(10))
+            
+            # Col 1: Symbol
+            left = BoxLayout(orientation='vertical')
+            left.add_widget(Label(text=sym, bold=True, color=ThemeConfig.TEXT_BRIGHT, halign='left'))
+            row.add_widget(left)
+            
+            # Col 2: Price / %
+            mid1 = BoxLayout(orientation='vertical')
+            mid1.add_widget(Label(text=price, font_size=ui_sp(14), color=ThemeConfig.GREEN if '+' in pct else ThemeConfig.RED))
+            mid1.add_widget(Label(text=pct, font_size=ui_sp(11), color=ThemeConfig.TEXT_MUTED))
+            row.add_widget(mid1)
+            
+            # Col 3: RVOL
+            mid2 = Label(text=rvol, color=ThemeConfig.YELLOW if '2.4' in rvol else ThemeConfig.TEXT_DEFAULT)
+            row.add_widget(mid2)
+            
+            # Col 4: Strength (Mini Chart)
+            right = BoxLayout(padding=(ui_dp(10), ui_dp(10)))
+            right.add_widget(Sparkline(values=[random.random() for _ in range(6)], line_color=ThemeConfig.ACCENT))
+            row.add_widget(right)
+            
+            grid.add_widget(row)
+            
+        sv.add_widget(grid)
+        self.add_widget(sv)
+
+class CekEmitenTab(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', padding=ui_dp(8), spacing=ui_dp(12), **kwargs)
+        
+        # Header Info
+        header = Card(size_hint_y=None, height=ui_dp(100))
+        title_row = BoxLayout(size_hint_y=None, height=ui_dp(30))
+        title_row.add_widget(Label(text='BBCA', font_size=ui_sp(24), bold=True, color=ThemeConfig.TEXT_BRIGHT))
+        title_row.add_widget(Widget())
+        title_row.add_widget(Label(text='10.450', font_size=ui_sp(24), bold=True, color=ThemeConfig.GREEN))
+        header.add_widget(title_row)
+        
+        chips = BoxLayout(size_hint_y=None, height=ui_dp(30), spacing=ui_dp(6))
+        chips.add_widget(Badge('RSI (14): 62.4', bg_color=ThemeConfig.ACCENT))
+        chips.add_widget(Badge('MACD Bullish', bg_color=ThemeConfig.GREEN))
+        chips.add_widget(Widget())
+        header.add_widget(chips)
+        self.add_widget(header)
+        
+        # Main Candlestick Placeholder
+        chart = Card(bg_color=get_color_from_hex('#0F1419'), size_hint_y=None, height=ui_dp(200))
+        chart.add_widget(Label(text='[ PROFESSIONAL CHART VIEW ]', color=ThemeConfig.TEXT_MUTED))
+        self.add_widget(chart)
+        
+        # Bandarmology Detail Section
+        bandar_card = Card(size_hint_y=None, height=ui_dp(160))
+        bandar_card.add_widget(Label(text='BANDARMOLOGY FLOW', font_size=ui_sp(12), bold=True, color=ThemeConfig.TEXT_MUTED))
+        
+        flow_grid = GridLayout(cols=2, spacing=ui_dp(10), padding=ui_dp(5))
+        def flow_item(title, value, color):
+            box = BoxLayout(orientation='vertical')
+            box.add_widget(Label(text=title, font_size=ui_sp(10), color=ThemeConfig.TEXT_MUTED))
+            box.add_widget(Label(text=value, font_size=ui_sp(16), bold=True, color=color))
+            return box
+            
+        flow_grid.add_widget(flow_item('FOREIGN FLOW', '+245.2B', ThemeConfig.GREEN))
+        flow_grid.add_widget(flow_item('DOMESTIC FLOW', '-112.8B', ThemeConfig.RED))
+        bandar_card.add_widget(flow_grid)
+        
+        # Mini Progress Bar for Net Flow
+        progress_box = BoxLayout(size_hint_y=None, height=ui_dp(8), padding=(ui_dp(10), 0))
+        with progress_box.canvas:
+            Color(rgb=ThemeConfig.BORDER)
+            Rectangle(pos=progress_box.pos, size=progress_box.size)
+            Color(rgb=ThemeConfig.GREEN)
+            Rectangle(pos=progress_box.pos, size=(progress_box.width * 0.65, progress_box.height))
+        bandar_card.add_widget(progress_box)
+        
+        self.add_widget(bandar_card)
+        self.add_widget(Widget()) # Spacer
+
+# --- Main App ---
+class EnhancedJurnalApp(App):
+    def build(self):
+        Window.clearcolor = ThemeConfig.BG_MAIN
+        root = BoxLayout(orientation='vertical')
+        
+        # Bottom Navigation placeholder logic
+        self.content_area = BoxLayout()
+        root.add_widget(self.content_area)
+        
+        # Initial View
+        self.content_area.add_widget(ScreeningTab())
+        
+        return root
+
+if __name__ == '__main__':
+    EnhancedJurnalApp().run()
+    def on_touch_move(self, touch):
+        return super().on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        # trigger refresh if a real implementation exists
+        try:
+            if self._on_refresh and callable(self._on_refresh):
+                self._on_refresh()
+        except Exception:
+            pass
+        return super().on_touch_up(touch)
 
 # --- Main Tabs ---
 class WatchlistTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
         header = BoxLayout(size_hint_y=None, height=ui_dp(60), padding=ui_dp(10))
-        header.add_widget(Label(text='[b]Watchlist[/b]', markup=True, font_size=ui_sp(20)))
+        header.add_widget(Label(text='[b]Watchlist[/b]', markup=True, font_size=ui_sp(ThemeConfig.FONT_HEADER), color=ThemeConfig.TEXT_HEADER))
         self.add_widget(header)
         scroll = ScrollView()
         self.list = GridLayout(cols=1, size_hint_y=None, spacing=ui_dp(1))
@@ -141,11 +297,11 @@ class WatchlistTab(BoxLayout):
         for s in MockDataFetcher.sample_stocks:
             row = BoxLayout(size_hint_y=None, height=ui_dp(80), padding=ui_dp(10))
             with row.canvas.before:
-                Color(0.06, 0.06, 0.06, 1)
+                Color(*ThemeConfig.BG_CARD)
                 Rectangle(pos=row.pos, size=row.size)
-            row.add_widget(Label(text=s['symbol'], font_size=ui_sp(18), bold=True))
-            row.add_widget(SparklineWidget(values=[random.random() for _ in range(10)], size_hint_x=0.4))
-            row.add_widget(Label(text='Rp 10.250', halign='right'))
+            row.add_widget(Label(text=s['symbol'], font_size=ui_sp(18), bold=True, color=ThemeConfig.TEXT_HEADER))
+            row.add_widget(SparklineWidget(values=[random.random() for _ in range(10)], size_hint_x=0.4, line_color=ThemeConfig.SPARKLINE))
+            row.add_widget(Label(text='Rp 10.250', halign='right', color=ThemeConfig.TEXT_DEFAULT))
             self.list.add_widget(row)
         scroll.add_widget(self.list)
         self.add_widget(scroll)
@@ -153,92 +309,92 @@ class WatchlistTab(BoxLayout):
 class DashboardTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Top 10 Insights[/b]', markup=True, size_hint_y=None, height=ui_dp(60)))
+        self.add_widget(Label(text='[b]Top 10 Insights[/b]', markup=True, size_hint_y=None, height=ui_dp(60), font_size=ui_sp(ThemeConfig.FONT_HEADER), color=ThemeConfig.TEXT_HEADER))
         scroll = ScrollView()
         content = BoxLayout(orientation='vertical', size_hint_y=None, padding=ui_dp(10), spacing=ui_dp(10))
         content.bind(minimum_height=content.setter('height'))
         phase_card = BoxLayout(size_hint_y=None, height=ui_dp(200), padding=ui_dp(15))
         with phase_card.canvas.before:
-            Color(0.1, 0.1, 0.1, 1)
-            RoundedRectangle(pos=phase_card.pos, size=phase_card.size, radius=[ui_dp(15)])
-        phase_card.add_widget(Label(text='Phase Distribution Pie Chart'))
+            Color(*ThemeConfig.BG_HEADER)
+            RoundedRectangle(pos=phase_card.pos, size=phase_card.size, radius=[ui_dp(ThemeConfig.RADIUS_CARD)])
+        phase_card.add_widget(Label(text='Phase Distribution Pie Chart', color=ThemeConfig.TEXT_DEFAULT))
         content.add_widget(phase_card)
         for i in range(5):
-            content.add_widget(Label(text=f'Top Gainer {i+1}: BBCA +2.5%', size_hint_y=None, height=ui_dp(40)))
+            content.add_widget(Label(text=f'Top Gainer {i+1}: BBCA +2.5%', size_hint_y=None, height=ui_dp(40), color=ThemeConfig.TEXT_DEFAULT))
         scroll.add_widget(content)
         self.add_widget(scroll)
 
 class JurnalTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Portofolio Summary[/b]', markup=True, size_hint_y=None, height=ui_dp(60)))
+        self.add_widget(Label(text='[b]Portofolio Summary[/b]', markup=True, size_hint_y=None, height=ui_dp(60), font_size=ui_sp(ThemeConfig.FONT_HEADER), color=ThemeConfig.TEXT_HEADER))
         summary = BoxLayout(size_hint_y=None, height=ui_dp(100), padding=ui_dp(10))
-        summary.add_widget(Label(text='Total Equity\\nRp 142.850.000', halign='center'))
+        summary.add_widget(Label(text='Total Equity\nRp 142.850.000', halign='center', color=ThemeConfig.TEXT_DEFAULT))
         self.add_widget(summary)
         scroll = ScrollView()
         self.trade_log = GridLayout(cols=1, size_hint_y=None)
         self.trade_log.bind(minimum_height=self.trade_log.setter('height'))
         for i in range(10):
-            self.trade_log.add_widget(Label(text=f'Trade Log {i}: Buy BBCA 100 Lot @ 9800', size_hint_y=None, height=ui_dp(50)))
+            self.trade_log.add_widget(Label(text=f'Trade Log {i}: Buy BBCA 100 Lot @ 9800', size_hint_y=None, height=ui_dp(50), color=ThemeConfig.TEXT_DEFAULT))
         scroll.add_widget(self.trade_log)
         self.add_widget(scroll)
 
 class ScreeningTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Live Screening[/b]', markup=True, size_hint_y=None, height=ui_dp(60)))
+        self.add_widget(Label(text='[b]Live Screening[/b]', markup=True, size_hint_y=None, height=ui_dp(60), font_size=ui_sp(ThemeConfig.FONT_HEADER), color=ThemeConfig.TEXT_HEADER))
         scroll = ScrollView()
         table = GridLayout(cols=4, size_hint_y=None, spacing=ui_dp(2))
         table.bind(minimum_height=table.setter('height'))
         headers = ['SAHAM', 'HARGA', '%', 'NET B/S']
-        for h in headers: table.add_widget(Label(text=h, bold=True, size_hint_y=None, height=ui_dp(40)))
+        for h in headers: table.add_widget(Label(text=h, bold=True, size_hint_y=None, height=ui_dp(40), color=ThemeConfig.TEXT_HEADER))
         for s in MockDataFetcher.sample_stocks * 3:
-            table.add_widget(Label(text=s['symbol'], size_hint_y=None, height=ui_dp(40)))
-            table.add_widget(Label(text='10.250'))
-            table.add_widget(Label(text='+2.5%'))
-            table.add_widget(Label(text='+124B'))
+            table.add_widget(Label(text=s['symbol'], size_hint_y=None, height=ui_dp(40), color=ThemeConfig.TEXT_DEFAULT))
+            table.add_widget(Label(text='10.250', color=ThemeConfig.TEXT_DEFAULT))
+            table.add_widget(Label(text='+2.5%', color=ThemeConfig.TEXT_DEFAULT))
+            table.add_widget(Label(text='+124B', color=ThemeConfig.TEXT_DEFAULT))
         scroll.add_widget(table)
         self.add_widget(scroll)
 
 class CekSahamTab(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
-        self.add_widget(Label(text='[b]Analisis Individu[/b]', markup=True, size_hint_y=None, height=ui_dp(60)))
+        self.add_widget(Label(text='[b]Analisis Individu[/b]', markup=True, size_hint_y=None, height=ui_dp(60), font_size=ui_sp(ThemeConfig.FONT_HEADER), color=ThemeConfig.TEXT_HEADER))
         self.add_widget(TextInput(hint_text='Cari Kode Saham...', size_hint_y=None, height=ui_dp(50)))
         chart = BoxLayout(size_hint_y=None, height=ui_dp(300))
         with chart.canvas.before:
-            Color(0.05, 0.05, 0.05, 1)
+            Color(*ThemeConfig.BG_CHART)
             Rectangle(pos=chart.pos, size=chart.size)
-        chart.add_widget(Label(text='Candlestick Chart View'))
+        chart.add_widget(Label(text='Candlestick Chart View', color=ThemeConfig.TEXT_DEFAULT))
         self.add_widget(chart)
-        self.add_widget(Label(text='Signal: STRONG BUY', font_size=ui_sp(24), color=(0.11, 0.75, 0.36, 1)))
+        self.add_widget(Label(text='Signal: STRONG BUY', font_size=ui_sp(ThemeConfig.FONT_SIGNAL), color=ThemeConfig.TEXT_SIGNAL))
         self.add_widget(Widget())
 
 # --- App Root with Bottom Nav (named MainStockbitApp for compatibility) ---
 class MainStockbitApp(App):
     def build(self):
-        Window.clearcolor = get_color_from_hex('#101419')
+        Window.clearcolor = ThemeConfig.BG_MAIN
         self.root = BoxLayout(orientation='vertical')
         self.content_area = BoxLayout()
         self.tabs = [WatchlistTab(), DashboardTab(), JurnalTab(), ScreeningTab(), CekSahamTab()]
         self.switch_tab(0)
-        
+
         # Bottom Navigation
         nav = BoxLayout(size_hint_y=None, height=ui_dp(65))
         with nav.canvas.before:
-            Color(0.1, 0.1, 0.1, 1)
+            Color(*ThemeConfig.BG_NAV)
             Rectangle(pos=nav.pos, size=nav.size)
-            Color(0.2, 0.2, 0.2, 1)
+            Color(*ThemeConfig.BG_NAV_LINE)
             Line(points=[nav.x, nav.top, nav.right, nav.top], width=ui_dp(1))
-            
+
         labels = ['Watchlist', 'Top 10', 'Jurnal', 'Screening', 'Cek Saham']
         self.nav_btns = []
         for i, text in enumerate(labels):
-            btn = Button(text=text, background_color=(0,0,0,0), color=(0.7,0.7,0.7,1), font_size=ui_sp(10))
+            btn = Button(text=text, background_color=ThemeConfig.BUTTON_BG, color=ThemeConfig.TEXT_DEFAULT, font_size=ui_sp(ThemeConfig.FONT_NAV))
             btn.bind(on_release=lambda x, idx=i: self.switch_tab(idx))
             nav.add_widget(btn)
             self.nav_btns.append(btn)
-            
+
         self.root.add_widget(self.content_area)
         self.root.add_widget(nav)
         return self.root
@@ -247,76 +403,10 @@ class MainStockbitApp(App):
         self.content_area.clear_widgets()
         self.content_area.add_widget(self.tabs[idx])
         for i, btn in enumerate(getattr(self, 'nav_btns', [])):
-            btn.color = (0.05, 0.8, 0.66, 1) if i == idx else (0.7, 0.7, 0.7, 1)
+            btn.color = ThemeConfig.TEXT_ACTIVE if i == idx else ThemeConfig.TEXT_DEFAULT
 
 if __name__ == '__main__':
     MainStockbitApp().run()
-
-        # N.BUY/N.SELL (2 lines)
-        net_cell = BoxLayout(orientation='vertical', size_hint=(None, 1), width=self._w_net, spacing=ui_dp(2))
-        self._net_top = Label(text='-', font_size=ui_sp(12), color=(0.88, 0.88, 0.88, 1), halign='right', valign='middle', **_font_kwargs())
-        self._net_bot = Label(text='-', font_size=ui_sp(12), color=(0.88, 0.88, 0.88, 1), halign='right', valign='middle', **_font_kwargs())
-        for lab in (self._net_top, self._net_bot):
-            lab.text_size = (net_cell.width, None)
-            lab.bind(size=lambda inst, val: setattr(inst, 'text_size', (net_cell.width, None)))
-            lab.shorten = True
-            lab.shorten_from = 'left'
-        net_cell.add_widget(self._net_top)
-        net_cell.add_widget(self._net_bot)
-        self.add_widget(net_cell)
-
-        # OPEN=LOW
-        self._openlow = Label(text='-', font_size=ui_sp(12), color=(0.88, 0.88, 0.88, 1), size_hint=(None, 1), width=self._w_open, halign='center', valign='middle', **_font_kwargs())
-        self._openlow.text_size = (self._openlow.width, None)
-        self._openlow.bind(size=lambda inst, val: setattr(inst, 'text_size', (inst.width, None)))
-        self.add_widget(self._openlow)
-
-    def refresh_view_attrs(self, rv, index, data):
-        try:
-            self.width = float(data.get('table_w', self.width) or self.width)
-        except Exception:
-            pass
-        try:
-            self._symbol = str(data.get('symbol', '') or '').strip().upper()
-            self._sym_btn.text = str(data.get('symbol_txt', '-') or '-')
-
-            self._price_top.text = str(data.get('price_txt', '-') or '-')
-            self._price_bot.text = str(data.get('prev_txt', '-') or '-')
-            try:
-                self._price_top.color = tuple(data.get('price_color') or (0.11, 0.75, 0.36, 1))
-            except Exception:
-                pass
-
-            self._pct.text = str(data.get('pct_txt', '-') or '-')
-            self._pct.color = tuple(data.get('pct_color') or (0.70, 0.70, 0.70, 1))
-
-            self._bid_top.text = str(data.get('bid_txt', '-') or '-')
-            self._bid_bot.text = str(data.get('offer_txt', '-') or '-')
-
-            self._net_top.text = str(data.get('nb_txt', '-') or '-')
-            self._net_bot.text = str(data.get('ns_txt', '-') or '-')
-            self._net_top.color = tuple(data.get('nb_color') or (0.88, 0.88, 0.88, 1))
-            self._net_bot.color = tuple(data.get('ns_color') or (0.88, 0.88, 0.88, 1))
-
-            self._openlow.text = str(data.get('openlow_txt', '-') or '-')
-        except Exception:
-            pass
-        return super().refresh_view_attrs(rv, index, data)
-
-
-class PullToRefreshScrollView(ScrollView):
-    def __init__(self, indicator_box, indicator_label, on_refresh=None, trigger=90, **kwargs):
-        super().__init__(**kwargs)
-        self._indicator_box = indicator_box
-        self._indicator_label = indicator_label
-        self._on_refresh = on_refresh
-        self._trigger = ui_dp(trigger)
-        self._pull = 0
-        self._down_y = None
-        self._armed = False
-        self._pulling = False
-        self._start_at_top = False
-        self._slop = ui_dp(6)
 
     def _reset_pull(self):
         self._pull = 0
@@ -529,7 +619,7 @@ class _NavIcon(Widget):
     """
 
     icon_type = ''
-    color = ListProperty([0.70, 0.70, 0.70, 1])
+    color = ListProperty(ThemeConfig.TEXT_DEFAULT)
 
     def __init__(self, icon_type: str = '', **kwargs):
         super().__init__(**kwargs)
@@ -628,8 +718,8 @@ class _NavIcon(Widget):
         try:
             btn.background_normal = ''
             btn.background_down = ''
-            btn.background_color = (0, 0, 0, 0)
-            btn.color = (0.88, 0.88, 0.88, 1)
+            btn.background_color = ThemeConfig.BUTTON_BG
+            btn.color = ThemeConfig.TEXT_BUTTON
             # Slightly reduced padding vs trade buttons when padding_scale < 1.
             base_pad = ui_dp(8)
             pad = base_pad * float(padding_scale)
@@ -639,8 +729,8 @@ class _NavIcon(Widget):
         try:
             from kivy.graphics import Color, Line
             with btn.canvas.before:
-                Color(base_color[0], base_color[1], base_color[2], 1)
-                btn._outline = Line(rounded_rectangle=(btn.x, btn.y, btn.width, btn.height, ui_dp(8)), width=1.2)
+                Color(*base_color)
+                btn._outline = Line(rounded_rectangle=(btn.x, btn.y, btn.width, btn.height, ui_dp(ThemeConfig.RADIUS_BTN)), width=1.2)
 
             def _upd_outline(*_):
                 try:
@@ -753,8 +843,8 @@ class SwipeToDeleteRow(Widget):
             pos_hint={'right': 1, 'y': 0},
             background_normal='',
             background_down='',
-            background_color=(0.92, 0.26, 0.20, 1),
-            color=(1, 1, 1, 1),
+            background_color=ThemeConfig.DELETE_BTN_BG,
+            color=ThemeConfig.TEXT_DELETE,
             padding=(0, 0),
             **_font_kwargs(),
         )
