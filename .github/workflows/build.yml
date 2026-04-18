@@ -35,3 +35,10 @@ jobs:
         with:
           name: kivy-apk
           path: bin/*.apk
+
+      - name: APK Download Popup Preview
+        if: always()
+        run: |
+          echo "### APK Download Preview" >> $GITHUB_STEP_SUMMARY
+          echo "Download the latest APK build from the artifact section below after the workflow completes." >> $GITHUB_STEP_SUMMARY
+          echo "You will find the APK in the 'kivy-apk' artifact." >> $GITHUB_STEP_SUMMARY
