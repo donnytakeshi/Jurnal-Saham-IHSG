@@ -161,10 +161,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Safety: ensure this is not a fork
+        env:
+          IS_FORK: ${{ github.event.repository.fork }}
         run: |
-          # when job-level if passes this should be safe, but double-check and abort if running on a fork
           echo "Checking if repository is a fork..."
-          if [ "${{ toJson(github.event.repository.fork) }}" = "true" ]; then
+          if [ "$IS_FORK" = "true" ]; then
             echo "Repository is a fork; aborting release job for safety." >&2
             exit 2
           fi
