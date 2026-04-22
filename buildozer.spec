@@ -38,9 +38,9 @@ version = 0.1.0
 # version.regex = __version__ = ['"](.*)['"]
 # version.filename = %(source.dir)s/main.py
 
+
 # (list) Application requirements
-# Keep Android build lightweight: avoid pandas/numpy unless absolutely necessary.
-# For Android we use REST-based Supabase auth, so supabase SDK is not required here.
+# Tambahkan semua modul yang diimport di kode utama dan modules agar tidak crash di Android.
 requirements = python3==3.10.10,kivy,requests
 
 # (str) Local python-for-android recipes (override upstream recipes when needed)

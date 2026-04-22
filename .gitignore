@@ -1,3 +1,21 @@
+/.venv*
+.venv311/
+*.log
+*.log*
+*.pyc
+__pycache__/
+*.bak
+*.tmp
+*.swp
+android-studio-*.dmg
+*.tar.gz
+*.zip
+/.buildozer/
+/.venvsource/
+.reconstructed_from_apk/
+.env
+.env.*
+.supabase/
 # Python
 __pycache__/
 *.py[cod]
