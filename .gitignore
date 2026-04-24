@@ -84,3 +84,7 @@ supabase_config_local.json
 # Python bytecode / caches
 __pycache__/
 *.pyc
+.vercel
+data/installed_private/
+__pycache__/
+*.pyc
