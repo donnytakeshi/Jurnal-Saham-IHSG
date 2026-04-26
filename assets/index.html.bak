@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurnal Saham IHSG</title>
+    <style>
+        body {
+            background: #0a0c0e;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+        h1 { color: #159D91; }
+        .card {
+            background: #181c21;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 10px 0;
+        }
+        .green { color: #67d9cb; }
+    </style>
+</head>
+<body>
+    <h1>📈 JURNAL SAHAM IHSG</h1>
+    <div class="card">
+        <p class="green">IHSG MARKET SUMMARY</p>
+        <h2>7,321.05 <span class="green">+1.24%</span></h2>
+    </div>
+    <div class="card">
+        <p>🔥 TOP MOVERS</p>
+        <p>BBCA: Rp 10.250 <span class="green">+2.5%</span></p>
+        <p>BBRI: Rp 5.425 <span class="green">+1.8%</span></p>
+        <p>TLKM: Rp 3.210 <span class="green">+0.9%</span></p>
+    </div>
+    <p style="text-align:center; margin-top:50px;">WebView berhasil!</p>
+</body>
+</html>
