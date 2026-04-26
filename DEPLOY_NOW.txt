@@ -1,0 +1,100 @@
+# 🚀 DEPLOYMENT INSTRUCTIONS
+
+## Deploy ke Streamlit Cloud (5 menit)
+
+### Step 1: Buka Streamlit Cloud
+```
+https://share.streamlit.io
+```
+
+### Step 2: Sign In dengan GitHub
+- Klik "Sign in with GitHub"
+- Authorize Streamlit untuk akses repo
+
+### Step 3: Deploy New App
+1. Klik **"New app"** (tombol hijau di atas)
+2. Isi form:
+   - **Repository**: `donnytakeshi/Jurnal-Saham-IHSG` (atau nama repo kamu)
+   - **Branch**: `build/apk-debug`
+   - **Main file path**: `streamlit_app.py`
+3. Klik **"Deploy!"**
+
+### Step 4: Tunggu 2-3 menit
+Streamlit akan:
+- ✅ Clone repository
+- ✅ Install dependencies dari requirements.txt
+- ✅ Run streamlit_app.py
+- ✅ Generate public URL
+
+### Step 5: Access App
+Setelah deploy selesai, app akan tersedia di:
+```
+https://donnytakeshi-jurnal-saham-ihsg.streamlit.app
+(nama bisa berbeda, lihat URL yang di-generate)
+```
+
+---
+
+## Fitur yang Sudah Ready:
+
+✅ **Dashboard Utama**
+- Ringkasan screening results
+- Grafik fase saham & signals
+- Top 10 akumulasi
+- Download CSV
+
+✅ **Cek Saham**
+- Analysis detail 1 saham
+- Bandarmology analysis
+- Technical indicators
+- Chart candlestick
+
+✅ **Hasil Screening**
+- Tabel lengkap semua saham
+- Filter & sorting
+- Net buy/sell calculation
+- CSV download
+
+✅ **Portfolio Tracking**
+- Add/edit/delete holdings
+- Monthly trading journal
+- P/L calculation
+- Performance metrics
+
+✅ **Cloud Sync** (optional)
+- Supabase integration
+- Auto-save portfolio
+- Restore dari cloud
+
+---
+
+## Troubleshooting
+
+**Deploy gagal?**
+- Check internet connection
+- Verify branch name (build/apk-debug)
+- Check file exists: streamlit_app.py
+- Check requirements.txt (no syntax errors)
+
+**App crash setelah deploy?**
+- Buka Streamlit Cloud dashboard
+- Click "Settings" → "Reboot app"
+- Atau "Always rerun app on file change"
+
+**Need to update app?**
+- Edit file lokal
+- `git push` ke branch yang sama
+- Streamlit auto-redeploy dalam 2-3 menit
+
+---
+
+## Optional: Setup Custom Domain
+
+1. Dashboard → Select app → Settings
+2. Custom domain: `myapp.com` (kamu punya domain?)
+3. Follow DNS instructions
+
+---
+
+**Status**: ✅ Ready to deploy!
+**Action**: Go to https://share.streamlit.io and deploy now!
