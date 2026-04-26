@@ -1,0 +1,22 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install Cordova globally
+RUN npm install -g cordova
+
+# Copy HTML/CSS/JS
+COPY assets/index.html ./www/index.html
+
+# Initialize Cordova project
+RUN cordova create . com.quantflow.app "QuantFlow" && \
+    rm -f www/index.html www/js/* www/css/* && \
+    cp /app/www/index.html www/
+
+# Add Android platform
+RUN cordova platform add android
+
+# Build APK
+RUN cordova build android
+
+CMD ["/bin/sh"]

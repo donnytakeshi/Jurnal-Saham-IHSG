@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+<div id="result">Testing...</div>
+<script>
+const STOCKS = ['BBCA', 'BBRI', 'TLKM', 'ASII', 'GOTO', 'UNVR', 'BMRI', 'ADRO'];
+const STOCK_NAMES = {
+    'BBCA': 'Bank Central Asia', 'BBRI': 'Bank Rakyat Indonesia', 'TLKM': 'Telkom Indonesia',
+    'ASII': 'Astra International', 'GOTO': 'GoTo Gojek Tokopedia', 'UNVR': 'Unilever Indonesia',
+    'BMRI': 'Bank Mandiri', 'ADRO': 'Adaro Energy'
+};
+
+async function testFetch() {
+    try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/BBCA.JK?interval=1d&range=1y`;
+        const resp = await fetch(url);
+        const json = await resp.json();
+        document.getElementById('result').innerHTML = 'API Works! Data: ' + JSON.stringify(json.chart.result[0].meta.regularMarketPrice);
+    } catch(e) {
+        document.getElementById('result').innerHTML = 'Error: ' + e.message;
+    }
+}
+testFetch();
+</script>
+</body>
+</html>

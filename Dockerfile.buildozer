@@ -1,0 +1,72 @@
+# Kivy/Buildozer Android build with proper NDK/SDK setup
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ANDROID_HOME=/opt/android \
+    ANDROID_SDK_ROOT=/opt/android \
+    ANDROID_NDK_ROOT=/opt/android/ndk/r25b \
+    PATH="/opt/android/cmdline-tools/latest/bin:/opt/android/platform-tools:/opt/android/ndk/r25b:${PATH}" \
+    JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    python3.9 \
+    python3.9-dev \
+    python3-pip \
+    git \
+    wget \
+    unzip \
+    openjdk-11-jdk-headless \
+    libffi-dev \
+    libssl-dev \
+    libncurses5 \
+    autoconf \
+    automake \
+    libtool \
+    pkg-config \
+    m4 \
+    gettext \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip3 install --upgrade pip setuptools wheel
+
+# Install Buildozer and Kivy with compatible Cython
+RUN pip3 install --no-cache-dir \
+    Cython==0.29.29 \
+    buildozer \
+    kivy
+
+# Create android directories
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools ${ANDROID_HOME}/licenses
+
+# Download and setup cmdline-tools
+RUN cd /tmp && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip && \
+    unzip -q commandlinetools-linux-10406996_latest.zip -d ${ANDROID_HOME}/cmdline-tools && \
+    mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest && \
+    rm commandlinetools-linux-10406996_latest.zip
+
+# Accept licenses (all variants)
+RUN mkdir -p ${ANDROID_HOME}/licenses && \
+    echo "8933bad161af4d29ff4e4979a2d050a46aaacfdc" > ${ANDROID_HOME}/licenses/android-sdk-license && \
+    echo "d56f5187479451eabf01fb78af6dfcb131b33910" >> ${ANDROID_HOME}/licenses/android-sdk-license && \
+    echo "601085b94cd77f0b54ff86406957099923cd2a3a" > ${ANDROID_HOME}/licenses/android-sdk-preview-license && \
+    echo "33b6a2b64607f11b759f320ef9dff4ae5c47d97a" > ${ANDROID_HOME}/licenses/google-play-services-license && \
+    echo "e4eed7e8aa989d505b91dcd1b9f2b6efc2a4eba7" > ${ANDROID_HOME}/licenses/google-android-ndk-license
+
+# Download SDK platforms and build-tools using sdkmanager
+RUN yes | sdkmanager --sdk_root=${ANDROID_HOME} \
+    "platforms;android-30" \
+    "build-tools;30.0.3" \
+    "ndk;25.1.8937393" 2>&1 || true
+
+# Fix for buildozer — disable byte compile
+RUN mkdir -p /root/.buildozer
+
+CMD ["/bin/bash"]

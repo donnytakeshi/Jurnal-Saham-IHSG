@@ -1,0 +1,3 @@
+id,symbol,date,action,quantity,price,total,notes,created_at
+1,BBCA,2026-02-22,BUY,100,10500.0,1050000.0,Accumulation phase,2026-02-22 00:00:45
+2,BBNI,2026-02-22,SELL,25,8100.0,202500.0,Profit taking,2026-02-22 00:00:45

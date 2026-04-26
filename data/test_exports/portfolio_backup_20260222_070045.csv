@@ -1,0 +1,3 @@
+id,symbol,company_name,quantity,avg_price,current_price,total_invested,total_current_value,created_at,updated_at
+1,BBCA,Bank Central Asia,100,10500.0,0.0,0.0,0.0,2026-02-22 00:00:45,2026-02-22 00:00:45
+2,BBNI,Bank Negara Indonesia,50,8000.0,0.0,0.0,0.0,2026-02-22 00:00:45,2026-02-22 00:00:45

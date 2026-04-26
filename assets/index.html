@@ -1,457 +1,215 @@
 <!DOCTYPE html>
-<html class="dark" lang="id">
+<html class="dark" lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
-<title>QuantFlow - Jurnal Saham IHSG</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantFlow - Jurnal Saham IHSG</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Work+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect fill='%2367d9cb' width='16' height='16'/></svg>">
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     "colors": {
-                        "surface-container-high": "#252b2a", "on-secondary": "#003732", "surface-dim": "#0f1413",
-                        "surface-container-low": "#171d1c", "secondary-fixed": "#85f5e7", "primary-fixed-dim": "#67d9cb",
-                        "on-primary": "#003732", "background": "#0a0c0e", "secondary-fixed-dim": "#67d9cb",
-                        "on-secondary-fixed": "#00201d", "on-error": "#690005", "tertiary": "#ffb59b",
-                        "error-container": "#93000a", "on-primary-fixed-variant": "#005049", "on-tertiary-fixed": "#380d00",
-                        "on-surface-variant": "#bcc9c6", "inverse-primary": "#006a62", "surface-variant": "#303635",
-                        "on-error-container": "#ffdad6", "surface": "#0a0c0e", "on-background": "#dee4e1",
-                        "primary": "#159D91", "tertiary-fixed": "#ffdbcf", "tertiary-container": "#d47856",
-                        "primary-fixed": "#84f5e7", "primary-container": "#159D91", "on-secondary-container": "#00302b",
-                        "on-primary-container": "#ffffff", "surface-container-lowest": "#0a0f0e", "inverse-on-surface": "#2c3230",
-                        "outline-variant": "#3d4947", "on-tertiary-fixed-variant": "#783114", "surface-bright": "#353a39",
-                        "secondary-container": "#20a195", "inverse-surface": "#dee4e1", "secondary": "#67d9cb",
-                        "on-tertiary-container": "#501600", "on-primary-fixed": "#00201d", "on-surface": "#dee4e1",
-                        "error": "#ffb4ab", "on-tertiary": "#5a1b01", "outline": "#869391", "tertiary-fixed-dim": "#ffb59b",
-                        "on-secondary-fixed-variant": "#005049", "surface-container": "#1b2120", "surface-container-highest": "#303635",
-                        "surface-tint": "#159D91"
+                        "tertiary": "#ffb59b",
+                        "surface-container-high": "#252b2a",
+                        "on-tertiary": "#5a1b01",
+                        "inverse-on-surface": "#2c3230",
+                        "on-background": "#dee4e1",
+                        "error-container": "#93000a",
+                        "surface-container": "#1b2120",
+                        "surface-container-low": "#171d1c",
+                        "secondary": "#67d9cb",
+                        "on-tertiary-fixed-variant": "#783114",
+                        "on-secondary-fixed-variant": "#005049",
+                        "on-primary-fixed-variant": "#005049",
+                        "surface-container-lowest": "#0a0f0e",
+                        "on-primary": "#003732",
+                        "secondary-container": "#20a195",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#85f5e7",
+                        "background": "#0f1413",
+                        "primary-fixed-dim": "#67d9cb",
+                        "surface-tint": "#67d9cb",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "secondary-fixed-dim": "#67d9cb",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#869391",
+                        "on-secondary-fixed": "#00201d",
+                        "inverse-primary": "#006a62",
+                        "surface-container-highest": "#303635",
+                        "on-surface-variant": "#bcc9c6",
+                        "surface-variant": "#303635",
+                        "on-secondary-container": "#00302b",
+                        "primary-container": "#1fa195",
+                        "inverse-surface": "#dee4e1",
+                        "on-primary-fixed": "#00201d",
+                        "on-primary-container": "#00302b",
+                        "on-secondary": "#003732",
+                        "on-tertiary-container": "#501600",
+                        "tertiary-container": "#d47856",
+                        "surface-dim": "#0f1413",
+                        "on-surface": "#dee4e1",
+                        "outline-variant": "#3d4947",
+                        "on-tertiary-fixed": "#380d00",
+                        "primary-fixed": "#84f5e7",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#ffdbcf",
+                        "surface-bright": "#353a39",
+                        "primary": "#67d9cb",
+                        "surface": "#0f1413"
                     },
-                    "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
-                    "spacing": { "xs": "4px", "margin": "20px", "lg": "24px", "sm": "8px", "base": "4px", "xl": "32px", "md": "16px", "gutter": "16px" },
-                    "fontFamily": { "label-md": ["Inter"], "headline-lg": ["Work Sans"], "numeric-data": ["Inter"], "body-md": ["Inter"], "body-lg": ["Inter"], "headline-md": ["Work Sans"], "work-sans": ["Work Sans", "sans-serif"] },
-                    "fontSize": {
-                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
-                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
-                        "numeric-data": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin": "20px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Work Sans"],
+                        "headline-md": ["Work Sans"],
+                        "numeric-data": ["Inter"]
                     }
                 }
             }
         }
     </script>
-<style>
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        body { background-color: #0a0c0e; color: #dee4e1; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(24, 28, 33, 0.7); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .pulsing-dot { box-shadow: 0 0 0 0 rgba(21, 157, 145, 0.7); animation: pulse-green 2s infinite; }
-        @keyframes pulse-green { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(21, 157, 145, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(21, 157, 145, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(21, 157, 145, 0); } }
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .custom-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-card {
+            background: rgba(24, 28, 33, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .pulsing-dot {
+            box-shadow: 0 0 0 0 rgba(103, 217, 203, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(103, 217, 203, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(103, 217, 203, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(103, 217, 203, 0.7); }
+        }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .nav-item { cursor: pointer; transition: all 0.2s; }
-        .nav-item.active { color: #159D91 !important; background: rgba(21,157,145,0.1) !important; border-radius: 12px; }
-        .typing-indicator { display: flex; gap: 4px; padding: 8px; }
-        .typing-indicator span { width: 6px; height: 6px; background: #67d9cb; border-radius: 50%; animation: bounce 1.4s infinite; }
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }
-        .chat-container::-webkit-scrollbar { width: 4px; }
-        .chat-container::-webkit-scrollbar-track { background: transparent; }
-        .chat-container::-webkit-scrollbar-thumb { background: #159D9144; border-radius: 10px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-btn.active-nav { color: #67d9cb; border-top: 3px solid #67d9cb; }
     </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="bg-[#101419] text-on-background font-body-md selection:bg-primary/30">
 
-<!-- TopAppBar -->
-<header class="bg-[#0a0c0e]/95 backdrop-blur-md border-b border-white/5 fixed top-0 w-full z-50">
-    <div class="flex justify-between items-center w-full px-5 py-3">
-        <div class="flex items-center gap-3">
-            <div class="relative">
-                <div class="w-10 h-10 rounded-full overflow-hidden border border-primary/20">
-                    <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8zqRnZx2AgY3dPLBAGvDLOlYTiGs9_r00jNgEg5aYG5J-Mt-Wm-6sp0VuSiSexzphrb0FL77-GN9vn7ukMFJLCFlPAHnLsFsznNcYgKVAb9wt455fZTLNJnqGlpNgiOqZlHwEg-tSN4zuo50A6oYxXK-0CdV2V1OFVCJd7p1Dcl4fEtB3e6OQ4nn02ttsyK-fuO2H49cWrlm_hGDRKYwYXSOvaZWZd-yUMBkeHZZ0nfuF87aAeJm3h9QfkT0NVQCdUr8YNlJVqxLQ">
-                </div>
-                <span class="absolute bottom-0 right-0 w-3 h-3 bg-primary border-2 border-background rounded-full"></span>
-            </div>
-            <div>
-                <h1 class="font-['Work_Sans'] font-semibold tracking-tight text-lg text-primary">JURNAL SAHAM IHSG</h1>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] text-primary font-medium uppercase tracking-widest" id="market-status">Loading...</span>
-                </div>
-            </div>
-        </div>
-        <button class="text-slate-400 hover:bg-white/5 transition-colors p-2 rounded-xl" onclick="refreshAllData()">
-            <span class="material-symbols-outlined">refresh</span>
-        </button>
-    </div>
-</header>
+<!-- TAB: HOME -->
+<div id="tab-home" class="tab-content active"></div>
 
-<!-- Main Content -->
-<main class="pt-20 px-5 max-w-4xl mx-auto">
-    <div id="tab-home" class="tab-content active"></div>
-    <div id="tab-watchlist" class="tab-content"></div>
-    <div id="tab-journal" class="tab-content"></div>
-    <div id="tab-screening" class="tab-content"></div>
-    <div id="tab-cek" class="tab-content"></div>
-    <div id="tab-ai" class="tab-content"></div>
-</main>
+<!-- TAB: WATCHLIST -->
+<div id="tab-watchlist" class="tab-content"></div>
+
+<!-- TAB: JOURNAL -->
+<div id="tab-journal" class="tab-content"></div>
+
+<!-- TAB: SCREENING -->
+<div id="tab-screening" class="tab-content"></div>
+
+<!-- TAB: CEK SAHAM -->
+<div id="tab-cek_saham" class="tab-content"></div>
+
+<!-- TAB: AI CHAT -->
+<div id="tab-aichat" class="tab-content"></div>
 
 <!-- Bottom Navigation -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-[#0a0c0e] border-t border-white/5">
-    <div class="nav-item flex flex-col items-center justify-center text-slate-500 hover:text-primary transition-all" data-tab="home">
-        <span class="material-symbols-outlined">home</span>
-        <span class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-wider mt-1">Home</span>
-    </div>
-    <div class="nav-item flex flex-col items-center justify-center text-slate-500 hover:text-primary transition-all" data-tab="watchlist">
-        <span class="material-symbols-outlined">monitoring</span>
-        <span class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-wider mt-1">Watchlist</span>
-    </div>
-    <div class="nav-item flex flex-col items-center justify-center text-slate-500 hover:text-primary transition-all" data-tab="journal">
-        <span class="material-symbols-outlined">menu_book</span>
-        <span class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-wider mt-1">Journal</span>
-    </div>
-    <div class="nav-item flex flex-col items-center justify-center text-slate-500 hover:text-primary transition-all" data-tab="screening">
-        <span class="material-symbols-outlined">query_stats</span>
-        <span class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-wider mt-1">Screening</span>
-    </div>
-    <div class="nav-item flex flex-col items-center justify-center text-primary bg-primary/10 rounded-xl px-4 py-1" data-tab="ai">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
-        <span class="font-['Work_Sans'] text-[10px] font-medium uppercase tracking-wider mt-1">AI Chat</span>
+<nav class="fixed bottom-0 left-0 right-0 bg-[#101419] border-t border-white/10">
+    <div class="flex items-center justify-around max-w-2xl mx-auto">
+        <button onclick="switchTab('tab-home')" class="tab-btn flex-1 flex flex-col items-center gap-1 py-4 text-on-surface-variant hover:text-primary active-nav" data-tab="tab-home">
+            <span class="material-symbols-outlined">home</span>
+            <span class="font-label-md text-label-md">HOME</span>
+        </button>
+        <button onclick="switchTab('tab-watchlist')" class="tab-btn flex-1 flex flex-col items-center gap-1 py-4 text-on-surface-variant hover:text-primary" data-tab="tab-watchlist">
+            <span class="material-symbols-outlined">trending_up</span>
+            <span class="font-label-md text-label-md">WATCHLIST</span>
+        </button>
+        <button onclick="switchTab('tab-journal')" class="tab-btn flex-1 flex flex-col items-center gap-1 py-4 text-on-surface-variant hover:text-primary" data-tab="tab-journal">
+            <span class="material-symbols-outlined">article</span>
+            <span class="font-label-md text-label-md">JOURNAL</span>
+        </button>
+        <button onclick="switchTab('tab-screening')" class="tab-btn flex-1 flex flex-col items-center gap-1 py-4 text-on-surface-variant hover:text-primary" data-tab="tab-screening">
+            <span class="material-symbols-outlined">tune</span>
+            <span class="font-label-md text-label-md">SCREENING</span>
+        </button>
+        <button onclick="switchTab('tab-cek_saham')" class="tab-btn flex-1 flex flex-col items-center gap-1 py-4 text-on-surface-variant hover:text-primary" data-tab="tab-cek_saham">
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="font-label-md text-label-md">CEK SAHAM</span>
+        </button>
+        <button onclick="switchTab('tab-aichat')" class="tab-btn flex-1 flex flex-col items-center gap-1 py-4 text-on-surface-variant hover:text-primary" data-tab="tab-aichat">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span class="font-label-md text-label-md">AI CHAT</span>
+        </button>
     </div>
 </nav>
 
+<!-- Load Component Scripts -->
+<script src="components/home.js"></script>
+<script src="components/watchlist.js"></script>
+<script src="components/journal.js"></script>
+<script src="components/screening.js"></script>
+<script src="components/cek_saham.js"></script>
+<script src="components/aichat.js"></script>
+
 <script>
-    // ==================== KONFIGURASI ====================
-    const DEEPSEEK_API_KEY = 'YOUR_DEEPSEEK_API_KEY_HERE';
-    const STOCKS = ['BBCA', 'BBRI', 'TLKM', 'ASII', 'GOTO', 'UNVR', 'BMRI', 'ADRO'];
-    const STOCK_NAMES = {
-        'BBCA': 'Bank Central Asia', 'BBRI': 'Bank Rakyat Indonesia', 'TLKM': 'Telkom Indonesia',
-        'ASII': 'Astra International', 'GOTO': 'GoTo Gojek Tokopedia', 'UNVR': 'Unilever Indonesia',
-        'BMRI': 'Bank Mandiri', 'ADRO': 'Adaro Energy'
-    };
-    
-    // ==================== LOCAL STORAGE KEYS ====================
-    const STORAGE_WATCHLIST = 'jurnal_watchlist';
-    const STORAGE_PORTFOLIO = 'jurnal_portfolio';
-    const STORAGE_TRANSACTIONS = 'jurnal_transactions';
-    
-    // ==================== DATA STORAGE ====================
-    let stockData = {};
-    let ihsgData = null;
-    let portfolio = [];
-    let watchlist = [];
-    let transactions = [];
-    let chatHistory = [];
-    let currentTab = 'home';
-    
-    // ==================== LOAD FROM LOCALSTORAGE ====================
-    function loadFromStorage() {
-        const savedWatchlist = localStorage.getItem(STORAGE_WATCHLIST);
-        if (savedWatchlist) watchlist = JSON.parse(savedWatchlist);
-        else watchlist = ['BBCA', 'BBRI', 'TLKM', 'ASII'];
-        
-        const savedPortfolio = localStorage.getItem(STORAGE_PORTFOLIO);
-        if (savedPortfolio) portfolio = JSON.parse(savedPortfolio);
-        else portfolio = [{ symbol: 'BBCA', qty: 100, avgPrice: 9800 }, { symbol: 'BBRI', qty: 250, avgPrice: 4200 }];
-        
-        const savedTransactions = localStorage.getItem(STORAGE_TRANSACTIONS);
-        if (savedTransactions) transactions = JSON.parse(savedTransactions);
-        else transactions = [];
-    }
-    
-    function saveWatchlist() { localStorage.setItem(STORAGE_WATCHLIST, JSON.stringify(watchlist)); }
-    function savePortfolio() { localStorage.setItem(STORAGE_PORTFOLIO, JSON.stringify(portfolio)); }
-    function saveTransactions() { localStorage.setItem(STORAGE_TRANSACTIONS, JSON.stringify(transactions)); }
-    
-    // ==================== API CALLS ====================
-    async function fetchStock(symbol) {
-        try {
-            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}.JK`;
-            const resp = await fetch(url);
-            const json = await resp.json();
-            const result = json.chart.result[0];
-            const meta = result.meta;
-            const quotes = result.indicators.quote[0];
-            const lastIdx = quotes.close.length - 1;
-            const price = quotes.close[lastIdx] || meta.regularMarketPrice;
-            const prevClose = meta.previousClose || meta.chartPreviousClose || price;
-            const changePercent = ((price - prevClose) / prevClose) * 100;
-            return { symbol, name: STOCK_NAMES[symbol] || symbol, price, changePercent, volume: quotes.volume?.[lastIdx] || meta.regularMarketVolume };
-        } catch(e) { return null; }
-    }
-    
-    async function fetchIHSG() {
-        try {
-            const url = `https://query1.finance.yahoo.com/v8/finance/chart/%5EJKSE`;
-            const resp = await fetch(url);
-            const json = await resp.json();
-            const result = json.chart.result[0];
-            const meta = result.meta;
-            const quotes = result.indicators.quote[0];
-            const lastIdx = quotes.close.length - 1;
-            const price = quotes.close[lastIdx] || meta.regularMarketPrice;
-            const prevClose = meta.previousClose || meta.chartPreviousClose || price;
-            const changePercent = ((price - prevClose) / prevClose) * 100;
-            const volume = quotes.volume?.[lastIdx] || meta.regularMarketVolume;
-            return { price, changePercent, volume };
-        } catch(e) { return null; }
-    }
-    
-    async function refreshAllData() {
-        document.getElementById('market-status').innerHTML = 'Loading...';
-        const [ihsg, ...stocks] = await Promise.all([fetchIHSG(), ...STOCKS.map(s => fetchStock(s))]);
-        if (ihsg) ihsgData = ihsg;
-        for (const s of stocks) if (s) stockData[s.symbol] = s;
-        document.getElementById('market-status').innerHTML = ihsgData ? `IHSG ${ihsgData.changePercent >= 0 ? '▲' : '▼'} ${(ihsgData.changePercent || 0).toFixed(2)}%` : 'Open';
-        renderCurrentTab();
-    }
-    
-    // ==================== WATCHLIST FUNCTIONS ====================
-    function addToWatchlist(symbol) {
-        if (!watchlist.includes(symbol)) {
-            watchlist.push(symbol);
-            saveWatchlist();
-            renderWatchlist();
-            showToast(`✅ ${symbol} added to watchlist`);
-        } else {
-            showToast(`${symbol} already in watchlist`);
-        }
-    }
-    
-    function removeFromWatchlist(symbol) {
-        watchlist = watchlist.filter(s => s !== symbol);
-        saveWatchlist();
-        renderWatchlist();
-        showToast(`🗑️ ${symbol} removed from watchlist`);
-    }
-    
-    // ==================== PORTFOLIO FUNCTIONS ====================
-    function addTransaction(type, symbol, qty, price) {
-        const existing = portfolio.find(p => p.symbol === symbol);
-        if (type === 'BUY') {
-            if (existing) {
-                const newAvg = ((existing.qty * existing.avgPrice) + (qty * price)) / (existing.qty + qty);
-                existing.qty += qty;
-                existing.avgPrice = newAvg;
-            } else {
-                portfolio.push({ symbol, qty, avgPrice: price });
-            }
-            transactions.unshift({ type, symbol, qty, price, date: new Date().toLocaleString() });
-        } else {
-            if (!existing || existing.qty < qty) { showToast(`❌ Tidak cukup ${symbol}`); return false; }
-            existing.qty -= qty;
-            transactions.unshift({ type, symbol, qty, price, date: new Date().toLocaleString() });
-            if (existing.qty === 0) portfolio = portfolio.filter(p => p.symbol !== symbol);
-        }
-        savePortfolio();
-        saveTransactions();
-        renderJournal();
-        showToast(`✅ ${type} ${qty} lot ${symbol} berhasil`);
-        return true;
-    }
-    
-    function showToast(msg) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-20 left-4 right-4 bg-primary text-white text-center py-3 px-4 rounded-xl z-50';
-        toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-    
-    // ==================== AI CHAT FUNCTIONS ====================
-    async function sendAIMessage(question) {
-        if (!question) return;
-        addChatMessage(question, true);
-        addTypingIndicator();
-        
-        let answer = '';
-        if (DEEPSEEK_API_KEY !== 'sk-d9fcae61cbf14ba8b7b077520b8390d8') {
-            try {
-                const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
-                    body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'user', content: question }], temperature: 0.7, max_tokens: 500 })
-                });
-                const data = await resp.json();
-                answer = data.choices?.[0]?.message?.content || 'Maaf, analisis sedang tidak tersedia.';
-            } catch(e) { answer = 'Koneksi error. Coba lagi nanti.'; }
-        } else {
-            answer = `🤖 **DeepSeek AI (Demo Mode)**\n\n${question}\n\nUntuk analisis realtime, silakan masukkan DEEPSEEK_API_KEY yang valid di kode.\n\nDapatkan di platform.deepseek.com`;
-        }
-        
-        removeTypingIndicator();
-        addChatMessage(answer, false);
-    }
-    
-    function addChatMessage(text, isUser) {
-        chatHistory.push({ text, isUser, time: new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) });
-        if (currentTab === 'ai') renderAIChat();
-    }
-    
-    function addTypingIndicator() {
-        const container = document.getElementById('chat-messages-container');
-        if (container) {
-            const typingDiv = document.createElement('div');
-            typingDiv.id = 'typing-indicator';
-            typingDiv.className = 'flex justify-start mb-4';
-            typingDiv.innerHTML = '<div class="bg-[#12161a] border-l-2 border-primary p-4 rounded-r-xl rounded-bl-xl"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
-            container.appendChild(typingDiv);
-            container.scrollTop = container.scrollHeight;
-        }
-    }
-    
-    function removeTypingIndicator() { document.getElementById('typing-indicator')?.remove(); }
-    
-    async function askAIQuestion(question) {
-        if (currentTab !== 'ai') switchTab('ai');
-        setTimeout(() => sendAIMessage(question), 100);
-    }
-    
-    // ==================== RENDER HOME ====================
-    function renderHome() {
-        const topGainers = Object.values(stockData).sort((a,b) => b.changePercent - a.changePercent).slice(0, 8);
-        const html = `<div class="space-y-6">
-            <div class="glass-card rounded-xl p-5 relative overflow-hidden"><div class="relative z-10"><div class="flex justify-between items-start mb-4"><div><p class="text-slate-400 font-label-md text-label-md uppercase tracking-widest">IHSG Composite</p><h2 class="font-headline-lg text-headline-lg mt-1 text-white">${ihsgData ? ihsgData.price.toLocaleString() : '7,321'}</h2></div><div class="flex flex-col items-end"><div class="flex items-center gap-1 ${ihsgData?.changePercent >= 0 ? 'text-primary' : 'text-error'}"><span class="material-symbols-outlined text-lg">${ihsgData?.changePercent >= 0 ? 'trending_up' : 'trending_down'}</span><span class="font-numeric-data text-numeric-data">${ihsgData?.changePercent >= 0 ? '+' : ''}${ihsgData?.changePercent?.toFixed(2) || '0'}%</span></div></div></div>
-            <div class="h-32 w-full mt-6 flex items-end gap-1">${[...Array(12)].map((_,i) => `<div class="flex-1 bg-primary/${20 + i*5} h-[${30 + Math.random() * 70}%] rounded-t-sm"></div>`).join('')}</div></div>
-            <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/10 blur-[60px] rounded-full"></div></div>
-            <div class="grid grid-cols-2 gap-4"><div class="bg-[#181c21] p-4 rounded-xl border border-white/5"><p class="text-slate-500 text-xs font-label-md mb-1">Volume</p><p class="text-sm font-bold font-numeric-data">${(ihsgData?.volume/1e9 || 18.4).toFixed(1)}B</p></div><div class="bg-[#181c21] p-4 rounded-xl border border-white/5"><p class="text-slate-500 text-xs font-label-md mb-1">Value</p><p class="text-sm font-bold font-numeric-data">IDR ${(ihsgData?.price * 1.7e6 / 1e12 || 12.1).toFixed(1)}T</p></div></div>
-            <div class="flex justify-between items-center px-1"><h3 class="font-headline-md text-headline-md text-white">Top Gainers</h3><button class="text-primary font-label-md text-label-md" onclick="switchTab('screening')">See All</button></div>
-            <div class="space-y-2">${topGainers.map(s => `<div class="bg-[#181c21] p-4 rounded-xl border border-white/5 flex items-center justify-between hover:bg-white/5 transition-all"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-lg bg-[#232930] flex items-center justify-center"><span class="font-bold text-primary">${s.symbol.charAt(0)}</span></div><div><p class="font-bold text-white">${s.symbol}</p><p class="text-slate-500 font-label-md text-label-md">${s.name}</p></div></div><div class="text-right"><p class="font-numeric-data text-numeric-data text-white">${Math.round(s.price).toLocaleString()}</p><p class="text-primary font-numeric-data text-[12px]">+${s.changePercent.toFixed(2)}%</p></div></div>`).join('')}</div>
-            <div class="bg-[#181c21] border-l-4 border-primary rounded-r-xl p-4 flex gap-4"><div class="flex-none"><div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><span class="material-symbols-outlined text-primary">smart_toy</span></div></div><div class="space-y-1"><div class="flex items-center gap-2"><span class="font-bold text-white text-body-md">DeepSeek Insight</span><span class="px-1.5 py-0.5 bg-primary/10 text-primary text-[8px] rounded uppercase">AI Analysis</span></div><p class="text-slate-400 font-body-md text-body-md leading-relaxed">IHSG menunjukkan support di 7,280. Akumulasi saham perbankan blue-chip seiring peningkatan aliran asing.</p></div></div>
-        </div>`;
-        document.getElementById('tab-home').innerHTML = html;
-    }
-    
-    // ==================== RENDER WATCHLIST (DENGAN ADD/REMOVE) ====================
-    function renderWatchlist() {
-        const wlData = watchlist.map(s => stockData[s]).filter(s => s);
-        const html = `<div class="space-y-6"><div class="flex justify-between items-end mb-6"><div><h1 class="font-headline-lg text-headline-lg text-on-surface">Your Watchlist</h1><p class="text-label-md font-label-md text-outline-variant mt-1">Real-time market analytics</p></div><button class="bg-white/5 border border-white/10 px-4 py-1.5 rounded-lg text-label-md font-label-md text-primary hover:bg-white/10 transition-all flex items-center gap-2" onclick="showAddWatchlistDialog()"><span class="material-symbols-outlined text-[18px]">add</span>Add Stock</button></div>
-        <div class="relative mb-8"><div class="absolute inset-y-0 left-3 flex items-center pointer-events-none"><span class="material-symbols-outlined text-outline-variant text-[20px]">search</span></div><input id="watchlist-search" class="w-full bg-[#181c21] border border-white/5 rounded-xl py-3 pl-10 pr-4 text-body-md focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Search ticker..." type="text"/></div>
-        <div class="space-y-3" id="watchlist-container"></div></div>`;
-        document.getElementById('tab-watchlist').innerHTML = html;
-        
-        const container = document.getElementById('watchlist-container');
-        if (!container) return;
-        
-        const searchInput = document.getElementById('watchlist-search');
-        if (searchInput) searchInput.onkeyup = () => filterWatchlist();
-        
-        filterWatchlist();
-    }
-    
-    function filterWatchlist() {
-        const searchTerm = document.getElementById('watchlist-search')?.value.toUpperCase() || '';
-        const filtered = watchlist.filter(s => s.includes(searchTerm)).map(s => stockData[s]).filter(s => s);
-        const container = document.getElementById('watchlist-container');
-        if (!container) return;
-        
-        container.innerHTML = filtered.map(s => `<div class="bg-[#181c21] border border-white/5 rounded-xl p-4 flex items-center justify-between hover:bg-[#232930] transition-all group">
-            <div class="flex-1 flex items-center"><div class="w-1/4"><p class="font-numeric-data text-numeric-data text-on-surface">${s.symbol}</p><p class="text-[10px] uppercase tracking-wider text-outline-variant">${s.name}</p></div><div class="flex-1 flex justify-center"><div class="h-8 w-20"><svg class="w-full h-full" viewBox="0 0 80 32"><path d="${s.changePercent >= 0 ? 'M0 25 L10 22 L20 28 L30 15 L40 18 L50 10 L60 12 L70 5 L80 8' : 'M0 10 L15 12 L30 10 L45 15 L60 18 L80 20'}" fill="none" stroke="#159D91" stroke-width="2"/></svg></div></div><div class="w-1/3 text-right"><p class="font-numeric-data text-numeric-data text-on-surface">${Math.round(s.price).toLocaleString()}</p><div class="flex items-center justify-end gap-1.5 mt-0.5"><span class="text-[10px] text-outline-variant">VOL: ${(s.volume/1e6).toFixed(1)}M</span><span class="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-bold">${s.changePercent >= 0 ? '+' : ''}${s.changePercent.toFixed(2)}%</span></div></div></div>
-            <button class="ml-2 p-2 text-slate-500 hover:text-error transition-colors" onclick="event.stopPropagation(); removeFromWatchlist('${s.symbol}')"><span class="material-symbols-outlined text-sm">delete</span></button>
-        </div>`).join('');
-    }
-    
-    function showAddWatchlistDialog() {
-        const symbol = prompt('Masukkan kode saham (contoh: BBCA, BBRI, TLKM):', 'BBCA');
-        if (symbol && symbol.trim()) addToWatchlist(symbol.toUpperCase());
-    }
-    
-    // ==================== RENDER JOURNAL ====================
-    function renderJournal() {
-        let totalEquity = 0, totalInvested = 0;
-        for (const p of portfolio) { const s = stockData[p.symbol]; if (s) { totalEquity += p.qty * 100 * s.price; totalInvested += p.qty * 100 * p.avgPrice; } }
-        const pl = totalEquity - totalInvested;
-        const plPercent = totalInvested ? (pl / totalInvested) * 100 : 0;
-        const html = `<div class="space-y-6"><div class="grid grid-cols-1 lg:grid-cols-12 gap-6"><div class="lg:col-span-8 bg-[#181c21] rounded-xl p-6 border border-white/5"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4"><div><span class="text-slate-500 font-label-md text-label-md uppercase tracking-widest mb-1 block">Total Equity Value</span><div class="flex items-baseline gap-2"><span class="text-slate-400 font-headline-md text-headline-md">IDR</span><span class="text-on-background font-headline-lg text-headline-lg tracking-tighter">${totalEquity.toLocaleString()}</span></div><div class="flex items-center gap-2 mt-2"><div class="flex items-center text-primary font-numeric-data text-numeric-data"><span class="material-symbols-outlined text-sm mr-1">trending_up</span>+IDR ${Math.abs(pl).toLocaleString()}</div><span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold uppercase">${plPercent >= 0 ? '+' : ''}${plPercent.toFixed(2)}%</span><span class="text-slate-500 text-xs ml-2">Today's P/L</span></div></div><div class="flex gap-2"><button class="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-label-md hover:opacity-90 transition-all flex items-center gap-2"><span class="material-symbols-outlined text-sm">account_balance_wallet</span>Deposit</button><button class="px-4 py-2 border border-outline-variant text-on-surface rounded-lg font-label-md text-label-md hover:bg-white/5 transition-all">Withdraw</button></div></div><div class="mt-8"><div class="flex justify-between items-center mb-3"><span class="text-on-surface font-label-md text-label-md">Sector Allocation</span><span class="text-slate-500 text-[10px] uppercase tracking-widest">6 Sectors</span></div><div class="h-4 w-full bg-surface-container-highest rounded-full flex overflow-hidden"><div class="h-full bg-[#159D91]" style="width:45%"></div><div class="h-full bg-[#20a195]" style="width:25%"></div><div class="h-full bg-[#3d4947]" style="width:15%"></div><div class="h-full bg-[#67d9cb]" style="width:10%"></div><div class="h-full bg-[#869391]" style="width:5%"></div></div></div></div>
-        <div class="lg:col-span-4 bg-[#181c21] rounded-xl p-6 border border-white/5"><h3 class="text-on-surface font-label-md text-label-md uppercase tracking-widest mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">add_circle</span>Add Transaction</h3><div class="space-y-4"><div><label class="block text-[10px] uppercase text-slate-500 tracking-wider mb-1.5 ml-1">Ticker Symbol</label><input id="tx-symbol" class="w-full bg-[#101419] border border-white/5 rounded-lg px-3 py-2 text-on-surface focus:outline-none focus:border-primary" placeholder="e.g. BBCA"/></div><div class="grid grid-cols-2 gap-3"><button onclick="processTransaction('BUY')" class="py-2 bg-primary/20 border border-primary/40 text-primary rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"><span class="material-symbols-outlined text-xs">shopping_cart</span>BUY</button><button onclick="processTransaction('SELL')" class="py-2 bg-surface-container-highest border border-white/5 text-slate-400 rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"><span class="material-symbols-outlined text-xs">sell</span>SELL</button></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] uppercase text-slate-500 tracking-wider mb-1.5 ml-1">Lot Size</label><input id="tx-qty" type="number" class="w-full bg-[#101419] border border-white/5 rounded-lg px-3 py-2 text-on-surface focus:outline-none focus:border-primary" placeholder="0"/></div><div><label class="block text-[10px] uppercase text-slate-500 tracking-wider mb-1.5 ml-1">Price per share</label><input id="tx-price" type="number" class="w-full bg-[#101419] border border-white/5 rounded-lg px-3 py-2 text-on-surface focus:outline-none focus:border-primary" placeholder="0"/></div></div></div><button class="w-full mt-6 py-3 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-widest hover:brightness-110 transition-all" onclick="processTransaction('BUY')">Record Trade</button></div></div>
-        <div class="bg-[#181c21] rounded-xl border border-white/5 overflow-hidden"><div class="px-6 py-4 border-b border-white/5 flex justify-between items-center"><h3 class="text-on-surface font-label-md text-label-md uppercase tracking-widest">Transaction Journal</h3></div><div class="divide-y divide-white/5" id="transactions-list">${transactions.slice(0, 10).map(t => `<div class="px-6 py-4 flex justify-between items-center"><div><span class="font-numeric-data font-bold">${t.symbol}</span><span class="ml-2 text-xs text-slate-500">${t.qty} lot @ ${t.price.toLocaleString()}</span></div><div><span class="${t.type === 'BUY' ? 'text-primary' : 'text-error'} text-xs font-bold">${t.type}</span></div><div class="text-xs text-slate-500">${t.date}</div></div>`).join('')}</div></div></div>`;
-        document.getElementById('tab-journal').innerHTML = html;
-    }
-    
-    function processTransaction(type) {
-        const symbol = document.getElementById('tx-symbol')?.value.toUpperCase();
-        const qty = parseInt(document.getElementById('tx-qty')?.value);
-        const price = parseFloat(document.getElementById('tx-price')?.value);
-        if (!symbol || !qty || !price) { alert('Isi semua field!'); return; }
-        if (addTransaction(type, symbol, qty, price)) {
-            document.getElementById('tx-symbol').value = '';
-            document.getElementById('tx-qty').value = '';
-            document.getElementById('tx-price').value = '';
-            refreshAllData();
-        }
-    }
-    
-    // ==================== RENDER SCREENING ====================
-    function renderScreening() {
-        const stocks = Object.values(stockData);
-        const html = `<div class="space-y-6"><div class="flex justify-between items-end"><div><p class="font-label-md text-label-md text-secondary uppercase tracking-[0.2em] mb-xs">Elite Screening</p><h1 class="font-headline-lg text-headline-lg text-on-surface">Market Scanner</h1></div><button class="bg-primary-container text-white px-4 py-2 rounded-full font-label-md text-label-md flex items-center gap-1" onclick="refreshAllData()"><span class="material-symbols-outlined text-[16px]">play_arrow</span>Run Scan</button></div>
-        <div class="bg-[#181c21] rounded-xl border border-white/5 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-surface-container-highest/30 border-b border-white/5"><th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant uppercase">Code</th><th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant uppercase">Price</th><th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant uppercase">Chg%</th><th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant uppercase text-center">Trend</th><th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant uppercase">Vol(M)</th><th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant uppercase">Action</th></tr></thead><tbody>${stocks.map(s => `<tr class="border-b border-white/5"><td class="px-4 py-3"><div class="flex flex-col"><span class="font-numeric-data text-numeric-data text-on-surface">${s.symbol}</span><span class="text-[10px] text-slate-500">${s.name}</span></div></td><td class="px-4 py-3 font-numeric-data text-numeric-data text-on-surface">${Math.round(s.price).toLocaleString()}</td><td class="px-4 py-3 font-numeric-data text-numeric-data ${s.changePercent >= 0 ? 'text-primary' : 'text-error'}">${s.changePercent >= 0 ? '+' : ''}${s.changePercent.toFixed(2)}%</td><td class="px-4 py-3 w-24"><div class="h-8 w-full"><svg class="w-full h-full" viewBox="0 0 100 30"><path d="${s.changePercent >= 0 ? 'M0 25 L10 22 L20 28 L30 18 L40 20 L50 10 L60 15 L70 5 L80 8' : 'M0 5 L15 8 L30 15 L45 12 L60 22 L75 18 L100 28'}" fill="none" stroke="#159D91" stroke-width="2"></path></svg></div></td><td class="px-4 py-3 font-numeric-data text-numeric-data text-on-surface">${(s.volume/1e6).toFixed(1)}M</td><td class="px-4 py-3"><button onclick="addToWatchlist('${s.symbol}')" class="text-primary text-xs bg-primary/10 px-2 py-1 rounded">Add</button></td></tr>`).join('')}</tbody></table></div></div></div>`;
-        document.getElementById('tab-screening').innerHTML = html;
-    }
-    
-    // ==================== CEK SAHAM ====================
-    function renderCek() {
-        const html = `<div class="space-y-6"><div class="space-y-2"><h2 class="font-headline-md text-headline-md text-on-background">Stock Analysis</h2><p class="font-body-md text-body-md text-on-surface-variant">Real-time quantitative and technical insights.</p></div>
-        <div class="relative"><div class="absolute inset-y-0 left-4 flex items-center pointer-events-none"><span class="material-symbols-outlined text-primary">search</span></div><input id="cek-input" class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-4 pl-12 pr-4 text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Search Ticker (e.g. BBCA)" type="text"/><button onclick="searchStock()" class="absolute inset-y-0 right-4 flex items-center text-primary text-sm">Cek</button></div>
-        <div id="cek-result" class="tonal-layer-1 rounded-xl p-6 space-y-4 bg-[#181c21] border border-white/5"><div class="text-center text-slate-500 py-8">Masukkan kode saham di atas</div></div></div>`;
-        document.getElementById('tab-cek').innerHTML = html;
-    }
-    
-    async function searchStock() {
-        const symbol = document.getElementById('cek-input').value.toUpperCase();
-        const s = stockData[symbol];
-        const resultDiv = document.getElementById('cek-result');
-        if (!s) { resultDiv.innerHTML = `<div class="text-center text-slate-500 py-8">❌ Data ${symbol} tidak ditemukan</div>`; return; }
-        const rec = s.changePercent < -2 ? 'BUY' : (s.changePercent > 2 ? 'SELL' : 'HOLD');
-        resultDiv.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-headline-lg text-headline-lg text-on-background">${s.symbol}</h3><p class="font-body-md text-body-md text-on-surface-variant">${s.name}</p></div><div class="text-right"><p class="font-numeric-data text-2xl text-on-background">Rp ${Math.round(s.price).toLocaleString()}</p><p class="${s.changePercent >= 0 ? 'text-primary' : 'text-error'}">${s.changePercent >= 0 ? '+' : ''}${s.changePercent.toFixed(2)}%</p></div></div>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4"><div><p class="text-label-md text-on-surface-variant uppercase">Volume</p><p class="font-headline-md">${(s.volume/1e6).toFixed(1)}M</p></div><div><p class="text-label-md text-on-surface-variant uppercase">Market Cap</p><p class="font-headline-md">${Math.round(s.price * 24.5e9 / 1e12).toFixed(1)}T</p></div><div><button onclick="addToWatchlist('${s.symbol}')" class="bg-primary/20 text-primary px-3 py-1 rounded text-sm">+ Watchlist</button></div></div>
-        <div class="bg-primary/10 border-l-4 border-primary p-4 rounded-r-xl"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">smart_toy</span><span class="text-xs font-bold text-primary uppercase">AI Verdict</span></div><p class="text-sm text-slate-300 mt-2">${rec === 'BUY' ? 'Accumulate on weakness' : (rec === 'SELL' ? 'Consider take profit' : 'Wait for confirmation')}</p></div>
-        <button onclick="askAIQuestion('Analisis saham ${s.symbol}')" class="w-full mt-4 bg-primary/20 border border-primary text-primary py-2 rounded-xl">🤖 Tanya AI</button>`;
-    }
-    
-    // ==================== RENDER AI CHAT ====================
-    function renderAIChat() {
-        const html = `<div class="flex flex-col min-h-screen pb-32"><div class="space-y-4 py-4" id="chat-messages-container">${chatHistory.map(m => `<div class="flex ${m.isUser ? 'justify-end' : 'justify-start'}"><div class="${m.isUser ? 'bg-primary text-white p-3 rounded-xl max-w-[80%]' : 'bg-[#12161a] border-l-2 border-primary p-3 rounded-xl max-w-[80%]'}">${m.text}</div></div>`).join('')}</div>
-        <div class="fixed bottom-20 left-0 w-full px-5"><div class="bg-[#12161a] border border-white/10 rounded-2xl flex items-center p-2 gap-2"><input id="chat-input" class="flex-grow bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-slate-600 text-sm py-2" placeholder="Ask anything about markets..." type="text" onkeypress="if(event.key==='Enter') sendAIMessage(document.getElementById('chat-input').value)"/><button onclick="sendAIMessage(document.getElementById('chat-input').value)" class="bg-primary text-white w-10 h-10 rounded-xl flex items-center justify-center"><span class="material-symbols-outlined">send</span></button></div></div></div>`;
-        document.getElementById('tab-ai').innerHTML = html;
-    }
-    
-    // ==================== TAB NAVIGATION ====================
+    // Tab switching function
     function switchTab(tabId) {
-        currentTab = tabId;
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        const navMap = { home: 0, watchlist: 1, journal: 2, screening: 3, ai: 4 };
-        document.querySelectorAll('.nav-item')[navMap[tabId] || 4]?.classList.add('active');
+        const tabs = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => tab.classList.remove('active'));
         
-        if (tabId === 'ai') renderAIChat();
-        else renderCurrentTab();
+        document.getElementById(tabId).classList.add('active');
+        
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active-nav', 'text-primary'));
+        
+        const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active-nav', 'text-primary');
+        }
     }
-    
-    function renderCurrentTab() {
-        if (currentTab === 'home') renderHome();
-        else if (currentTab === 'watchlist') renderWatchlist();
-        else if (currentTab === 'journal') renderJournal();
-        else if (currentTab === 'screening') renderScreening();
-        else if (currentTab === 'cek') renderCek();
-    }
-    
-    // ==================== INIT ====================
-    loadFromStorage();
-    document.querySelectorAll('.nav-item').forEach((item, idx) => {
-        const tabs = ['home', 'watchlist', 'journal', 'screening', 'ai'];
-        item.addEventListener('click', () => switchTab(tabs[idx]));
+
+    // Initialize tabs on page load
+    window.addEventListener('load', function() {
+        renderAllTabs();
     });
-    document.getElementById('cek-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') searchStock(); });
-    
-    refreshAllData();
-    setInterval(refreshAllData, 30000);
+
+    // Render all tab contents
+    function renderAllTabs() {
+        document.getElementById('tab-home').innerHTML = renderHome();
+        document.getElementById('tab-watchlist').innerHTML = renderWatchlist();
+        document.getElementById('tab-journal').innerHTML = renderJournal();
+        document.getElementById('tab-screening').innerHTML = renderScreening();
+        document.getElementById('tab-cek_saham').innerHTML = renderCekSaham();
+        document.getElementById('tab-aichat').innerHTML = renderAiChat();
+    }
 </script>
+
 </body>
 </html>

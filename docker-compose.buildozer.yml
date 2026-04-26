@@ -1,0 +1,20 @@
+services:
+  buildozer:
+    build:
+      context: .
+      dockerfile: Dockerfile.buildozer
+    volumes:
+      - .:/app
+      - buildozer-cache:/root/.buildozer
+      - gradle-cache:/root/.gradle
+    environment:
+      - BUILDOZER_LOG_LEVEL=2
+      - PYTHONUNBUFFERED=1
+    working_dir: /app
+    command: buildozer android debug
+    stdin_open: true
+    tty: true
+
+volumes:
+  buildozer-cache:
+  gradle-cache:

@@ -1,0 +1,59 @@
+{
+  "symbol": "BBCA",
+  "source": "manual_paste",
+  "as_of": "2026-03-05T22:12:26.274971+00:00",
+  "bid_orders": [
+    {
+      "price": 1230,
+      "volume": 345,
+      "freq": 12
+    },
+    {
+      "price": 1225,
+      "volume": 120,
+      "freq": 9
+    },
+    {
+      "price": 1220,
+      "volume": 80,
+      "freq": 5
+    },
+    {
+      "price": 1215,
+      "volume": 40,
+      "freq": 2
+    },
+    {
+      "price": 1210,
+      "volume": 20,
+      "freq": 1
+    }
+  ],
+  "ask_orders": [
+    {
+      "price": 1235,
+      "volume": 200,
+      "freq": 10
+    },
+    {
+      "price": 1240,
+      "volume": 150,
+      "freq": 8
+    },
+    {
+      "price": 1245,
+      "volume": 90,
+      "freq": 6
+    },
+    {
+      "price": 1250,
+      "volume": 60,
+      "freq": 4
+    },
+    {
+      "price": 1255,
+      "volume": 30,
+      "freq": 2
+    }
+  ]
+}
