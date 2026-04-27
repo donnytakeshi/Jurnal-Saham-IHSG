@@ -1,100 +1,72 @@
-name: Build Android APK (Clean)
+name: Build Android APK (Simplified)
 
 on:
   push:
     branches: [ main, master, build/apk-debug ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-
+    timeout-minutes: 600
+    
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Clean previous builds (NOT source)
-        run: |
-          rm -rf .buildozer bin/ build_logs/
-          mkdir -p build_logs
-
-      - name: Install Buildozer and Cython
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer cython==0.29.33
-
-      - name: Setup JDK
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android SDK and NDK
-        run: |
-          set -e
-          mkdir -p /tmp/android-sdk
-          cd /tmp/android-sdk
-          
-          curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -o cmdline.zip
-          unzip -q cmdline.zip
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/bin cmdline-tools/lib cmdline-tools/source.properties cmdline-tools/latest/ 2>/dev/null || true
-          
-          export PATH="/tmp/android-sdk/cmdline-tools/latest/bin:$PATH"
-          export ANDROID_SDK_ROOT="/tmp/android-sdk"
-          
-          yes | sdkmanager --sdk_root="/tmp/android-sdk" --licenses || true
-          sdkmanager --sdk_root="/tmp/android-sdk" "platform-tools"
-          sdkmanager --sdk_root="/tmp/android-sdk" "platforms;android-31"
-          sdkmanager --sdk_root="/tmp/android-sdk" "build-tools;33.0.2"
-          sdkmanager --sdk_root="/tmp/android-sdk" "ndk;25.1.8937393"
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      - name: Verify source files exist
+      - name: Install dependencies
         run: |
-          echo "=== Checking app structure ==="
-          ls -la app/
-          ls -la app/tabs/
-          echo "=== Checking key files ==="
-          head -3 main.py
-          head -3 app/main_app.py
-          head -3 app/tabs/watchlist.py
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libffi-dev \
+            libssl-dev \
+            libjpeg-dev \
+            zlib1g-dev \
+            libtiff-dev \
+            libopenjp2-7-dev \
+            libtk-img-dev \
+            autoconf \
+            libtool \
+            pkg-config \
+            m4
+          python -m pip install --upgrade pip setuptools wheel
+          pip install buildozer cython==0.29.33
 
-      - name: Run Buildozer (Debug Build)
-        env:
-          ANDROID_SDK_ROOT: /tmp/android-sdk
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.android
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-${{ runner.os }}-
+
+      - name: Build APK
         run: |
-          set -o pipefail
-          echo "=== Starting DEBUG build ==="
-          buildozer -v android debug 2>&1 | tee build_logs/buildozer.log
-          echo "=== Build completed ==="
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          buildozer -v android debug 2>&1 | tail -200
+        timeout-minutes: 600
 
-      - name: Verify APK
+      - name: Check output
         run: |
-          echo "=== Looking for APK ==="
-          find . -name "*.apk" -type f
-          ls -lh bin/*.apk 2>/dev/null || echo "APK not found in bin/"
+          ls -lah bin/ 2>/dev/null || echo "No bin folder"
+          find . -name "*.apk" -type f 2>/dev/null | head -5
 
-      - name: Upload APK artifact
-        if: always()
+      - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: |
-            bin/*.apk
-            bin/*.aab
-          if-no-files-found: warn
-
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: build_logs/
-          if-no-files-found: warn
+          path: bin/*.apk
+          retention-days: 30
