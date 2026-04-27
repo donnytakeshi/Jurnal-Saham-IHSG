@@ -11,6 +11,7 @@ package.domain = com.jurnalsaham
 
 # (str) Source code where the main.py live
 source.dir = .
+source.main = main.py
 
 # (list) Source files to include (let empty to include all the files)
 # Include `.bak` because the actively edited Kivy UI lives in `desktop_app.py.bak`.
@@ -25,7 +26,7 @@ source.include_exts = py,bak,png,jpg,kv,atlas,json,csv
 # (list) List of directory to exclude (let empty to not exclude anything)
 #source.exclude_dirs = tests, bin, venv
 # Keep build input clean: exclude archives/caches and tooling folders.
-source.exclude_dirs = _archive, __pycache__, .buildozer, .git, .github, .vscode, reconstructed_from_apk, tools, venv, .venv, .venvsource
+source.exclude_dirs = _archive, __pycache__, .buildozer, .git, .github, .vscode, reconstructed_from_apk, tools, venv, .venv, .venv_source, _cleanup
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -41,7 +42,7 @@ version = 0.1.0
 
 # (list) Application requirements
 # Tambahkan semua modul yang diimport di kode utama dan modules agar tidak crash di Android.
-requirements = python3==3.10.10,kivy,requests
+requirements = python3==3.11,kivy,requests
 
 # (str) Local python-for-android recipes (override upstream recipes when needed)
 p4a.local_recipes = p4a-recipes
