@@ -1,86 +1,142 @@
-"""Android entrypoint for Jurnal Saham IHSG (Kivy).
+# --- Jurnal Saham IHSG - App Shell / Wrapper (Stitch Design) ---
+# File: main.py
+# Purpose: Main entry point and UI Shell with 6 tabs including AI
 
-Buildozer/p4a expects a `main.py` at project root.
-This delegates to the Kivy UI in `desktop_app_bak.py`.
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from kivy.properties import ObjectProperty, ListProperty
+from kivy.utils import get_color_from_hex
+from kivy.core.window import Window
+from kivy.graphics import Color, Rectangle, Line
+from kivy.metrics import dp, sp
 
-Run (desktop):
-  python3 main.py
-"""
+# Import all tabs
+from app.tabs import WatchlistTab, DashboardTab, JurnalTab, ScreeningTab, CekSahamTab, AIChatTab
 
-from __future__ import annotations
+# --- THEME CONFIG ---
+class ThemeConfig:
+    BG_MAIN = get_color_from_hex('#0c141b')
+    SURFACE = get_color_from_hex('#141c23')
+    ACCENT = get_color_from_hex('#1F6AA5')
+    BORDER = get_color_from_hex('#2D3339')
+    TEXT_BRIGHT = get_color_from_hex('#ffffff')
+    TEXT_DIM = get_color_from_hex('#bcc9c6')
+    TEXT_MUTED = get_color_from_hex('#5b6871')
 
-import os
-import runpy
+def ui_dp(v): return dp(v)
+def ui_sp(v): return sp(v)
 
+# --- REUSABLE COMPONENTS ---
 
-def main() -> None:
-  # Ensure Kivy uses a writable home directory on Android.
-  # (Prevents non-fatal PermissionError when Kivy tries to copy its icon set.)
-  try:
-    def _normalize_android_base(path: str) -> str:
-      p = path.rstrip("/")
-      if p.endswith("/app"):
-        return os.path.dirname(p)
-      return p
+class AppHeader(BoxLayout):
+    def __init__(self, title="JURNAL SAHAM IHSG", **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'horizontal'
+        self.size_hint_y = None
+        self.height = ui_dp(56)
+        self.padding = [ui_dp(16), 0]
+        self.spacing = ui_dp(10)
+        
+        with self.canvas.before:
+            Color(rgb=ThemeConfig.SURFACE)
+            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+            Color(rgb=ThemeConfig.BORDER)
+            self.border_line = Line(points=[self.x, self.y, self.x + self.width, self.y], width=0.5)
+            
+        self.bind(pos=self._update, size=self._update)
+        self.add_widget(Label(text=title, bold=True, font_size=ui_sp(16), color=ThemeConfig.TEXT_BRIGHT, halign='left', valign='middle', size_hint_x=0.7))
+        self.add_widget(Label(text='🔔', font_size=ui_sp(18), size_hint_x=None, width=ui_dp(40)))
+        self.add_widget(Label(text='👤', font_size=ui_sp(18), size_hint_x=None, width=ui_dp(40)))
 
-    def _is_writable_dir(path: str) -> bool:
-      try:
-        os.makedirs(path, exist_ok=True)
-        test_file = os.path.join(path, ".__write_test__")
-        with open(test_file, "w", encoding="utf-8") as f:
-          f.write("ok")
-        os.remove(test_file)
-        return True
-      except Exception:
-        return False
+    def _update(self, *_):
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
+        self.border_line.points = [self.x, self.y, self.x + self.width, self.y]
 
-    bases: list[str] = []
-    android_private = os.environ.get("ANDROID_PRIVATE")
-    if android_private:
-      bases.append(_normalize_android_base(android_private))
-    android_argument = os.environ.get("ANDROID_ARGUMENT")
-    if android_argument:
-      bases.append(_normalize_android_base(android_argument))
-    existing_home = os.environ.get("HOME")
-    if existing_home:
-      bases.append(existing_home)
-    bases.append(os.getcwd())
+class BottomNavBar(BoxLayout):
+    def __init__(self, on_nav_change, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'horizontal'
+        self.size_hint_y = None
+        self.height = ui_dp(64)
+        self.padding = ui_dp(4)
+        self.spacing = ui_dp(2)
+        self.on_nav_change = on_nav_change
+        
+        with self.canvas.before:
+            Color(rgb=ThemeConfig.SURFACE)
+            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+            Color(rgb=ThemeConfig.BORDER)
+            self.border_line = Line(points=[self.x, self.y + self.height, self.x + self.width, self.y + self.height], width=0.5)
+            
+        self.bind(pos=self._update, size=self._update)
+        
+        self.nav_items = [
+            ('Watchlist', '📊'),
+            ('Top 10', '📈'),
+            ('Jurnal', '📚'),
+            ('Screening', '🔍'),
+            ('Cek Emiten', '🔎'),
+            ('AI Chat', '🤖')
+        ]
+        
+        self.btns = []
+        for i, (label, icon) in enumerate(self.nav_items):
+            btn = Button(text=f"{icon}\n{label}", background_color=(0,0,0,0), color=ThemeConfig.TEXT_DIM, font_size=ui_sp(9), halign='center', valign='middle', bold=True)
+            btn.bind(on_release=lambda x, idx=i: self._handle_press(idx))
+            self.btns.append(btn)
+            self.add_widget(btn)
+        self._set_active(0)
 
-    chosen_base: str | None = None
-    for candidate in bases:
-      if not candidate:
-        continue
-      if _is_writable_dir(candidate):
-        chosen_base = candidate
-        break
+    def _handle_press(self, idx):
+        self._set_active(idx)
+        if self.on_nav_change: self.on_nav_change(idx)
 
-    if chosen_base:
-      kivy_home = os.path.join(chosen_base, ".kivy")
-      os.makedirs(os.path.join(kivy_home, "icon"), exist_ok=True)
+    def _set_active(self, idx):
+        for i, btn in enumerate(self.btns):
+            btn.color = ThemeConfig.ACCENT if i == idx else ThemeConfig.TEXT_DIM
 
-      # Force override: p4a bootstrap may set HOME to the extracted app dir
-      # (`.../files/app`) which can be permission-restricted for Kivy's icon copy.
-      os.environ["HOME"] = chosen_base
-      os.environ["KIVY_HOME"] = kivy_home
-      os.environ.setdefault("KIVY_NO_ARGS", "1")
-  except Exception:
-    pass
+    def _update(self, *_):
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
+        self.border_line.points = [self.x, self.y + self.height, self.x + self.width, self.y + self.height]
 
-  # On Android, python-for-android commonly strips .py sources and keeps .pyc.
-  # `run_module` works for both .py (desktop) and .pyc (Android).
-  try:
-    from desktop_app_final import MainApp
-    MainApp().run()
-  except Exception as e_final:
-    print(f"[INFO] Gagal menjalankan desktop_app_final.py: {e_final}\nFallback ke desktop_app_bak.py...")
-    try:
-      from desktop_app_bak import MainStockbitApp
-      MainStockbitApp().run()
-    except Exception:
-      # Fallback to runpy for desktop compatibility
-      import runpy
-      runpy.run_module("desktop_app_bak", run_name="__main__")
+class AppShell(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.add_widget(AppHeader())
+        self.content_area = BoxLayout()
+        
+        # Initialize tabs
+        self.tabs = [
+            WatchlistTab(),
+            DashboardTab(),
+            JurnalTab(),
+            ScreeningTab(),
+            CekSahamTab(),
+            AIChatTab()
+        ]
+        
+        self.switch_tab(0)
+        self.add_widget(self.content_area)
+        self.add_widget(BottomNavBar(on_nav_change=self.switch_tab))
 
+    def switch_tab(self, idx):
+        """Switch ke tab dengan index"""
+        self.content_area.clear_widgets()
+        if 0 <= idx < len(self.tabs):
+            self.content_area.add_widget(self.tabs[idx])
 
-if __name__ == "__main__":
-    main()
+class StockJournalApp(App):
+    def build(self):
+        Window.clearcolor = ThemeConfig.BG_MAIN
+        if Window.size[0] > Window.size[1]: 
+            Window.size = (380, 720)
+        return AppShell()
+
+if __name__ == '__main__':
+    StockJournalApp().run()
