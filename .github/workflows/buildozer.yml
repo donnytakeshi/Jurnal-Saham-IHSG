@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Clean previous builds
+      - name: Clean previous builds (NOT source)
         run: |
           rm -rf .buildozer bin/ build_logs/
           mkdir -p build_logs
@@ -55,31 +55,31 @@ jobs:
           sdkmanager --sdk_root="/tmp/android-sdk" "build-tools;33.0.2"
           sdkmanager --sdk_root="/tmp/android-sdk" "ndk;25.1.8937393"
 
-      - name: Verify source files
+      - name: Verify source files exist
         run: |
           echo "=== Checking app structure ==="
           ls -la app/
           ls -la app/tabs/
           echo "=== Checking key files ==="
-          head -5 app/main_app.py
-          head -5 app/tabs/watchlist.py
+          head -3 main.py
+          head -3 app/main_app.py
+          head -3 app/tabs/watchlist.py
 
-      - name: Run Buildozer (Clean Build)
+      - name: Run Buildozer (Debug Build)
         env:
           ANDROID_SDK_ROOT: /tmp/android-sdk
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -o pipefail
-          echo "=== Starting CLEAN build ==="
-          buildozer android clean
-          buildozer android debug 2>&1 | tee build_logs/buildozer.log
+          echo "=== Starting DEBUG build ==="
+          buildozer -v android debug 2>&1 | tee build_logs/buildozer.log
           echo "=== Build completed ==="
 
       - name: Verify APK
         run: |
           echo "=== Looking for APK ==="
           find . -name "*.apk" -type f
-          ls -lh bin/*.apk 2>/dev/null || echo "APK not in bin/"
+          ls -lh bin/*.apk 2>/dev/null || echo "APK not found in bin/"
 
       - name: Upload APK artifact
         if: always()
