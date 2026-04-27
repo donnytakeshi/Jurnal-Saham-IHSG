@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK (Clean)
 
 on:
   push:
@@ -19,6 +19,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Clean previous builds
+        run: |
+          rm -rf .buildozer bin/ build_logs/
+          mkdir -p build_logs
+
       - name: Install Buildozer and Cython
         run: |
           python -m pip install --upgrade pip setuptools wheel
@@ -36,37 +41,45 @@ jobs:
           mkdir -p /tmp/android-sdk
           cd /tmp/android-sdk
           
-          # Download Android command-line tools
           curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -o cmdline.zip
           unzip -q cmdline.zip
           mkdir -p cmdline-tools/latest
           mv cmdline-tools/bin cmdline-tools/lib cmdline-tools/source.properties cmdline-tools/latest/ 2>/dev/null || true
           
-          # Set up PATH
           export PATH="/tmp/android-sdk/cmdline-tools/latest/bin:$PATH"
           export ANDROID_SDK_ROOT="/tmp/android-sdk"
           
-          # Accept licenses and install components
           yes | sdkmanager --sdk_root="/tmp/android-sdk" --licenses || true
           sdkmanager --sdk_root="/tmp/android-sdk" "platform-tools"
           sdkmanager --sdk_root="/tmp/android-sdk" "platforms;android-31"
           sdkmanager --sdk_root="/tmp/android-sdk" "build-tools;33.0.2"
           sdkmanager --sdk_root="/tmp/android-sdk" "ndk;25.1.8937393"
 
-      - name: Run Buildozer
+      - name: Verify source files
+        run: |
+          echo "=== Checking app structure ==="
+          ls -la app/
+          ls -la app/tabs/
+          echo "=== Checking key files ==="
+          head -5 app/main_app.py
+          head -5 app/tabs/watchlist.py
+
+      - name: Run Buildozer (Clean Build)
         env:
           ANDROID_SDK_ROOT: /tmp/android-sdk
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -o pipefail
-          mkdir -p build_logs
-          buildozer android debug 2>&1 | tee build_logs/buildozer.log || true
+          echo "=== Starting CLEAN build ==="
+          buildozer android clean
+          buildozer android debug 2>&1 | tee build_logs/buildozer.log
+          echo "=== Build completed ==="
 
-      - name: Check for APK
+      - name: Verify APK
         run: |
-          find . -name "*.apk" -type f 2>/dev/null || echo "No APK found yet"
-          find .buildozer -name "*.apk" -type f 2>/dev/null || echo "No APK in .buildozer"
-          ls -lah bin/ 2>/dev/null || echo "bin/ directory not found"
+          echo "=== Looking for APK ==="
+          find . -name "*.apk" -type f
+          ls -lh bin/*.apk 2>/dev/null || echo "APK not in bin/"
 
       - name: Upload APK artifact
         if: always()
