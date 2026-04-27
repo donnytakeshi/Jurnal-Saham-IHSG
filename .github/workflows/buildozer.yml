@@ -10,9 +10,6 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     timeout-minutes: 360
-    env:
-      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
       - uses: actions/checkout@v4
@@ -33,25 +30,43 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android command-line tools
+      - name: Install Android SDK and NDK
         run: |
           set -e
-          sdk_root="$ANDROID_SDK_ROOT"
-          mkdir -p "$sdk_root"
-          cd "$sdk_root"
+          mkdir -p /tmp/android-sdk
+          cd /tmp/android-sdk
+          
+          # Download Android command-line tools
           curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -o cmdline.zip
-          unzip -q cmdline.zip -d cmdline-tools
+          unzip -q cmdline.zip
           mkdir -p cmdline-tools/latest
-          mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/ || true
-          export PATH="$sdk_root/cmdline-tools/latest/bin:$PATH"
-          yes | sdkmanager --sdk_root="$sdk_root" --licenses || true
-          sdkmanager --sdk_root="$sdk_root" "platform-tools" "platforms;android-31" "build-tools;33.0.2" "ndk;25.1.8937393"
+          mv cmdline-tools/bin cmdline-tools/lib cmdline-tools/source.properties cmdline-tools/latest/ 2>/dev/null || true
+          
+          # Set up PATH
+          export PATH="/tmp/android-sdk/cmdline-tools/latest/bin:$PATH"
+          export ANDROID_SDK_ROOT="/tmp/android-sdk"
+          
+          # Accept licenses and install components
+          yes | sdkmanager --sdk_root="/tmp/android-sdk" --licenses || true
+          sdkmanager --sdk_root="/tmp/android-sdk" "platform-tools"
+          sdkmanager --sdk_root="/tmp/android-sdk" "platforms;android-31"
+          sdkmanager --sdk_root="/tmp/android-sdk" "build-tools;33.0.2"
+          sdkmanager --sdk_root="/tmp/android-sdk" "ndk;25.1.8937393"
 
       - name: Run Buildozer
+        env:
+          ANDROID_SDK_ROOT: /tmp/android-sdk
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -o pipefail
           mkdir -p build_logs
-          buildozer -v android debug 2>&1 | tee build_logs/buildozer.log || true
+          buildozer android debug 2>&1 | tee build_logs/buildozer.log || true
+
+      - name: Check for APK
+        run: |
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK found yet"
+          find .buildozer -name "*.apk" -type f 2>/dev/null || echo "No APK in .buildozer"
+          ls -lah bin/ 2>/dev/null || echo "bin/ directory not found"
 
       - name: Upload APK artifact
         if: always()
@@ -61,6 +76,7 @@ jobs:
           path: |
             bin/*.apk
             bin/*.aab
+          if-no-files-found: warn
 
       - name: Upload build logs
         if: always()
@@ -68,3 +84,4 @@ jobs:
         with:
           name: build-logs
           path: build_logs/
+          if-no-files-found: warn
