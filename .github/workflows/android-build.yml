@@ -1,40 +1,57 @@
-name: Android Debug Build
+name: Build Android APK
 
 on:
-  workflow_dispatch: {}
   push:
+    branches: [ main, master, develop ]
+  pull_request:
     branches: [ main, master ]
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install system packages
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            git openjdk-11-jdk build-essential autoconf libtool pkg-config zlib1g-dev libssl-dev libncurses5-dev libsqlite3-dev libffi-dev python3-venv python3-dev python3-pip
-
-      - name: Setup Python venv
+          sudo apt-get install -y \
+            openjdk-17-jdk \
+            python3-dev \
+            build-essential \
+            libffi-dev \
+            libssl-dev \
+            git \
+            cython3
+      
+      - name: Install Python dependencies
         run: |
-          python3 -m venv .build-env
-          source .build-env/bin/activate
-          pip install --upgrade pip
-          pip install cython==0.29.* buildozer
-
-      - name: Build APK (debug)
-        env:
-          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+          python -m pip install --upgrade pip
+          pip install buildozer cython
+      
+      - name: Build APK
         run: |
-          source .build-env/bin/activate
-          # ensure buildozer uses the repo root
-          buildozer -v android debug
-
+          cd $GITHUB_WORKSPACE
+          buildozer android debug
+      
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: android-apk
-          path: bin/*.apk
+          name: app-debug
+          path: bin/jurnalsahamihsg-*-debug.apk
+          retention-days: 30
+      
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bin/jurnalsahamihsg-*-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
