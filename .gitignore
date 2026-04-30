@@ -72,3 +72,7 @@ installed_apk_from_device/
 reconstructed_from_apk/
 tmp_apk_analysis/
 tmp_repack/
+
+# Backup files from modular migration
+desktop_app*backup.py
+*.backup
