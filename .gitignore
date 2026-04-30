@@ -1,13 +1,31 @@
+# ================ MOBILE APK STRICT ================
+
+# Build Outputs
+*.apk
+*.aab
+*.zip
+*.tar.gz
+*.dmg
+build/
+dist/
+output/
+.bin/
+
+# Buildozer Cache (FULL - jangan pernah commit)
+.buildozer/
+
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *.so
 .Python
 
-# Virtual Environment
+# Virtual Environments
 venv/
-.env/
 .venv*/
+.env/
 ENV/
 
 # IDE
@@ -15,27 +33,42 @@ ENV/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
-# Build
-.buildozer/
-bin/
-dist/
-*.apk
-*.aab
-
-# Logs
+# Logs & Temporary
 *.log
 *.txt
 *.tmp
+*.pid
+.device_*
+.kivy_*
+*.buildozer*
+crash_log.txt
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Large files
-*.dmg
-*.zip
-*.tar.gz
+# Large Files
+*.keystore
+*.jks
+*.p12
+*.pfx
 
-# Folder cleanup
-_cleanup/archive_old/
+# Data & Cache
+data/
+cache/
+temp/
+tmp/
+
+# Reverse Engineering (TIDAK PERLU untuk mobile dev)
+_cleanup/
+_archive/
+apk_mod/
+decompiled_output/
+extracted_apk_*/
+installed_apk_from_device/
+reconstructed_from_apk/
+tmp_apk_analysis/
+tmp_repack/
