@@ -14,7 +14,7 @@ source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
 # Include `.bak` because the actively edited Kivy UI lives in `desktop_app.py.bak`.
-source.include_exts = py,png,jpg,kv,atlas,json,csv
+source.include_exts = py,bak,png,jpg,kv,atlas,json,csv
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -41,7 +41,7 @@ version = 0.1.0
 # (list) Application requirements
 # Keep Android build lightweight: avoid pandas/numpy unless absolutely necessary.
 # For Android we use REST-based Supabase auth, so supabase SDK is not required here.
-requirements = python3,kivy,requests
+requirements = python3==3.10.10,kivy,requests
 
 # (str) Local python-for-android recipes (override upstream recipes when needed)
 p4a.local_recipes = p4a-recipes
