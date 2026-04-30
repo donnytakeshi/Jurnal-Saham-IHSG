@@ -1,3 +1,41 @@
-_cleanup/archive_old/
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Virtual Environment
 venv/
+.env/
+.venv*/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+.buildozer/
+bin/
+dist/
+*.apk
+*.aab
+
+# Logs
 *.log
+*.txt
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files
+*.dmg
+*.zip
+*.tar.gz
+
+# Folder cleanup
+_cleanup/archive_old/

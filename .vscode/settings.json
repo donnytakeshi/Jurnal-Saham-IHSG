@@ -1,8 +1,0 @@
-{
-    "editor.find.addExtraSpaceOnTop": true,
-    "zenMode.hideLineNumbers": false,
-    "search.showLineNumbers": true,
-    "terminal.integrated.commandsToSkipShell": [
-        "line number"
-    ]
-}
