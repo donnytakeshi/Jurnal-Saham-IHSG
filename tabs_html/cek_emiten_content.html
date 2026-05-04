@@ -17,7 +17,6 @@
     .negative { color: #ff5e5e; }
     .flow-bar { transition: height 0.3s ease; cursor: pointer; }
     .flow-bar:hover { opacity: 0.8; }
-    .sparkline-canvas { width: 100%; height: 100%; }
 </style>
 <script id="tailwind-config">
     tailwind.config = {
@@ -229,7 +228,6 @@
     let refreshInterval;
     let sparklineChart = null;
     
-    // Stock name mapping
     const stockNames = {
         "BBCA": "PT Bank Central Asia Tbk.", "BBRI": "PT Bank Rakyat Indonesia Tbk.",
         "BMRI": "PT Bank Mandiri Tbk.", "TLKM": "PT Telkom Indonesia Tbk.",
@@ -336,7 +334,7 @@
         }
     }
     
-    // UPDATE ORDER BOOK - 10 BARIS dengan warna BID hijau
+    // UPDATE ORDER BOOK - 10 BARIS dengan warna BID HIJAU
     function updateOrderBookTable(orderBook) {
         const tbody = document.getElementById('orderbook-tbody');
         if (!orderBook || !orderBook.order_book) {
@@ -347,24 +345,22 @@
         let rows = '';
         for (const item of orderBook.order_book) {
             rows += `<tr class="border-b border-outline-variant/10">
-                <td class="py-2 text-left text-success-green">${item.bid_freq}</td>
-                <td class="py-2 text-left text-success-green">${formatNumber(item.bid_lot)}</td>
-                <td class="py-2 text-center text-success-green font-bold">${item.bid_price}</td>
+                <td class="py-2 text-left text-green-400">${item.bid_freq}</td>
+                <td class="py-2 text-left text-green-400">${formatNumber(item.bid_lot)}</td>
+                <td class="py-2 text-center text-green-400 font-bold">${item.bid_price}</td>
                 <td class="py-2 text-center text-error font-bold">${item.ask_price}</td>
                 <td class="py-2 text-right text-error">${formatNumber(item.ask_lot)}</td>
                 <td class="py-2 text-right text-error">${item.ask_freq}</td>
-              </tr>`;
+            </tr>`;
         }
         tbody.innerHTML = rows;
     }
     
-    // UPDATE SPARKLINE - menggunakan Chart.js dengan data real dari API
     async function updateSparkline(symbol, isPositive) {
         const canvas = document.getElementById('sparkline-canvas');
         const ctx = canvas.getContext('2d');
         const container = document.getElementById('sparkline-container');
         
-        // Set canvas size to match parent
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight;
         
@@ -383,7 +379,6 @@
             lineColor = sparklineData.change >= 0 ? '#67d9cb' : '#ff5e5e';
             fillColor = sparklineData.change >= 0 ? 'rgba(103, 217, 203, 0.1)' : 'rgba(255, 94, 94, 0.1)';
         } else {
-            // Fallback simulated data
             for (let i = 0; i < 30; i++) {
                 dataPoints.push(isPositive ? 30 + Math.sin(i * 0.5) * 15 + i * 0.5 : 50 - Math.sin(i * 0.5) * 20);
             }
@@ -438,7 +433,7 @@
                 <td class="px-4 py-2 font-mono-md text-primary">${b.name}</td>
                 <td class="px-4 py-2 text-right text-on-surface-variant">${formatNumber(b.avg)}</td>
                 <td class="px-4 py-2 text-right text-green-400">${b.val}B</td>
-              </tr>`;
+            </tr>`;
         }
         buyersHtml += '</tbody></table>';
         
@@ -448,7 +443,7 @@
                 <td class="px-4 py-2 font-mono-md text-primary">${s.name}</td>
                 <td class="px-4 py-2 text-right text-on-surface-variant">${formatNumber(s.avg)}</td>
                 <td class="px-4 py-2 text-right text-red-400">${s.val}B</td>
-              </tr>`;
+            </tr>`;
         }
         sellersHtml += '</tbody></table>';
         
@@ -616,7 +611,6 @@
                            <span class="text-label-md font-label-md ${isPositive ? 'text-green-400' : 'text-red-400'}">${isPositive ? '+' : ''}${changePct.toFixed(2)}%</span>`;
         document.getElementById('stock-change').innerHTML = changeHtml;
         
-        // Update sparkline dengan data real
         await updateSparkline(symbol, isPositive);
         
         updateKeyStats(keystats);
