@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0c141b;
+      color: #dbe3ed;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Native GUI Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c141b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e363d;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #414750;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-container": "#434a4f",
+            "surface-container-high": "#232b32",
+            "outline-variant": "#414750",
+            "on-surface-variant": "#c1c7d1",
+            "secondary-fixed-dim": "#c0c7cd",
+            "on-secondary": "#2a3136",
+            "on-tertiary-fixed": "#1c1b1b",
+            "surface": "#0c141b",
+            "primary": "#9bcbff",
+            "primary-fixed": "#d0e4ff",
+            "surface-container-lowest": "#070f16",
+            "primary-container": "#1f6aa5",
+            "tertiary-fixed-dim": "#c8c6c5",
+            "surface-dim": "#0c141b",
+            "tertiary-container": "#676666",
+            "surface-container-low": "#141c23",
+            "surface-container": "#182028",
+            "on-surface": "#dbe3ed",
+            "on-secondary-container": "#b2b9bf",
+            "inverse-primary": "#10629c",
+            "surface-bright": "#323a42",
+            "secondary-fixed": "#dde3e9",
+            "on-error": "#690005",
+            "on-primary": "#003256",
+            "surface-tint": "#9bcbff",
+            "inverse-on-surface": "#293139",
+            "background": "#0c141b",
+            "on-error-container": "#ffdad6",
+            "on-tertiary": "#313030",
+            "on-background": "#dbe3ed",
+            "inverse-surface": "#dbe3ed",
+            "error": "#ffb4ab",
+            "surface-container-highest": "#2e363d",
+            "primary-fixed-dim": "#9bcbff",
+            "secondary": "#c0c7cd",
+            "surface-variant": "#2e363d",
+            "tertiary": "#c8c6c5",
+            "on-tertiary-container": "#e7e5e4",
+            "on-secondary-fixed": "#161c21",
+            "error-container": "#93000a",
+            "on-primary-container": "#d4e7ff",
+            "tertiary-fixed": "#e5e2e1",
+            "on-secondary-fixed-variant": "#41484d",
+            "on-primary-fixed-variant": "#004a79",
+            "on-primary-fixed": "#001d34",
+            "outline": "#8b919b",
+            "on-tertiary-fixed-variant": "#474746"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "widget-gap": "12px",
+            "window-padding": "20px",
+            "section-margin": "24px",
+            "control-height": "32px",
+            "sidebar-width": "200px"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "label-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "mono-md": ["monospace"]
+          },
+          "fontSize": {
+            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "headline-md": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "headline-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "mono-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar Component (from JSON) -->
+<header class="bg-slate-900 flex justify-between items-center px-4 py-2 w-full fixed top-0 z-50 border-b border-slate-800">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center border border-outline-variant overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional portrait of a stock market analyst with a warm, confident expression. The lighting is soft and corporate, set against a blurred background of a modern trading office with multiple monitors showing green and red financial data graphs. The overall mood is intelligent and trustworthy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9N9qMZZdEtlO1E5re01JV21tosV57OEszdxuKMgGf51_30s9AWvtd23RKrbZvid6LAnd6YMK-mKW1JzIX0W9GhYnyENDSoNQ-_O-oJ4NS7vpzr66yoASSKzn_RsNw7luL4ROzX5qU90OUKj7-lnJgewXcXoTKQ4hFx0WSYOiYvxu81nk6_OdVTb5C2z5s45rVdRcZ0SRvO3ZvlYAOipNSqC5SB4Kpvd8LCddghbt2PZRj0REX1_AVkHEiCmaNTBIlM7JoIrg7C5n-"/>
+</div>
+<h1 class="text-lg font-bold text-white tracking-tight">Jurnal Saham</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-400 hover:bg-slate-800 p-2 rounded-lg transition-colors duration-200" data-icon="notifications">
+        notifications
+      </button>
+<!-- OS Window Controls for Native GUI Look -->
+<div class="flex gap-2 ml-2">
+<div class="w-3 h-3 rounded-full bg-surface-container-highest border border-outline-variant"></div>
+<div class="w-3 h-3 rounded-full bg-surface-container-highest border border-outline-variant"></div>
+<div class="w-3 h-3 rounded-full bg-error-container border border-error/30"></div>
+</div>
+</div>
+</header>
+<!-- Main Content Area: AI Chat Interface -->
+<main class="flex-grow pt-16 flex flex-col max-w-4xl mx-auto w-full px-window-padding h-screen overflow-hidden">
+<!-- Secondary Header Section -->
+<div class="py-6 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container/20 rounded-full flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined" data-icon="smart_toy" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div>
+<h2 class="font-headline-lg text-headline-lg tracking-tight">AI Trading Assistant</h2>
+<p class="font-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+            Online &amp; Analyzing Market Data
+          </p>
+</div>
+</div>
+<button class="bg-surface-container-high border border-outline-variant hover:bg-surface-variant px-4 py-1.5 rounded-full text-label-md font-label-md flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span>
+        Clear Chat
+      </button>
+</div>
+<!-- Chat Message Container -->
+<div class="flex-grow overflow-y-auto space-y-widget-gap pr-2 pb-8 custom-scrollbar">
+<!-- Date Divider -->
+<div class="flex justify-center my-6">
+<span class="text-label-md font-label-md bg-surface-container-low border border-outline-variant px-3 py-1 rounded-full text-on-surface-variant">Today, October 24</span>
+</div>
+<!-- User Message -->
+<div class="flex justify-end items-start gap-3">
+<div class="flex flex-col items-end max-w-[80%]">
+<div class="bg-primary-container text-on-primary-container font-body-md text-body-md p-4 rounded-[12px] rounded-tr-none shadow-sm border border-primary/20">
+            Analisis BBCA dong
+          </div>
+<span class="text-[10px] text-on-surface-variant mt-1 px-1">14:02 PM</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant flex-shrink-0 overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="Close-up avatar of a male investor with a clean professional look. The style is modern and digital, using a dark-mode friendly lighting setup with subtle blue rim light. He is positioned against a tech-inspired background with faint grid lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmZfBM0VbMjxd9TOR9riHPLzQ8yQwuM6vrImwaQ8wo2OY40JooPycIhVxbWs1zYaWx7Fzji0bpZkgz2GqacJ76iLNdJZgynvnjX-8bcOkqqpGMrUSQVxQYaZgMRkWlrOXee9_mO9gVf8qJPYYPc8-osE4L0pVG9TdeV1b_qrHWgatQISTlNOB7Fo6uk_MBCU_1hRJ0viKqV8J1pIF7feqA8f_9k6g0Lg2mLkQntYglM6Ezcgr5Vr9Ufc7g-H4wDtD-2_nT6tBjbxoY"/>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex justify-start items-start gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="bg-surface-container border border-outline-variant font-body-md text-body-md p-4 rounded-[12px] rounded-tl-none space-y-3">
+<p>Berdasarkan data terbaru per penutupan sesi 1 hari ini, saham <strong class="text-primary">BBCA (Bank Central Asia Tbk)</strong> menunjukkan performa yang cukup stabil di tengah fluktuasi IHSG.</p>
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-3 space-y-2">
+<div class="flex items-center justify-between text-label-md font-label-md border-b border-outline-variant pb-2">
+<span class="text-on-surface-variant">Key Metrics</span>
+<span class="text-green-400">Neutral/Bullish</span>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-2">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Support Level</p>
+<p class="font-mono-md text-on-surface">IDR 10,250</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Resistance</p>
+<p class="font-mono-md text-on-surface">IDR 10,775</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">RSI (14)</p>
+<p class="font-mono-md text-on-surface">58.4 (Neutral)</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Foreign Flow</p>
+<p class="font-mono-md text-green-400">+24.5B (Acc)</p>
+</div>
+</div>
+</div>
+<p>Rekomendasi teknikal untuk jangka pendek: <span class="bg-primary-container/20 text-primary px-2 py-0.5 rounded font-semibold">Hold / Buy on Weakness</span>. Jika harga berhasil menembus 10.800 dengan volume tinggi, target profit berikutnya ada di level All-Time High baru.</p>
+</div>
+<div class="flex items-center gap-4 mt-2 px-1">
+<span class="text-[10px] text-on-surface-variant">14:03 PM</span>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-[16px] text-on-surface-variant hover:text-primary transition-colors" data-icon="thumb_up">thumb_up</button>
+<button class="material-symbols-outlined text-[16px] text-on-surface-variant hover:text-error transition-colors" data-icon="thumb_down">thumb_down</button>
+<button class="material-symbols-outlined text-[16px] text-on-surface-variant hover:text-primary transition-colors" data-icon="content_copy">content_copy</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Suggestion Chips & Input Area -->
+<div class="mt-auto pb-window-padding space-y-4">
+<!-- Suggestion Chips -->
+<div class="flex flex-wrap gap-2 justify-center">
+<button class="bg-surface-container border border-outline-variant hover:bg-surface-variant px-4 py-2 rounded-full font-label-md text-label-md transition-all duration-200">
+          Prospek IHSG?
+        </button>
+<button class="bg-surface-container border border-outline-variant hover:bg-surface-variant px-4 py-2 rounded-full font-label-md text-label-md transition-all duration-200">
+          Support BBRI?
+        </button>
+<button class="bg-surface-container border border-outline-variant hover:bg-surface-variant px-4 py-2 rounded-full font-label-md text-label-md transition-all duration-200">
+          Akumulasi GOTO?
+        </button>
+</div>
+<!-- Modern Input Container -->
+<div class="bg-surface-container-high border border-outline-variant rounded-xl p-2 flex flex-col gap-2 shadow-lg">
+<div class="flex items-center gap-2 px-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="bolt">bolt</span>
+<span class="text-label-md font-label-md text-primary tracking-wide uppercase">Elite Model Active</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<input class="flex-grow bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2 text-body-md focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all placeholder:text-on-surface-variant/50" placeholder="Ask a question..." type="text"/>
+<button class="w-10 h-10 bg-primary-container text-on-primary-container rounded-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<p class="text-center text-[11px] text-on-surface-variant/60">
+        AI may display inaccurate information. Verify critical data before trading.
+      </p>
+</div>
+</main>
+<!-- Image Grid for Contextual Visuals (Hidden or decorative background elements) -->
+<div class="fixed inset-0 pointer-events-none -z-10 opacity-5">
+<div class="absolute top-1/4 left-10 w-64 h-64 blur-3xl bg-primary/20 rounded-full"></div>
+<div class="absolute bottom-1/4 right-10 w-96 h-96 blur-3xl bg-secondary-container/20 rounded-full"></div>
+<img alt="Background Texture" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay" data-alt="A sophisticated dark background with subtle, flowing abstract lines representing market fluctuations and network connectivity. The image has a deep slate blue and charcoal color palette with occasional glowing blue data nodes. The lighting is low-key, giving a sense of high-end financial technology and digital precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxgCq_M3eI22pUe9yyr7eFp3EaCchyxnpe4Bi8e2RPw6JiL-m77RTGpLDPsUlTN0Epy366eaAx-WPgSk0zs0-28F0_9_2O1hvBq7wNzv8fdAAtolpNpSgXpSfv58SRo-emrPxODUjJY0uAjO60BVzXUPuJTEwjeLez8SI0JXFGQzYkF-Sno-r4Vog76lo4lGef5mBVXgSkyBLeSUvofMAEEPjkYHJUcgccdasBqcUyLGvsOt_t5UgLpvtMn59hxo2MV0LHYliAk9GX"/>
+</div>
+</body></html>

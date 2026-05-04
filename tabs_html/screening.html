@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#434a4f",
+                        "surface-container-high": "#232b32",
+                        "outline-variant": "#414750",
+                        "on-surface-variant": "#c1c7d1",
+                        "secondary-fixed-dim": "#c0c7cd",
+                        "on-secondary": "#2a3136",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "surface": "#0c141b",
+                        "primary": "#9bcbff",
+                        "primary-container": "#1f6aa5",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "surface-dim": "#0c141b",
+                        "tertiary-container": "#676666",
+                        "surface-container-low": "#141c23",
+                        "surface-container": "#182028",
+                        "on-surface": "#dbe3ed",
+                        "on-secondary-container": "#b2b9bf",
+                        "inverse-primary": "#10629c",
+                        "surface-bright": "#323a42",
+                        "secondary-fixed": "#dde3e9",
+                        "on-error": "#690005",
+                        "on-primary": "#003256",
+                        "surface-tint": "#9bcbff",
+                        "inverse-on-surface": "#293139",
+                        "background": "#0c141b",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#313030",
+                        "on-background": "#dbe3ed",
+                        "inverse-surface": "#dbe3ed",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#2e363d",
+                        "primary-fixed-dim": "#9bcbff",
+                        "secondary": "#c0c7cd",
+                        "surface-variant": "#2e363d",
+                        "tertiary": "#c8c6c5",
+                        "on-tertiary-container": "#e7e5e4",
+                        "on-secondary-fixed": "#161c21",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#d4e7ff",
+                        "tertiary-fixed": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#41484d",
+                        "on-primary-fixed-variant": "#004a79",
+                        "on-primary-fixed": "#001d34",
+                        "outline": "#8b919b",
+                        "on-tertiary-fixed-variant": "#474746"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem",
+                        "card": "12px"
+                    },
+                    "spacing": {
+                        "widget-gap": "12px",
+                        "window-padding": "20px",
+                        "section-margin": "24px",
+                        "control-height": "32px",
+                        "sidebar-width": "200px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "mono-md": ["monospace"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "mono-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0c141b;
+            color: #dbe3ed;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0c141b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2e363d;
+            border-radius: 2px;
+        }
+        .glass-panel {
+            background: rgba(24, 32, 40, 0.8);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md antialiased selection:bg-primary-container selection:text-white">
+<!-- Top Navigation Bar (Shared Component Strategy) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 py-2 w-full bg-slate-900 border-b border-slate-800">
+<div class="flex items-center gap-3">
+<span class="text-lg font-bold text-white tracking-tight">Jurnal Saham</span>
+<div class="h-4 w-[1px] bg-slate-700 mx-2"></div>
+<nav class="hidden md:flex gap-4">
+<a class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-2 py-1 rounded transition-colors duration-200" href="#">Watchlist</a>
+<a class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-2 py-1 rounded transition-colors duration-200" href="#">Top 10</a>
+<a class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-2 py-1 rounded transition-colors duration-200" href="#">Jurnal</a>
+<a class="text-blue-500 font-inter text-sm font-semibold tracking-tight px-2 py-1 rounded" href="#">Screening</a>
+<a class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-2 py-1 rounded transition-colors duration-200" href="#">AI Chat</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-1.5 hover:bg-slate-800 rounded-full transition-colors duration-200">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 20px;">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-[10px] font-bold text-white overflow-hidden border border-slate-700">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a financial analyst with a neutral background, using a corporate color palette of deep blues and grays. The lighting is soft and even, highlighting a clean, modern aesthetic suitable for a high-end investment dashboard profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADe26GKh1gjbO1FBAxuA8YSHOV9FVoGVnl_yCk9XuJAzTk5fqWXQh7DXBc5orgkxdfvGGR0TXvz3084oMWwiDVg6GMYo8EXZJ0j_GLVO1oZUYwHmnOkGFYWzqYglpA9Dlkyi6ov-1hYS7OhArKBXAKo1QdJYYPJbL9ikf8Z0AnBvGn_2JK1knaTs04ITQUsCMrwzfkHB_jQPFa9uc3obarlDqAfE3cWGigw5EHWWJ5JO4Cbq5sks6H-G6txgqxbIxgVK4kLetwl2uH"/>
+</div>
+</div>
+</header>
+<main class="pt-16 px-window-padding max-w-7xl mx-auto pb-10">
+<!-- Dashboard Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-section-margin gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-1">Screening</h1>
+<p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-widest">Market Intelligence Engine</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="flex items-center gap-1.5 px-3 py-1 bg-surface-container-highest border border-outline-variant rounded-lg text-label-md text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    Live Market Data
+                </span>
+<div class="flex bg-surface-container rounded-lg border border-outline-variant p-0.5">
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span>
+</button>
+<button class="p-1.5 bg-secondary-container text-white rounded shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 18px;">view_list</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Filter Bento Section -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-widget-gap mb-8">
+<div class="lg:col-span-3 bg-surface-container border border-outline-variant rounded-card p-5">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">filter_alt</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Search Parameters</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Price Range -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Price Range (IDR)</label>
+<div class="flex items-center gap-2">
+<input class="w-full h-control-height bg-surface-container-lowest border border-outline-variant rounded px-3 text-body-sm font-body-sm focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="Min" type="number"/>
+<span class="text-outline">/</span>
+<input class="w-full h-control-height bg-surface-container-lowest border border-outline-variant rounded px-3 text-body-sm font-body-sm focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="Max" type="number"/>
+</div>
+</div>
+<!-- Minimum Volume -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Minimum Volume (Shares)</label>
+<div class="relative">
+<input class="w-full h-control-height bg-surface-container-lowest border border-outline-variant rounded px-3 pr-10 text-body-sm font-body-sm focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="e.g. 1.0M" type="text"/>
+<span class="material-symbols-outlined absolute right-2 top-1.5 text-outline text-lg">bar_chart</span>
+</div>
+</div>
+<!-- Sector Dropdown -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Market Sector</label>
+<div class="relative">
+<select class="w-full h-control-height appearance-none bg-surface-container-lowest border border-outline-variant rounded px-3 text-body-sm font-body-sm focus:outline-none focus:ring-2 focus:ring-primary-container transition-all">
+<option>All Sectors</option>
+<option>Technology</option>
+<option>Finance</option>
+<option>Energy</option>
+<option>Consumer Goods</option>
+<option>Healthcare</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1.5 text-outline pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Run Button Section -->
+<div class="lg:col-span-1 bg-surface-container border border-outline-variant rounded-card p-5 flex flex-col justify-between">
+<div class="space-y-1">
+<h4 class="font-label-md text-label-md text-on-surface-variant uppercase">Engine Status</h4>
+<div class="flex items-center gap-2 text-primary font-mono-md">
+<span class="material-symbols-outlined" style="font-size: 16px;">memory</span>
+                        Ready to process
+                    </div>
+</div>
+<button class="w-full h-12 bg-[#008080] hover:bg-[#006666] text-white font-headline-md rounded-lg shadow-lg shadow-teal-900/20 transition-all flex items-center justify-center gap-2 group active:scale-95">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">bolt</span>
+                    Run Screening
+                </button>
+</div>
+</div>
+<!-- Results Section -->
+<div class="bg-surface-container border border-outline-variant rounded-card overflow-hidden">
+<div class="px-5 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<div class="flex items-center gap-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">Screening Results</h3>
+<span class="px-2 py-0.5 bg-surface-container-highest rounded text-[11px] font-mono-md text-on-surface-variant border border-outline-variant">Found 148 Matches</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3 py-1.5 text-label-md bg-secondary-container hover:bg-surface-container-highest border border-outline-variant rounded transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                        Export CSV
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-6 py-4 font-label-md text-label-md text-outline uppercase tracking-wider">Code</th>
+<th class="px-6 py-4 font-label-md text-label-md text-outline uppercase tracking-wider">Price</th>
+<th class="px-6 py-4 font-label-md text-label-md text-outline uppercase tracking-wider">Change</th>
+<th class="px-6 py-4 font-label-md text-label-md text-outline uppercase tracking-wider text-right">Volume</th>
+<th class="px-6 py-4 font-label-md text-label-md text-outline uppercase tracking-wider text-center">Score</th>
+<th class="px-6 py-4 font-label-md text-label-md text-outline uppercase tracking-wider">Trend</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-highest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/20 flex items-center justify-center text-primary font-bold text-xs">BB</div>
+<div>
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">BBCA</div>
+<div class="text-[11px] text-on-surface-variant">Bank Central Asia</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 font-mono-md text-on-surface">9,850</td>
+<td class="px-6 py-4">
+<span class="text-green-400 font-mono-md text-body-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined" style="font-size: 14px;">arrow_upward</span>
+                                    +1.24%
+                                </span>
+</td>
+<td class="px-6 py-4 font-mono-md text-on-surface text-right">84.2M</td>
+<td class="px-6 py-4 text-center">
+<div class="inline-flex items-center justify-center px-3 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20 text-[11px] font-bold">
+                                    92/100
+                                </div>
+</td>
+<td class="px-6 py-4">
+<div class="w-24 h-6 flex items-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+<div class="w-1.5 h-1/3 bg-green-500/40 rounded-t-sm"></div>
+<div class="w-1.5 h-1/2 bg-green-500/60 rounded-t-sm"></div>
+<div class="w-1.5 h-2/3 bg-green-500/80 rounded-t-sm"></div>
+<div class="w-1.5 h-full bg-green-500 rounded-t-sm"></div>
+<div class="w-1.5 h-3/4 bg-green-500/90 rounded-t-sm"></div>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-highest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/20 flex items-center justify-center text-primary font-bold text-xs">TL</div>
+<div>
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">TLKM</div>
+<div class="text-[11px] text-on-surface-variant">Telkom Indonesia</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 font-mono-md text-on-surface">3,240</td>
+<td class="px-6 py-4">
+<span class="text-red-400 font-mono-md text-body-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined" style="font-size: 14px;">arrow_downward</span>
+                                    -0.85%
+                                </span>
+</td>
+<td class="px-6 py-4 font-mono-md text-on-surface text-right">112.5M</td>
+<td class="px-6 py-4 text-center">
+<div class="inline-flex items-center justify-center px-3 py-1 bg-yellow-500/10 text-yellow-400 rounded-full border border-yellow-500/20 text-[11px] font-bold">
+                                    74/100
+                                </div>
+</td>
+<td class="px-6 py-4">
+<div class="w-24 h-6 flex items-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+<div class="w-1.5 h-full bg-red-500/40 rounded-t-sm"></div>
+<div class="w-1.5 h-2/3 bg-red-500/60 rounded-t-sm"></div>
+<div class="w-1.5 h-3/4 bg-red-500/80 rounded-t-sm"></div>
+<div class="w-1.5 h-1/2 bg-red-500 rounded-t-sm"></div>
+<div class="w-1.5 h-1/3 bg-red-500/90 rounded-t-sm"></div>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-highest transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/20 flex items-center justify-center text-primary font-bold text-xs">GO</div>
+<div>
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">GOTO</div>
+<div class="text-[11px] text-on-surface-variant">GoTo Gojek Tokopedia</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 font-mono-md text-on-surface">62</td>
+<td class="px-6 py-4">
+<span class="text-on-surface-variant font-mono-md text-body-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined" style="font-size: 14px;">horizontal_rule</span>
+                                    0.00%
+                                </span>
+</td>
+<td class="px-6 py-4 font-mono-md text-on-surface text-right">2.4B</td>
+<td class="px-6 py-4 text-center">
+<div class="inline-flex items-center justify-center px-3 py-1 bg-surface-container-highest text-on-surface-variant rounded-full border border-outline-variant text-[11px] font-bold">
+                                    41/100
+                                </div>
+</td>
+<td class="px-6 py-4">
+<div class="w-24 h-6 flex items-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+<div class="w-1.5 h-1/4 bg-slate-500/40 rounded-t-sm"></div>
+<div class="w-1.5 h-1/4 bg-slate-500/60 rounded-t-sm"></div>
+<div class="w-1.5 h-1/4 bg-slate-500/80 rounded-t-sm"></div>
+<div class="w-1.5 h-1/4 bg-slate-500 rounded-t-sm"></div>
+<div class="w-1.5 h-1/4 bg-slate-500/90 rounded-t-sm"></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer -->
+<div class="px-5 py-4 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4 bg-surface-container-low">
+<div class="text-body-sm text-on-surface-variant">
+                    Showing <span class="text-on-surface font-semibold">1-20</span> of <span class="text-on-surface font-semibold">148</span> results
+                </div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary-container text-white border border-primary-container">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest transition-colors">3</button>
+<span class="px-2 text-outline">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest transition-colors">8</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Insights Banner -->
+<div class="mt-8 relative overflow-hidden bg-gradient-to-r from-primary-container/20 to-transparent border border-primary-container/30 rounded-card p-6 flex flex-col md:flex-row items-center gap-6">
+<div class="flex-shrink-0 w-16 h-16 rounded-xl bg-primary-container flex items-center justify-center text-white shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined" data-weight="fill" style="font-size: 32px;">smart_toy</span>
+</div>
+<div class="flex-grow space-y-1">
+<h4 class="font-headline-md text-on-surface">Smart Alert Triggered</h4>
+<p class="text-body-md text-on-surface-variant max-w-2xl">The engine detected unusual volume spikes in the <span class="text-primary font-semibold">Financial Sector</span>. Consider narrowing your screening to Banking stocks for potential momentum breakout setups.</p>
+</div>
+<button class="flex-shrink-0 px-5 py-2.5 bg-surface-container-highest text-primary font-headline-md rounded border border-primary/20 hover:bg-primary/10 transition-colors">
+                Refine Screening
+            </button>
+<div class="absolute -right-10 -top-10 opacity-10">
+<span class="material-symbols-outlined" style="font-size: 180px;">search</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (SUPPRESSED for clean view as requested, but logic maintained) -->
+</body></html>

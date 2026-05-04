@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+    body { background: #0c141b; font-family: 'Inter', sans-serif; margin: 0; padding: 16px; }
+    .card { background: #181c21; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 16px; margin-bottom: 16px; }
+    .message-user { background: #1f6aa5; color: white; border-radius: 18px 18px 4px 18px; padding: 10px 14px; display: inline-block; max-width: 80%; }
+    .message-ai { background: #1a2027; border: 1px solid rgba(255,255,255,0.05); color: #dbe3ed; border-radius: 18px 18px 18px 4px; padding: 10px 14px; display: inline-block; max-width: 80%; }
+    .chat-row { display: flex; margin-bottom: 16px; }
+    .chat-row.user { justify-content: flex-end; }
+    .chat-row.ai { justify-content: flex-start; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #1a2027; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .avatar.ai { background: #1a2027; border-color: #1f6aa5; }
+    .avatar.user { background: #2a2a2a; margin-left: 8px; margin-right: 0; }
+    .time { font-size: 10px; color: #5a6370; margin-top: 4px; margin-left: 8px; }
+    .user .time { text-align: right; margin-right: 8px; }
+    .input-area { display: flex; flex-direction: column; gap: 12px; }
+    .input-row { display: flex; gap: 8px; }
+    .chat-input { flex: 1; background: #0c141b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: white; outline: none; }
+    .chat-input:focus { border-color: #1f6aa5; }
+    .send-btn { background: #1f6aa5; border: none; color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .send-btn:hover { background: #155a8a; }
+    .upload-btn { background: #1a2027; border: 1px solid rgba(255,255,255,0.1); color: #8b919b; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .upload-btn:hover { background: #252a33; border-color: #1f6aa5; color: #1f6aa5; }
+    .file-preview { background: #1a2027; border-radius: 10px; padding: 8px 12px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1; }
+    .remove-file { background: none; border: none; color: #ff5e5e; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .suggestion-chip { background: #1a2027; border: 1px solid rgba(255,255,255,0.05); color: #cbd5e1; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+    .suggestion-chip:hover { background: #252a33; border-color: #1f6aa5; color: #1f6aa5; }
+    .clear-btn { background: #2a2a2a; border: none; color: #8b919b; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .clear-btn:hover { background: #353535; color: #e2e8f0; }
+    .typing-dots span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #5a6370; margin: 0 2px; animation: typing 1.4s infinite; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
+    .streaming-cursor { display: inline-block; width: 2px; height: 14px; background: #1f6aa5; animation: blink 1s infinite; margin-left: 2px; vertical-align: middle; }
+    @keyframes blink { 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0c141b; }
+    ::-webkit-scrollbar-thumb { background: #2e363d; border-radius: 3px; }
+    .section-title { font-size: 14px; font-weight: 600; color: white; margin: 0; }
+    .file-name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .debug-log { font-size: 10px; color: #5a6370; margin-top: 4px; display: none; }
+</style>
+</head>
+<body>
+
+<div class="card" style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div class="section-title">AI Trading Assistant</div>
+            <p style="color: #8b919b; font-size: 11px; margin: 4px 0 0;">DeepSeek AI + Vision (Gambar) + Upload File</p>
+        </div>
+        <button id="clearBtn" class="clear-btn">
+            <span class="material-symbols-outlined" style="font-size: 14px;">history</span>
+            Clear
+        </button>
+    </div>
+</div>
+
+<div class="card" id="chatContainer" style="height: 55vh; overflow-y: auto; display: flex; flex-direction: column; padding: 16px;">
+    <div id="messages">
+        <div class="chat-row ai">
+            <div class="avatar ai">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #1f6aa5;">smart_toy</span>
+            </div>
+            <div>
+                <div class="message-ai">Halo! Gue asisten saham IHSG. Lo bisa tanya prediksi saham, upload screenshot grafik, atau upload file (PDF, Word, TXT, CSV) untuk gue analisa.</div>
+                <div class="time">Online</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 0;">
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        <button class="suggestion-chip" data-chip="BBCA besok gimana?">BBCA besok gimana?</button>
+        <button class="suggestion-chip" data-chip="Analisa gambar ini">Analisa gambar ini</button>
+        <button class="suggestion-chip" data-chip="Apa yang terlihat di gambar?">Apa yang terlihat di gambar?</button>
+        <button class="suggestion-chip" data-chip="Prediksi saham berdasarkan grafik">Prediksi saham berdasarkan grafik</button>
+    </div>
+    
+    <div class="input-area">
+        <div class="input-row">
+            <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.csv,.json,.png,.jpg,.jpeg,.gif,.bmp" style="display: none;" />
+            <button id="uploadBtn" class="upload-btn" title="Upload file/gambar">
+                <span class="material-symbols-outlined" style="font-size: 18px;">attach_file</span>
+            </button>
+            <input type="text" id="chatInput" class="chat-input" placeholder="Tanya tentang saham atau upload gambar/file..." />
+            <button id="sendBtn" class="send-btn">
+                <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
+            </button>
+        </div>
+        <div id="filePreview" style="display: none;" class="file-preview">
+            <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
+            <span id="fileName" class="file-name"></span>
+            <button id="removeFileBtn" class="remove-file">
+                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+            </button>
+        </div>
+    </div>
+    
+    <p style="text-align: center; font-size: 10px; color: #5a6370; margin-top: 12px;">
+        Bukan rekomendasi investasi · Support gambar (PNG/JPG) untuk analisis chart via AI Vision
+    </p>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5001';
+    let isStreaming = false;
+    let selectedFile = null;
+    let messagesDiv = document.getElementById('messages');
+    
+    let sessionId = localStorage.getItem('chat_session_id');
+    if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('chat_session_id', sessionId);
+    }
+    
+    async function clearSessionOnServer() {
+        try {
+            await fetch(`${API_URL}/clear_session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+        } catch(e) { console.error(e); }
+    }
+    
+    async function uploadFileToAPI(file) {
+        console.log('📤 Uploading file:', file.name, 'size:', (file.size/1024).toFixed(1), 'KB');
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch(`${API_URL}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            console.log('✅ Upload result:', result);
+            return result;
+        } catch (error) {
+            console.error('❌ Upload error:', error);
+            return null;
+        }
+    }
+    
+    function addMessage(text, isUser, time = null, fileInfo = null) {
+        const now = time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const row = document.createElement('div');
+        row.className = `chat-row ${isUser ? 'user' : 'ai'}`;
+        
+        if (isUser) {
+            let fileHtml = '';
+            if (fileInfo) {
+                fileHtml = `<div style="background: #1a2027; border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px;">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">description</span>
+                    <span>📎 ${escapeHtml(fileInfo.name)} (${(fileInfo.size/1024).toFixed(1)}KB)</span>
+                </div>`;
+            }
+            row.innerHTML = `
+                <div style="max-width: 80%;">
+                    ${fileHtml}
+                    <div class="message-user">${escapeHtml(text)}</div>
+                    <div class="time" style="text-align: right;">${now}</div>
+                </div>
+                <div class="avatar user">U</div>
+            `;
+        } else {
+            row.innerHTML = `
+                <div class="avatar ai">
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: #1f6aa5;">smart_toy</span>
+                </div>
+                <div style="max-width: 80%;">
+                    <div class="message-ai">${escapeHtml(text)}</div>
+                    <div class="time">${now}</div>
+                </div>
+            `;
+        }
+        messagesDiv.appendChild(row);
+        const container = document.getElementById('chatContainer');
+        container.scrollTop = messagesDiv.scrollHeight;
+        return row;
+    }
+    
+    async function sendMessageWithFile(message, file) {
+        if (!message && !file) return;
+        
+        isStreaming = true;
+        showTyping();
+        
+        try {
+            let fileContent = null;
+            let fileName = null;
+            let imageBase64 = null;
+            
+            if (file) {
+                fileName = file.name;
+                const uploadResult = await uploadFileToAPI(file);
+                if (uploadResult && uploadResult.success) {
+                    if (uploadResult.is_image && uploadResult.image_base64) {
+                        imageBase64 = uploadResult.image_base64;
+                        console.log('🖼️ Image base64 received, length:', imageBase64.length);
+                        
+                        // Validasi base64
+                        if (!imageBase64 || imageBase64.length < 100) {
+                            console.error('❌ Image base64 too short or invalid');
+                            addMessage('⚠️ Gambar tidak valid atau terlalu kecil. Coba dengan gambar lain.', false);
+                            hideTyping();
+                            isStreaming = false;
+                            return;
+                        }
+                        
+                        // Log first 100 chars untuk debugging
+                        console.log('📸 Base64 preview:', imageBase64.substring(0, 100) + '...');
+                    } else if (uploadResult.content) {
+                        fileContent = uploadResult.content;
+                        console.log('📄 File content length:', fileContent.length);
+                    }
+                } else {
+                    console.error('❌ Upload failed:', uploadResult);
+                    hideTyping();
+                    addMessage('❌ Gagal upload file. Coba lagi.', false);
+                    isStreaming = false;
+                    return;
+                }
+            }
+            
+            const chatPayload = {
+                message: message || (file ? (imageBase64 ? "Analisa gambar ini" : "Analisa file ini") : ""),
+                session_id: sessionId,
+                file_content: fileContent,
+                file_name: fileName,
+                image_base64: imageBase64
+            };
+            
+            console.log('📡 Sending to /chat:', { 
+                hasImage: !!imageBase64, 
+                imgLength: imageBase64 ? imageBase64.length : 0,
+                hasContent: !!fileContent, 
+                msgLength: message ? message.length : 0 
+            });
+            
+            const res = await fetch(`${API_URL}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(chatPayload)
+            });
+            
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('❌ HTTP Error:', res.status, errorText);
+                throw new Error(`HTTP ${res.status}`);
+            }
+            
+            console.log('✅ Connected to /chat, streaming response...');
+            hideTyping();
+            
+            const now = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+            const row = document.createElement('div');
+            row.className = 'chat-row ai';
+            row.innerHTML = `
+                <div class="avatar ai">
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: #1f6aa5;">smart_toy</span>
+                </div>
+                <div>
+                    <div class="message-ai" id="streamText"></div>
+                    <div class="time">${now}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(row);
+            const textEl = document.getElementById('streamText');
+            let full = '';
+            const cursor = document.createElement('span'); 
+            cursor.className = 'streaming-cursor'; 
+            textEl.appendChild(cursor);
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let streamActive = true;
+            
+            while(streamActive){
+                const {done, value} = await reader.read();
+                if(done) break;
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                for(let line of lines){
+                    if(line.startsWith('data: ')){
+                        const data = line.slice(6);
+                        if(data === '[DONE]'){ 
+                            streamActive = false;
+                            cursor.remove();
+                            break; 
+                        }
+                        try{
+                            const parsed = JSON.parse(data);
+                            if(parsed.content){
+                                full += parsed.content;
+                                textEl.innerHTML = escapeHtml(full);
+                                textEl.appendChild(cursor);
+                                const container = document.getElementById('chatContainer');
+                                container.scrollTop = messagesDiv.scrollHeight;
+                            }
+                            if(parsed.error){
+                                console.error('❌ Stream error:', parsed.error);
+                                textEl.innerHTML = 'Maaf, terjadi error: ' + escapeHtml(parsed.error);
+                                cursor.remove();
+                                streamActive = false;
+                            }
+                        }catch(e){}
+                    }
+                }
+            }
+            row.removeAttribute('id');
+            console.log('✅ Stream completed, total response length:', full.length);
+            
+        } catch(e){
+            console.error('❌ Send error:', e);
+            hideTyping();
+            addMessage('Maaf, server error: ' + e.message, false);
+        } finally { isStreaming = false; }
+    }
+    
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        
+        if (!msg && !selectedFile) return;
+        
+        let fileInfo = null;
+        if (selectedFile) {
+            fileInfo = { name: selectedFile.name, size: selectedFile.size };
+        }
+        addMessage(msg || (selectedFile ? "Analisa file ini" : ""), true, null, fileInfo);
+        
+        input.value = '';
+        await sendMessageWithFile(msg, selectedFile);
+        
+        selectedFile = null;
+        document.getElementById('filePreview').style.display = 'none';
+        document.getElementById('fileName').innerText = '';
+        document.getElementById('fileInput').value = '';
+    }
+    
+    function showTyping() {
+        const existing = document.getElementById('typing');
+        if (existing) existing.remove();
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typing';
+        typingDiv.className = 'chat-row ai';
+        typingDiv.innerHTML = `
+            <div class="avatar ai">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #1f6aa5;">smart_toy</span>
+            </div>
+            <div>
+                <div class="message-ai">
+                    <div class="typing-dots"><span></span><span></span><span></span></div>
+                    <div style="font-size: 10px; color: #5a6370; margin-top: 4px;">🤔 lagi mikir...</div>
+                </div>
+            </div>
+        `;
+        messagesDiv.appendChild(typingDiv);
+        const container = document.getElementById('chatContainer');
+        container.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    function hideTyping() { 
+        const el = document.getElementById('typing'); 
+        if(el) el.remove(); 
+    }
+    
+    function escapeHtml(str) { 
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+    
+    function sendChip(text){ 
+        document.getElementById('chatInput').value = text; 
+        sendMessage(); 
+    }
+    
+    async function clearChat() {
+        messagesDiv.innerHTML = '';
+        await clearSessionOnServer();
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('chat_session_id', sessionId);
+        selectedFile = null;
+        document.getElementById('filePreview').style.display = 'none';
+        const welcome = document.createElement('div');
+        welcome.className = 'chat-row ai';
+        welcome.innerHTML = `
+            <div class="avatar ai">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #1f6aa5;">smart_toy</span>
+            </div>
+            <div>
+                <div class="message-ai">Halo! Gue asisten saham IHSG. Lo bisa tanya prediksi saham, upload screenshot grafik, atau upload file (PDF, Word, TXT, CSV) untuk gue analisa.</div>
+                <div class="time">Online</div>
+            </div>
+        `;
+        messagesDiv.appendChild(welcome);
+    }
+    
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+    
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validasi tipe file
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/bmp', 'application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'text/csv', 'application/json'];
+        if (!validTypes.includes(file.type) && !file.name.match(/\.(txt|pdf|doc|docx|csv|json)$/i)) {
+            addMessage('❌ Tipe file tidak didukung. Upload PNG, JPG, PDF, DOCX, TXT, CSV, atau JSON.', false);
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+            addMessage('❌ File terlalu besar. Maksimal 10MB.', false);
+            return;
+        }
+        
+        selectedFile = file;
+        document.getElementById('fileName').innerText = file.name;
+        document.getElementById('filePreview').style.display = 'flex';
+        console.log('📎 File selected:', file.name, 'type:', file.type, 'size:', (file.size/1024).toFixed(1), 'KB');
+    });
+    
+    document.getElementById('removeFileBtn').addEventListener('click', () => {
+        selectedFile = null;
+        document.getElementById('filePreview').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+        console.log('🗑️ File removed');
+    });
+    
+    document.getElementById('sendBtn').onclick = sendMessage;
+    document.getElementById('chatInput').addEventListener('keypress', e => { 
+        if(e.key === 'Enter') sendMessage(); 
+    });
+    document.getElementById('clearBtn').onclick = clearChat;
+    
+    document.querySelectorAll('.suggestion-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const text = chip.getAttribute('data-chip');
+            if (text) {
+                document.getElementById('chatInput').value = text;
+                sendMessage();
+            }
+        });
+    });
+    
+    console.log('🚀 AI Chat Assistant loaded, API URL:', API_URL);
+</script>
+</body>
+</html>

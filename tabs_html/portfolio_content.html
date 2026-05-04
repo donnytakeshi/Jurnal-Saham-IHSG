@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="dark" lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        body { background: #0c141b; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .sub-tab-active { background: #159D91; color: white; }
+        .sub-tab-inactive { background: #181c21; color: #8b919b; border: 1px solid #2a2a2a; }
+        .sub-tab-inactive:hover { background: #232b32; color: #dbe3ed; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .card { background: #181c21; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .metric-card { background: #181c21; border-radius: 12px; padding: 16px; }
+    </style>
+</head>
+<body>
+
+<!-- SUB-NAVIGASI (tanpa icon, dengan style card) -->
+<div style="background: transparent; padding: 16px 16px 0 16px; display: flex; gap: 12px; position: sticky; top: 0; z-index: 10;">
+    <button class="sub-tab-btn sub-tab-active" data-page="journal" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: none;">
+        Journal Transaksi
+    </button>
+    <button class="sub-tab-btn sub-tab-inactive" data-page="form" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+        Tambah/Edit
+    </button>
+    <button class="sub-tab-btn sub-tab-inactive" data-page="report" style="padding: 10px 20px; font-size: 13px; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+        Performance Report
+    </button>
+</div>
+
+<!-- PAGE 1: JOURNAL TRANSACTION -->
+<div id="page-journal" class="page active" style="padding: 16px;">
+    <!-- Metrics Row -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+        <div class="metric-card">
+            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">TOTAL EQUITY</p>
+            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">Rp 1.450.250.000</p>
+        </div>
+        <div class="metric-card" style="border-left: 3px solid #67d9cb;">
+            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">REALIZED P/L</p>
+            <p style="color: #67d9cb; font-size: 20px; font-weight: bold; margin: 0;">+Rp 84.300.000</p>
+        </div>
+        <div class="metric-card">
+            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">WIN RATE</p>
+            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">68%</p>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="color: white; font-size: 16px; font-weight: 600; margin: 0;">Trading Journal</h2>
+        <div style="position: relative;">
+            <input type="text" placeholder="Search stock code..." style="background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 8px 12px 8px 32px; color: white; font-size: 13px; width: 200px; outline: none;">
+            <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #8b919b; font-size: 14px;">🔍</span>
+        </div>
+    </div>
+
+    <!-- Transaction List -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">BBCA.JK</p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="background: rgba(21, 157, 145, 0.2); color: #159D91; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">BUY</span>
+                    <span style="color: #8b919b; font-size: 11px;">24 Oct 2023, 09:15</span>
+                </div>
+            </div>
+            <div>
+                <span style="color: #67d9cb; font-size: 12px; font-weight: 500;">Closed</span>
+            </div>
+        </div>
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">TLKM.JK</p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="background: rgba(255, 94, 94, 0.2); color: #ff5e5e; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">SELL</span>
+                    <span style="color: #8b919b; font-size: 11px;">25 Oct 2023, 11:20</span>
+                </div>
+            </div>
+            <div>
+                <span style="color: #159D91; font-size: 12px; font-weight: 500;">Open</span>
+            </div>
+        </div>
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">GOTO.JK</p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="background: rgba(21, 157, 145, 0.2); color: #159D91; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">BUY</span>
+                    <span style="color: #8b919b; font-size: 11px;">26 Oct 2023, 14:00</span>
+                </div>
+            </div>
+            <div>
+                <span style="color: #67d9cb; font-size: 12px; font-weight: 500;">Closed</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 2: TAMBAH/EDIT -->
+<div id="page-form" class="page" style="padding: 16px;">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h2 style="color: white; font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Tambah/Edit Transaksi</h2>
+        
+        <div style="margin-bottom: 16px;">
+            <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Kode Saham</label>
+            <input type="text" placeholder="Contoh: BBCA" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+            <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Tanggal</label>
+            <input type="date" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+            <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Tipe Transaksi</label>
+            <div style="display: flex; gap: 12px;">
+                <button style="background: #159D91; color: white; padding: 8px 20px; border-radius: 12px; border: none; cursor: pointer;">Buy</button>
+                <button style="background: #181c21; color: #8b919b; padding: 8px 20px; border-radius: 12px; border: 1px solid #2a2a2a; cursor: pointer;">Sell</button>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+            <div>
+                <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Harga (Per Lembar)</label>
+                <input type="number" placeholder="0" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+            </div>
+            <div>
+                <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Jumlah Lot</label>
+                <input type="number" placeholder="0" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button style="background: #2a2a2a; color: #8b919b; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;">Batal</button>
+            <button style="background: #159D91; color: white; padding: 10px 24px; border-radius: 12px; border: none; cursor: pointer;">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 3: PERFORMANCE REPORT -->
+<div id="page-report" class="page" style="padding: 16px;">
+    <!-- Chart Card -->
+    <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+                <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Net P/L Growth</p>
+                <p style="color: #159D91; font-size: 20px; font-weight: bold; margin: 0;">+Rp 14.250.000 <span style="color: #8b919b; font-size: 12px;">(+8.4%)</span></p>
+            </div>
+        </div>
+        <div style="background: #0c141b; border-radius: 12px; height: 200px; display: flex; align-items: center; justify-content: center;">
+            <svg width="100%" height="180" viewBox="0 0 800 180">
+                <path d="M0,160 L100,150 L200,170 L300,120 L400,130 L500,80 L600,90 L700,50 L800,60" fill="none" stroke="#159D91" stroke-width="3"/>
+                <path d="M0,160 L100,150 L200,170 L300,120 L400,130 L500,80 L600,90 L700,50 L800,60 L800,180 L0,180 Z" fill="rgba(21, 157, 145, 0.1)"/>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- Stats Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+        <div class="metric-card">
+            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Total Trades</p>
+            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">142</p>
+        </div>
+        <div class="metric-card">
+            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Avg. Profit</p>
+            <p style="color: #159D91; font-size: 20px; font-weight: bold; margin: 0;">Rp 1.2M</p>
+        </div>
+        <div class="metric-card">
+            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Win Rate</p>
+            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">64.5%</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const subTabBtns = document.querySelectorAll('.sub-tab-btn');
+    const pages = document.querySelectorAll('.page');
+    
+    subTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const pageId = btn.dataset.page;
+            
+            subTabBtns.forEach(b => {
+                if (b.dataset.page === pageId) {
+                    b.classList.remove('sub-tab-inactive');
+                    b.classList.add('sub-tab-active');
+                } else {
+                    b.classList.remove('sub-tab-active');
+                    b.classList.add('sub-tab-inactive');
+                }
+            });
+            
+            pages.forEach(page => {
+                if (page.id === `page-${pageId}`) {
+                    page.classList.add('active');
+                } else {
+                    page.classList.remove('active');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

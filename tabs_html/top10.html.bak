@@ -1,0 +1,340 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#c0c7cd",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "background": "#0c141b",
+                        "tertiary-fixed": "#e5e2e1",
+                        "tertiary-container": "#676666",
+                        "surface-bright": "#323a42",
+                        "on-primary-container": "#d4e7ff",
+                        "secondary-fixed": "#dde3e9",
+                        "outline-variant": "#414750",
+                        "secondary-container": "#434a4f",
+                        "surface-tint": "#9bcbff",
+                        "surface-variant": "#2e363d",
+                        "inverse-on-surface": "#293139",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#d0e4ff",
+                        "secondary": "#c0c7cd",
+                        "on-primary": "#003256",
+                        "primary-container": "#1f6aa5",
+                        "on-surface": "#dbe3ed",
+                        "surface-container-low": "#141c23",
+                        "on-secondary-container": "#b2b9bf",
+                        "surface-container": "#182028",
+                        "on-secondary-fixed": "#161c21",
+                        "on-secondary-fixed-variant": "#41484d",
+                        "primary-fixed-dim": "#9bcbff",
+                        "outline": "#8b919b",
+                        "surface": "#0c141b",
+                        "surface-container-lowest": "#070f16",
+                        "on-primary-fixed-variant": "#004a79",
+                        "on-background": "#dbe3ed",
+                        "on-tertiary-container": "#e7e5e4",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "inverse-primary": "#10629c",
+                        "on-primary-fixed": "#001d34",
+                        "tertiary": "#c8c6c5",
+                        "surface-container-high": "#232b32",
+                        "on-tertiary": "#313030",
+                        "surface-dim": "#0c141b",
+                        "inverse-surface": "#dbe3ed",
+                        "primary": "#9bcbff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar-width": "200px",
+                        "control-height": "32px",
+                        "window-padding": "20px",
+                        "section-margin": "24px",
+                        "widget-gap": "12px"
+                    },
+                    "fontFamily": {
+                        "mono-md": ["monospace"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "mono-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .inset-border-top {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0c141b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2e363d;
+            border-radius: 2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen p-window-padding font-body-md flex flex-col items-center">
+<div class="w-full max-w-6xl space-y-section-margin">
+<!-- Header Section -->
+<div class="flex justify-between items-end border-b border-outline-variant pb-4">
+<div class="space-y-1">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight uppercase">Top 10 Insights</h1>
+<p class="font-label-md text-label-md text-outline">MARKET VOLATILITY SNAPSHOT • LIVE UPDATES</p>
+</div>
+<div class="flex gap-2">
+<div class="bg-surface-container-high border-t border-white/5 border-b border-black/20 px-3 py-1 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-mono-md text-mono-md text-primary uppercase">Market Open</span>
+</div>
+<button class="bg-secondary-container hover:bg-surface-bright transition-colors px-3 py-1 flex items-center justify-center border-t border-white/5 border-b border-black/20">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- Insights Bento Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-widget-gap">
+<!-- Top 5 Gainers Column -->
+<div class="bg-surface-container rounded-lg border border-outline-variant overflow-hidden flex flex-col">
+<div class="bg-surface-container-highest px-4 py-3 border-b border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-green-400" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Top 5 Gainers</h2>
+</div>
+<span class="text-[10px] font-bold bg-green-900/30 text-green-400 px-2 py-0.5 rounded border border-green-500/20 uppercase tracking-widest">Bullish</span>
+</div>
+<div class="divide-y divide-outline-variant/30">
+<!-- Gainer Item 1 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">NVDA</div>
+<div class="font-label-md text-outline">NVIDIA Corporation</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$882.12</div>
+<div class="font-mono-md text-green-400 flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_up</span>
+                                +4.82%
+                            </div>
+</div>
+</div>
+<!-- Gainer Item 2 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">AMD</div>
+<div class="font-label-md text-outline">Advanced Micro Devices</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$170.83</div>
+<div class="font-mono-md text-green-400 flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_up</span>
+                                +3.15%
+                            </div>
+</div>
+</div>
+<!-- Gainer Item 3 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">TSLA</div>
+<div class="font-label-md text-outline">Tesla, Inc.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$175.22</div>
+<div class="font-mono-md text-green-400 flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_up</span>
+                                +2.44%
+                            </div>
+</div>
+</div>
+<!-- Gainer Item 4 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">MSFT</div>
+<div class="font-label-md text-outline">Microsoft Corp.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$416.42</div>
+<div class="font-mono-md text-green-400 flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_up</span>
+                                +1.88%
+                            </div>
+</div>
+</div>
+<!-- Gainer Item 5 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-primary transition-colors">AAPL</div>
+<div class="font-label-md text-outline">Apple Inc.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$172.62</div>
+<div class="font-mono-md text-green-400 flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_up</span>
+                                +1.42%
+                            </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top 5 Losers Column -->
+<div class="bg-surface-container rounded-lg border border-outline-variant overflow-hidden flex flex-col">
+<div class="bg-surface-container-highest px-4 py-3 border-b border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">trending_down</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Top 5 Losers</h2>
+</div>
+<span class="text-[10px] font-bold bg-red-900/30 text-error px-2 py-0.5 rounded border border-error/20 uppercase tracking-widest">Bearish</span>
+</div>
+<div class="divide-y divide-outline-variant/30">
+<!-- Loser Item 1 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-error transition-colors">BABA</div>
+<div class="font-label-md text-outline">Alibaba Group Holding</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$72.41</div>
+<div class="font-mono-md text-error flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                -5.21%
+                            </div>
+</div>
+</div>
+<!-- Loser Item 2 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-error transition-colors">PYPL</div>
+<div class="font-label-md text-outline">PayPal Holdings, Inc.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$63.15</div>
+<div class="font-mono-md text-error flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                -4.08%
+                            </div>
+</div>
+</div>
+<!-- Loser Item 3 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-error transition-colors">SNAP</div>
+<div class="font-label-md text-outline">Snap Inc.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$11.45</div>
+<div class="font-mono-md text-error flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                -3.77%
+                            </div>
+</div>
+</div>
+<!-- Loser Item 4 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-error transition-colors">NKE</div>
+<div class="font-label-md text-outline">NIKE, Inc.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$93.88</div>
+<div class="font-mono-md text-error flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                -2.95%
+                            </div>
+</div>
+</div>
+<!-- Loser Item 5 -->
+<div class="p-4 hover:bg-surface-bright transition-colors cursor-pointer group flex items-center">
+<div class="flex-1">
+<div class="font-headline-md text-on-surface group-hover:text-error transition-colors">DIS</div>
+<div class="font-label-md text-outline">The Walt Disney Co.</div>
+</div>
+<div class="text-right">
+<div class="font-mono-md text-on-surface">$112.33</div>
+<div class="font-mono-md text-error flex items-center justify-end">
+<span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                -2.10%
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Market Sentiment Indicator -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-md text-on-surface uppercase tracking-widest text-xs">Volatility Pulse</h3>
+<span class="font-mono-md text-secondary-fixed-dim text-xs">VIX: 14.22 (+1.04%)</span>
+</div>
+<div class="h-2 bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.4)]" style="width: 65%;"></div>
+<div class="h-full bg-error/80 shadow-[0_0_8px_rgba(255,180,171,0.4)]" style="width: 35%;"></div>
+</div>
+<div class="flex justify-between mt-2 font-label-md text-label-md">
+<span class="text-green-400">65% ADVANCING</span>
+<span class="text-error">35% DECLINING</span>
+</div>
+</div>
+<!-- Sector Performance Mini-Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container border border-outline-variant p-3 rounded flex flex-col items-center justify-center space-y-1">
+<span class="font-label-md text-outline text-[10px] uppercase">Tech</span>
+<span class="font-mono-md text-green-400">+1.2%</span>
+</div>
+<div class="bg-surface-container border border-outline-variant p-3 rounded flex flex-col items-center justify-center space-y-1">
+<span class="font-label-md text-outline text-[10px] uppercase">Energy</span>
+<span class="font-mono-md text-error">-0.8%</span>
+</div>
+<div class="bg-surface-container border border-outline-variant p-3 rounded flex flex-col items-center justify-center space-y-1">
+<span class="font-label-md text-outline text-[10px] uppercase">Health</span>
+<span class="font-mono-md text-green-400">+0.4%</span>
+</div>
+<div class="bg-surface-container border border-outline-variant p-3 rounded flex flex-col items-center justify-center space-y-1">
+<span class="font-label-md text-outline text-[10px] uppercase">Finance</span>
+<span class="font-mono-md text-error">-1.1%</span>
+</div>
+</div>
+<!-- Footer Visual Decor -->
+<div class="pt-8 opacity-20 pointer-events-none">
+<div class="h-[100px] w-full relative overflow-hidden rounded-lg bg-surface-container-highest border border-outline-variant">
+<img class="w-full h-full object-cover filter grayscale" data-alt="A sophisticated financial data visualization showing a series of glowing neon green and red candlestick patterns and volume bars against a deep obsidian black background. The lighting is cinematic, with soft light-leaks emanating from the active price points, creating a professional engineering-grade software feel. The composition is clean and focused on technical data density and precise lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2ddxF7BQfGbtSkrJShl9pk6mP4pgi64E-GhTX1lY5-JdSCSv6asCbxYbuHPsfR6NxLMhh7GH2IFXI7jyNpjryIHOscm1JWdfzg2Kdd4YL7kwErfhYpAEsi87NgLG2ThzOWbNM3guwYQiB6I3H4tj4O0GOBK51eDgD-G_XhCIH9PHeNQBOZho9pnu7gB2z3OImeqL-Q-gZxkV-WAyO08PjjQBgsAGjuH700IJ5bwOr1tawtgbwsGbyJQkF7zm_-LG9PMS83uIlAZ_Q"/>
+</div>
+</div>
+</div>
+</body></html>

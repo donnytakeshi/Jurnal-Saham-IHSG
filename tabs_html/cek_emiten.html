@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c141b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e363d;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #434a4f;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-container": "#434a4f",
+            "surface-container-high": "#232b32",
+            "outline-variant": "#414750",
+            "on-surface-variant": "#c1c7d1",
+            "secondary-fixed-dim": "#c0c7cd",
+            "on-secondary": "#2a3136",
+            "on-tertiary-fixed": "#1c1b1b",
+            "surface": "#0c141b",
+            "primary": "#9bcbff",
+            "primary-fixed": "#d0e4ff",
+            "surface-container-lowest": "#070f16",
+            "primary-container": "#1f6aa5",
+            "tertiary-fixed-dim": "#c8c6c5",
+            "surface-dim": "#0c141b",
+            "tertiary-container": "#676666",
+            "surface-container-low": "#141c23",
+            "surface-container": "#182028",
+            "on-surface": "#dbe3ed",
+            "on-secondary-container": "#b2b9bf",
+            "inverse-primary": "#10629c",
+            "surface-bright": "#323a42",
+            "secondary-fixed": "#dde3e9",
+            "on-error": "#690005",
+            "on-primary": "#003256",
+            "surface-tint": "#9bcbff",
+            "inverse-on-surface": "#293139",
+            "background": "#0c141b",
+            "on-error-container": "#ffdad6",
+            "on-tertiary": "#313030",
+            "on-background": "#dbe3ed",
+            "inverse-surface": "#dbe3ed",
+            "error": "#ffb4ab",
+            "surface-container-highest": "#2e363d",
+            "primary-fixed-dim": "#9bcbff",
+            "secondary": "#c0c7cd",
+            "surface-variant": "#2e363d",
+            "tertiary": "#c8c6c5",
+            "on-tertiary-container": "#e7e5e4",
+            "on-secondary-fixed": "#161c21",
+            "error-container": "#93000a",
+            "on-primary-container": "#d4e7ff",
+            "tertiary-fixed": "#e5e2e1",
+            "on-secondary-fixed-variant": "#41484d",
+            "on-primary-fixed-variant": "#004a79",
+            "on-primary-fixed": "#001d34",
+            "outline": "#8b919b",
+            "on-tertiary-fixed-variant": "#474746"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "widget-gap": "12px",
+            "window-padding": "20px",
+            "section-margin": "24px",
+            "control-height": "32px",
+            "sidebar-width": "200px"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "label-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "mono-md": ["monospace"]
+          },
+          "fontSize": {
+            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "headline-md": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "headline-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "mono-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+<!-- Top Navigation Shell -->
+<header class="bg-slate-900 border-b border-slate-800 flex justify-between items-center px-4 py-2 w-full fixed top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary-fixed-dim text-sm">person</span>
+</div>
+<h1 class="text-lg font-bold text-white tracking-tight">Jurnal Saham</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-4">
+<span class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-3 py-1 rounded transition-colors duration-200 cursor-pointer">Watchlist</span>
+<span class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-3 py-1 rounded transition-colors duration-200 cursor-pointer">Top 10</span>
+<span class="text-blue-500 font-inter text-sm font-semibold tracking-tight px-3 py-1 rounded transition-colors duration-200 cursor-pointer">Jurnal</span>
+<span class="text-slate-400 font-inter text-sm font-semibold tracking-tight hover:bg-slate-800 px-3 py-1 rounded transition-colors duration-200 cursor-pointer">Screening</span>
+</nav>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600 cursor-pointer hover:bg-slate-800 p-1.5 rounded transition-colors">notifications</span>
+<div class="flex gap-1">
+<div class="w-3 h-3 bg-secondary-container rounded-full border border-outline-variant"></div>
+<div class="w-3 h-3 bg-secondary-container rounded-full border border-outline-variant"></div>
+<div class="w-3 h-3 bg-error-container rounded-full border border-outline-variant"></div>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-10 px-window-padding max-w-7xl mx-auto">
+<!-- Breadcrumb / Header Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-section-margin gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Cek Emiten</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Analyze market depth and elite bandarmology movements</p>
+</div>
+<div class="relative w-full md:w-96 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl py-2 pl-10 pr-4 text-on-surface focus:outline-none focus:border-primary-container transition-all placeholder:text-outline" placeholder="Masukkan kode saham (e.g. BBCA)" type="text"/>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 bg-surface-container-high px-2 py-0.5 border border-outline-variant rounded text-[10px] text-on-surface-variant font-mono-md">
+          ENTER
+        </div>
+</div>
+</div>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-widget-gap">
+<!-- Result Card: Summary -->
+<section class="lg:col-span-12 bg-surface-container-low border border-outline-variant p-5 rounded-xl flex flex-wrap items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-primary-container/20 rounded-xl border border-primary-container/30">
+<span class="material-symbols-outlined text-primary text-3xl">corporate_fare</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md">PT Bank Central Asia Tbk.</h3>
+<div class="flex items-center gap-2">
+<span class="font-mono-md text-primary font-bold">BBCA</span>
+<span class="text-outline">•</span>
+<span class="font-body-sm text-on-surface-variant">IDX: Finance</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="text-right">
+<p class="text-[28px] font-bold text-on-surface leading-none">9,625</p>
+<div class="flex items-center justify-end gap-1 text-green-400 mt-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-label-md font-label-md">+150 (1.58%)</span>
+</div>
+</div>
+<div class="h-12 w-32 relative overflow-hidden bg-surface-container-high rounded border border-outline-variant/30">
+<svg class="absolute inset-0 w-full h-full" viewbox="0 0 100 40">
+<path d="M0,35 Q10,32 20,25 T40,28 T60,15 T80,10 T100,5" fill="none" stroke="#9bcbff" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</section>
+<!-- Bandarmology Left: Order Book -->
+<section class="lg:col-span-4 flex flex-col gap-widget-gap">
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+<div class="bg-surface-container-high px-4 py-2 border-b border-outline-variant flex justify-between items-center">
+<span class="text-label-md font-label-md text-primary uppercase tracking-wider">Order Book</span>
+<span class="text-[10px] text-on-surface-variant">REAL-TIME</span>
+</div>
+<div class="p-0">
+<table class="w-full text-label-md">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
+<th class="px-3 py-2 text-left font-medium">Vol</th>
+<th class="px-3 py-2 text-left font-medium">Bid</th>
+<th class="px-3 py-2 text-right font-medium">Offer</th>
+<th class="px-3 py-2 text-right font-medium">Vol</th>
+</tr>
+</thead>
+<tbody class="font-mono-md">
+<!-- Bid Side -->
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-3 py-1.5 relative">
+<div class="absolute right-0 top-0 bottom-0 bg-green-500/10 w-[70%]"></div>
+<span class="relative z-10 text-on-surface-variant">12.4K</span>
+</td>
+<td class="px-3 py-1.5 text-green-400 font-bold">9,600</td>
+<!-- Offer Side -->
+<td class="px-3 py-1.5 text-red-400 font-bold text-right">9,625</td>
+<td class="px-3 py-1.5 relative text-right">
+<div class="absolute left-0 top-0 bottom-0 bg-red-500/10 w-[45%]"></div>
+<span class="relative z-10 text-on-surface-variant">8.2K</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-3 py-1.5 relative">
+<div class="absolute right-0 top-0 bottom-0 bg-green-500/10 w-[85%]"></div>
+<span class="relative z-10 text-on-surface-variant">15.1K</span>
+</td>
+<td class="px-3 py-1.5 text-green-400 font-bold">9,575</td>
+<td class="px-3 py-1.5 text-red-400 font-bold text-right">9,650</td>
+<td class="px-3 py-1.5 relative text-right">
+<div class="absolute left-0 top-0 bottom-0 bg-red-500/10 w-[60%]"></div>
+<span class="relative z-10 text-on-surface-variant">10.4K</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-3 py-1.5 relative">
+<div class="absolute right-0 top-0 bottom-0 bg-green-500/10 w-[40%]"></div>
+<span class="relative z-10 text-on-surface-variant">6.2K</span>
+</td>
+<td class="px-3 py-1.5 text-green-400 font-bold">9,550</td>
+<td class="px-3 py-1.5 text-red-400 font-bold text-right">9,675</td>
+<td class="px-3 py-1.5 relative text-right">
+<div class="absolute left-0 top-0 bottom-0 bg-red-500/10 w-[95%]"></div>
+<span class="relative z-10 text-on-surface-variant">18.9K</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-3 py-1.5 relative">
+<div class="absolute right-0 top-0 bottom-0 bg-green-500/10 w-[55%]"></div>
+<span class="relative z-10 text-on-surface-variant">9.8K</span>
+</td>
+<td class="px-3 py-1.5 text-green-400 font-bold">9,525</td>
+<td class="px-3 py-1.5 text-red-400 font-bold text-right">9,700</td>
+<td class="px-3 py-1.5 relative text-right">
+<div class="absolute left-0 top-0 bottom-0 bg-red-500/10 w-[30%]"></div>
+<span class="relative z-10 text-on-surface-variant">5.5K</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4">
+<h4 class="text-label-md font-label-md text-on-surface-variant mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">analytics</span>
+            POWER GAUGE
+          </h4>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-green-500 w-3/4"></div>
+<div class="h-full bg-red-500 w-1/4"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-on-surface-variant font-mono-md">
+<span>BUY: 75%</span>
+<span>SELL: 25%</span>
+</div>
+</div>
+</section>
+<!-- Bandarmology Right: Broker Action & Analysis -->
+<section class="lg:col-span-8 flex flex-col gap-widget-gap">
+<!-- Accumulation Gauge -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl text-green-400">monitoring</span>
+</div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
+<div class="flex-1">
+<h4 class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider mb-2">Bandarmology Analysis</h4>
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-900/30 border border-green-500/50 text-green-400 font-bold text-headline-md">
+<span class="material-symbols-outlined">verified</span>
+                Big Accumulation
+              </div>
+<p class="mt-4 text-body-sm text-on-surface-variant max-w-md">Top 3 brokers are aggressively collecting shares over the last 5 trading days. Retail participation remains low (under 15%).</p>
+</div>
+<div class="flex-shrink-0 w-32 h-32 relative">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#232b32" stroke-dasharray="100, 100" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#22c55e" stroke-dasharray="82, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-bold text-on-surface">82</span>
+<span class="text-[10px] text-on-surface-variant">Score</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Broker Table -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-widget-gap">
+<!-- Top Buyers -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+<div class="bg-green-500/5 px-4 py-3 border-b border-outline-variant flex items-center justify-between">
+<span class="text-label-md font-bold text-green-400">Top 5 Net Buyers</span>
+<span class="material-symbols-outlined text-green-500 text-sm" style="font-variation-settings: 'FILL' 1;">expand_circle_up</span>
+</div>
+<div class="p-0">
+<table class="w-full text-body-sm">
+<thead>
+<tr class="text-on-surface-variant bg-surface-container-high/30">
+<th class="px-4 py-2 text-left font-medium">Broker</th>
+<th class="px-4 py-2 text-right font-medium">Avg</th>
+<th class="px-4 py-2 text-right font-medium">Net Val</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">CS</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,580</td>
+<td class="px-4 py-2 text-right text-green-400 font-medium">124.5B</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">RX</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,595</td>
+<td class="px-4 py-2 text-right text-green-400 font-medium">92.1B</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">KZ</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,602</td>
+<td class="px-4 py-2 text-right text-green-400 font-medium">76.8B</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">ZP</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,575</td>
+<td class="px-4 py-2 text-right text-green-400 font-medium">45.2B</td>
+</tr>
+<tr class="hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">PD</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,610</td>
+<td class="px-4 py-2 text-right text-green-400 font-medium">21.9B</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Top Sellers -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+<div class="bg-red-500/5 px-4 py-3 border-b border-outline-variant flex items-center justify-between">
+<span class="text-label-md font-bold text-red-400">Top 5 Net Sellers</span>
+<span class="material-symbols-outlined text-red-500 text-sm" style="font-variation-settings: 'FILL' 1;">expand_circle_down</span>
+</div>
+<div class="p-0">
+<table class="w-full text-body-sm">
+<thead>
+<tr class="text-on-surface-variant bg-surface-container-high/30">
+<th class="px-4 py-2 text-left font-medium">Broker</th>
+<th class="px-4 py-2 text-right font-medium">Avg</th>
+<th class="px-4 py-2 text-right font-medium">Net Val</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">DX</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,620</td>
+<td class="px-4 py-2 text-right text-red-400 font-medium">88.4B</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">NI</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,635</td>
+<td class="px-4 py-2 text-right text-red-400 font-medium">65.2B</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">CC</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,615</td>
+<td class="px-4 py-2 text-right text-red-400 font-medium">54.0B</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">YP</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,640</td>
+<td class="px-4 py-2 text-right text-red-400 font-medium">32.7B</td>
+</tr>
+<tr class="hover:bg-surface-container-highest">
+<td class="px-4 py-2 font-mono-md text-primary">AZ</td>
+<td class="px-4 py-2 text-right text-on-surface-variant">9,625</td>
+<td class="px-4 py-2 text-right text-red-400 font-medium">18.1B</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<!-- Advanced Tech Analysis Card -->
+<section class="lg:col-span-12">
+<div class="bg-surface-container border border-outline-variant rounded-xl p-6">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-headline-md text-headline-md text-on-surface">Foreign Transaction Flow</h4>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-label-md bg-primary-container text-on-primary-container rounded border border-primary">5D</button>
+<button class="px-3 py-1 text-label-md bg-secondary-container text-on-secondary-container rounded border border-outline-variant">1M</button>
+<button class="px-3 py-1 text-label-md bg-secondary-container text-on-secondary-container rounded border border-outline-variant">YTD</button>
+</div>
+</div>
+<div class="h-64 flex items-end gap-1 px-2">
+<!-- Simulated Chart Bars -->
+<div class="flex-1 bg-green-500/20 hover:bg-green-500/40 transition-all rounded-t h-[30%] border-t-2 border-green-400"></div>
+<div class="flex-1 bg-green-500/20 hover:bg-green-500/40 transition-all rounded-t h-[45%] border-t-2 border-green-400"></div>
+<div class="flex-1 bg-red-500/20 hover:bg-red-500/40 transition-all rounded-t h-[20%] border-t-2 border-red-400"></div>
+<div class="flex-1 bg-green-500/20 hover:bg-green-500/40 transition-all rounded-t h-[60%] border-t-2 border-green-400"></div>
+<div class="flex-1 bg-green-500/20 hover:bg-green-500/40 transition-all rounded-t h-[80%] border-t-2 border-green-400"></div>
+<div class="flex-1 bg-green-500/20 hover:bg-green-500/40 transition-all rounded-t h-[55%] border-t-2 border-green-400"></div>
+<div class="flex-1 bg-red-500/20 hover:bg-red-500/40 transition-all rounded-t h-[15%] border-t-2 border-red-400"></div>
+<div class="flex-1 bg-green-500/20 hover:bg-green-500/40 transition-all rounded-t h-[90%] border-t-2 border-green-400"></div>
+</div>
+<div class="flex justify-between mt-4 font-mono-md text-[10px] text-on-surface-variant px-2">
+<span>20 May</span>
+<span>21 May</span>
+<span>22 May</span>
+<span>23 May</span>
+<span>24 May</span>
+<span>25 May</span>
+<span>26 May</span>
+<span>Today</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Sidebar Overlay (Simplified for Navigation) -->
+<aside class="hidden md:flex fixed left-0 top-12 bottom-0 w-16 bg-slate-900 border-r border-slate-800 flex-col items-center py-6 gap-8">
+<div class="w-10 h-10 rounded-lg bg-blue-900/20 text-blue-500 flex items-center justify-center border border-blue-500/30">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<div class="w-10 h-10 rounded-lg text-slate-500 hover:bg-slate-800 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">star</span>
+</div>
+<div class="w-10 h-10 rounded-lg text-slate-500 hover:bg-slate-800 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div class="w-10 h-10 rounded-lg text-slate-500 hover:bg-slate-800 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">search</span>
+</div>
+<div class="w-10 h-10 rounded-lg text-slate-500 hover:bg-slate-800 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">smart_toy</span>
+</div>
+<div class="mt-auto mb-4 w-10 h-10 rounded-lg text-slate-500 hover:bg-slate-800 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</div>
+</aside>
+</body></html>

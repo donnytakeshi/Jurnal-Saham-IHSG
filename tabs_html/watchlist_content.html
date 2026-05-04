@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        body { background: #0c141b; font-family: 'Inter', sans-serif; padding: 16px; margin: 0; }
+        .positive { color: #67d9cb; }
+        .negative { color: #ff5e5e; }
+        .stock-card { background: #181c21; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .stock-card:hover { background: #2e363d; }
+        .stock-card-watchlist { background: #1a2027; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 8px; overflow: hidden; }
+        .stock-card-watchlist.swiped .stock-card-inner { transform: translateX(-60px); }
+        .stock-card-watchlist .stock-card-inner { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; transition: transform 0.2s ease; background: #1a2027; }
+        .swipe-area { display: flex; align-items: center; justify-content: flex-end; width: 60px; margin-left: -60px; background: #ff5e5e; border-radius: 0 12px 12px 0; height: 100%; }
+        .remove-bin { background: none; border: none; color: white; font-size: 20px; cursor: pointer; width: 60px; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .stock-row-wrapper { position: relative; overflow: hidden; }
+        .input-group { display: flex; gap: 8px; margin-top: 8px; }
+        .input-group input { flex: 1; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 10px; padding: 10px 12px; color: white; outline: none; font-size: 13px; }
+        .add-manual-btn { background: #159D91; color: white; border: none; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-weight: 600; }
+        .section-title { color: white; font-size: 14px; font-weight: 600; margin: 0 0 12px 0; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .tv-card { background: #181c21; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+        .sparkline-container { width: 80px; height: 32px; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #159D91; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .grid-cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .error-text { color: #ff5e5e; font-size: 12px; text-align: center; padding: 20px; }
+        .status-badge { font-size: 10px; background: #2a2a2a; border-radius: 10px; padding: 2px 8px; margin-left: 8px; }
+    </style>
+</head>
+<body>
+
+<!-- ========== IHSG CHART ========== -->
+<div class="tv-card">
+    <div class="section-title">IHSG Chart (1 Bulan)</div>
+    <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {"symbol":"IDX:COMPOSITE","width":"100%","height":"200","colorTheme":"dark","isTransparent":true,"locale":"id","dateRange":"1M"}
+        </script>
+    </div>
+</div>
+
+<!-- ========== GOLD CHART ========== -->
+<div class="tv-card">
+    <div class="section-title">Gold (XAU/USD) Chart - 1 Bulan</div>
+    <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {"symbol":"TVC:GOLD","width":"100%","height":"200","colorTheme":"dark","isTransparent":true,"locale":"id","dateRange":"1M"}
+        </script>
+    </div>
+</div>
+
+<!-- ========== PORTFOLIO SUMMARY ========== -->
+<div class="grid-cols-2">
+    <div class="bg-[#181c21] rounded-xl p-4 border border-white/5">
+        <p class="text-xs text-slate-400 uppercase">Portfolio Value</p>
+        <p class="text-xl font-bold text-white mt-1">Rp 142.5M</p>
+        <div class="flex items-center gap-1 text-xs text-[#159D91] mt-1">📈<span>+1.2% Today</span></div>
+    </div>
+    <div class="bg-[#181c21] rounded-xl p-4 border border-white/5">
+        <p class="text-xs text-slate-400 uppercase">IHSG Index</p>
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+            {"symbol":"IDX:COMPOSITE","width":"100%","colorTheme":"dark","isTransparent":true,"locale":"id"}
+            </script>
+        </div>
+    </div>
+</div>
+
+<!-- ========== BLUECHIP SAHAM ========== -->
+<div class="tv-card">
+    <div class="flex-between" style="margin-bottom: 12px;">
+        <div class="section-title" style="margin: 0;">Bluechip IHSG</div>
+        <span id="api-status" class="status-badge">⏳ Connecting...</span>
+    </div>
+    <div id="bluechip-list"></div>
+</div>
+
+<!-- ========== MY WATCHLIST ========== -->
+<div id="watchlist-section" style="display: none;">
+    <div class="tv-card">
+        <div class="flex-between" style="margin-bottom: 12px;">
+            <div class="section-title" style="margin: 0;">My Watchlist</div>
+            <button id="clear-watchlist" style="background: none; border: none; color: #ff5e5e; font-size: 11px; cursor: pointer;">Clear All</button>
+        </div>
+        <div id="watchlist-container"></div>
+    </div>
+</div>
+
+<!-- ========== ADD MANUAL SAHAM ========== -->
+<div class="tv-card">
+    <div class="section-title">Tambah Saham Manual</div>
+    <div class="input-group">
+        <input type="text" id="manual-stock-code" placeholder="Contoh: BBCA, ADRO, CPIN"/>
+        <button id="add-manual-btn" class="add-manual-btn">Tambah</button>
+    </div>
+    <p id="add-error" style="color: #ff5e5e; font-size: 11px; margin-top: 8px; display: none;">Kode saham tidak valid</p>
+</div>
+
+<div id="api-error-msg" class="error-text" style="display: none;">⚠️ Gagal terhubung ke API server. Pastikan server berjalan di http://localhost:5000</div>
+
+<script>
+    // ==================== KONFIGURASI ====================
+    const API_URL = 'http://localhost:5001';
+    
+    const defaultStocks = [
+        { code: "BBCA", name: "Bank Central Asia" },
+        { code: "BBRI", name: "Bank Rakyat Indonesia" },
+        { code: "BMRI", name: "Bank Mandiri" },
+        { code: "TLKM", name: "Telkom Indonesia" },
+        { code: "ASII", name: "Astra International" },
+        { code: "GOTO", name: "GoTo Gojek Tokopedia" },
+        { code: "UNVR", name: "Unilever Indonesia" },
+        { code: "ADRO", name: "Adaro Energy" }
+    ];
+    
+    const stockNames = {
+        "CPIN": "Charoen Pokphand", "ICBP": "Indofood CBP", "INDF": "Indofood",
+        "MEDC": "Medco Energi", "PGAS": "Perusahaan Gas Negara", "SMGR": "Semen Indonesia",
+        "WSKT": "Waskita Karya", "ANTM": "Aneka Tambang", "HRUM": "Harum Energy",
+        "TOWR": "Sarana Menara Nusantara", "ERAA": "Erajaya Swasembada"
+    };
+    
+    let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+    let priceCache = {};
+    
+    function getStockName(code) {
+        const ds = defaultStocks.find(s => s.code === code);
+        return ds ? ds.name : (stockNames[code] || code);
+    }
+    
+    function generateSparkline(changePercent) {
+        const isPositive = changePercent >= 0;
+        const points = [];
+        let lastY = 16;
+        for (let i = 0; i <= 80; i += 8) {
+            let y = 16 + (Math.random() - 0.5) * 20;
+            if (isPositive) y = Math.min(y, lastY + 8);
+            else y = Math.max(y, lastY - 8);
+            lastY = y;
+            points.push(`${i},${y}`);
+        }
+        const strokeColor = isPositive ? '#67d9cb' : (changePercent < 0 ? '#ff5e5e' : '#8b919b');
+        return `<svg class="w-[80px] h-[32px]" viewBox="0 0 80 32">
+                    <polyline fill="none" points="${points.join(' ')}" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`;
+    }
+    
+    // ==================== FETCH DARI API SERVER ====================
+    async function fetchQuote(symbol) {
+        try {
+            const response = await fetch(`${API_URL}/quote?symbol=${symbol}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            return {
+                price: data.price || 0,
+                changePercent: data.changePercent || 0,
+                isClosed: data.isClosed || false
+            };
+        } catch (error) {
+            console.error(`Fetch error ${symbol}:`, error);
+            return null;
+        }
+    }
+    
+    // ==================== UPDATE SEMUA HARGA ====================
+    async function updateAllPrices() {
+        const allSymbols = [...new Set([...defaultStocks.map(s => s.code), ...watchlist])];
+        
+        for (const sym of allSymbols) {
+            const quote = await fetchQuote(sym);
+            if (!quote) continue;
+            
+            priceCache[sym] = quote;
+            
+            // Update bluechip
+            const priceElem = document.getElementById(`price-${sym}`);
+            const changeElem = document.getElementById(`change-${sym}`);
+            const sparkContainer = document.getElementById(`spark-${sym}`);
+            
+            if (priceElem) {
+                priceElem.innerText = quote.price.toLocaleString('id-ID');
+                if (quote.isClosed) {
+                    changeElem.innerHTML = `Closed ${quote.changePercent >= 0 ? '+' : ''}${quote.changePercent.toFixed(2)}%`;
+                    changeElem.className = 'text-xs text-slate-400';
+                } else {
+                    const sign = quote.changePercent >= 0 ? '+' : '';
+                    changeElem.innerHTML = `${sign}${quote.changePercent.toFixed(2)}%`;
+                    changeElem.className = quote.changePercent >= 0 ? 'positive text-xs font-semibold' : 'negative text-xs font-semibold';
+                }
+                if (sparkContainer) sparkContainer.innerHTML = generateSparkline(quote.changePercent);
+            }
+            
+            // Update watchlist
+            const watchPriceElem = document.getElementById(`price-${sym}-watch`);
+            const watchChangeElem = document.getElementById(`change-${sym}-watch`);
+            const watchSparkContainer = document.getElementById(`spark-${sym}-watch`);
+            
+            if (watchPriceElem) {
+                watchPriceElem.innerText = quote.price.toLocaleString('id-ID');
+                if (quote.isClosed) {
+                    watchChangeElem.innerHTML = `Closed ${quote.changePercent >= 0 ? '+' : ''}${quote.changePercent.toFixed(2)}%`;
+                    watchChangeElem.className = 'text-xs text-slate-400';
+                } else {
+                    const sign = quote.changePercent >= 0 ? '+' : '';
+                    watchChangeElem.innerHTML = `${sign}${quote.changePercent.toFixed(2)}%`;
+                    watchChangeElem.className = quote.changePercent >= 0 ? 'positive text-xs font-semibold' : 'negative text-xs font-semibold';
+                }
+                if (watchSparkContainer) watchSparkContainer.innerHTML = generateSparkline(quote.changePercent);
+            }
+        }
+    }
+    
+    // ==================== CREATE CARD ====================
+    function createBluechipCard(stock) {
+        const card = document.createElement('div');
+        card.className = 'stock-card';
+        card.id = `card-${stock.code}`;
+        card.innerHTML = `
+            <div>
+                <div class="font-bold text-white text-base">${stock.code}</div>
+                <div class="text-xs text-slate-500">${stock.name}</div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="sparkline-container" id="spark-${stock.code}">${generateSparkline(0)}</div>
+                <div class="text-right">
+                    <div class="font-bold text-white" id="price-${stock.code}"><span class="loading-spinner"></span></div>
+                    <div class="text-xs" id="change-${stock.code}">---</div>
+                </div>
+            </div>
+        `;
+        return card;
+    }
+    
+    function createWatchlistCard(code) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'stock-row-wrapper';
+        
+        const card = document.createElement('div');
+        card.className = 'stock-card-watchlist';
+        
+        const inner = document.createElement('div');
+        inner.className = 'stock-card-inner';
+        
+        const quote = priceCache[code] || { price: 0, changePercent: 0, isClosed: false };
+        
+        inner.innerHTML = `
+            <div>
+                <div class="font-bold text-white text-sm">${code}</div>
+                <div class="text-xs text-slate-500">${getStockName(code)}</div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="sparkline-container" id="spark-${code}-watch">${generateSparkline(quote.changePercent)}</div>
+                <div class="text-right">
+                    <div class="font-bold text-white text-sm" id="price-${code}-watch">${quote.price ? quote.price.toLocaleString('id-ID') : '<span class="loading-spinner"></span>'}</div>
+                    <div class="text-xs" id="change-${code}-watch">${quote.changePercent ? (quote.changePercent >= 0 ? '+' : '') + quote.changePercent.toFixed(2) + '%' : '---'}</div>
+                </div>
+            </div>
+        `;
+        
+        const swipeArea = document.createElement('div');
+        swipeArea.className = 'swipe-area';
+        swipeArea.innerHTML = `<button class="remove-bin" data-code="${code}">🗑️</button>`;
+        
+        let touchStartX = 0;
+        wrapper.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            card.style.transition = '';
+        });
+        wrapper.addEventListener('touchend', (e) => {
+            const diff = touchStartX - e.changedTouches[0].screenX;
+            if (diff > 30) card.classList.add('swiped');
+            else card.classList.remove('swiped');
+            card.style.transition = 'all 0.2s ease';
+            setTimeout(() => { card.style.transition = ''; }, 200);
+        });
+        wrapper.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-bin')) {
+                watchlist = watchlist.filter(c => c !== code);
+                localStorage.setItem('watchlist', JSON.stringify(watchlist));
+                renderAll();
+            }
+            card.classList.remove('swiped');
+        });
+        
+        wrapper.appendChild(card);
+        card.appendChild(inner);
+        card.appendChild(swipeArea);
+        
+        return wrapper;
+    }
+    
+    // ==================== RENDER ====================
+    async function renderAll() {
+        // Render bluechip
+        const bluechipContainer = document.getElementById('bluechip-list');
+        bluechipContainer.innerHTML = '';
+        defaultStocks.forEach(stock => {
+            bluechipContainer.appendChild(createBluechipCard(stock));
+        });
+        
+        // Cek API connection
+        try {
+            const test = await fetch(`${API_URL}/quote?symbol=BBCA`);
+            if (test.ok) {
+                document.getElementById('api-status').innerHTML = '✅ Connected';
+                document.getElementById('api-status').style.color = '#67d9cb';
+                document.getElementById('api-error-msg').style.display = 'none';
+                await updateAllPrices();
+            } else {
+                throw new Error('API not ready');
+            }
+        } catch (e) {
+            document.getElementById('api-status').innerHTML = '❌ API Offline';
+            document.getElementById('api-status').style.color = '#ff5e5e';
+            document.getElementById('api-error-msg').style.display = 'block';
+        }
+        
+        // Render watchlist
+        const watchlistSection = document.getElementById('watchlist-section');
+        const watchlistContainer = document.getElementById('watchlist-container');
+        
+        if (watchlist.length === 0) {
+            watchlistSection.style.display = 'none';
+        } else {
+            watchlistSection.style.display = 'block';
+            watchlistContainer.innerHTML = '';
+            watchlist.forEach(code => {
+                watchlistContainer.appendChild(createWatchlistCard(code));
+            });
+            // Update harga untuk watchlist
+            await updateAllPrices();
+        }
+    }
+    
+    // ==================== ADD MANUAL STOCK ====================
+    function addManualStock() {
+        const input = document.getElementById('manual-stock-code');
+        let code = input.value.trim().toUpperCase();
+        if (!code) return;
+        if (watchlist.includes(code)) {
+            const errorMsg = document.getElementById('add-error');
+            errorMsg.textContent = 'Saham sudah ada di watchlist';
+            errorMsg.style.display = 'block';
+            setTimeout(() => { errorMsg.style.display = 'none'; }, 2000);
+            return;
+        }
+        watchlist.push(code);
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+        renderAll();
+        input.value = '';
+    }
+    
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('clear-watchlist')?.addEventListener('click', () => {
+        watchlist = [];
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+        renderAll();
+    });
+    document.getElementById('add-manual-btn')?.addEventListener('click', addManualStock);
+    document.getElementById('manual-stock-code')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addManualStock();
+    });
+    
+    // ==================== START ====================
+    renderAll();
+    setInterval(() => {
+        if (document.getElementById('api-status')?.innerHTML.includes('Connected')) {
+            updateAllPrices();
+        }
+    }, 15000);
+</script>
+</body>
+</html>

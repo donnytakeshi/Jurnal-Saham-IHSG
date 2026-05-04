@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#c0c7cd",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "background": "#0c141b",
+                        "tertiary-fixed": "#e5e2e1",
+                        "tertiary-container": "#676666",
+                        "surface-bright": "#323a42",
+                        "on-primary-container": "#d4e7ff",
+                        "secondary-fixed": "#dde3e9",
+                        "outline-variant": "#414750",
+                        "secondary-container": "#434a4f",
+                        "surface-tint": "#9bcbff",
+                        "surface-container-highest": "#2e363d",
+                        "surface-variant": "#2e363d",
+                        "inverse-on-surface": "#293139",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#d0e4ff",
+                        "secondary": "#c0c7cd",
+                        "on-primary": "#003256",
+                        "primary-container": "#1f6aa5",
+                        "on-surface": "#dbe3ed",
+                        "surface-container-low": "#141c23",
+                        "on-secondary-container": "#b2b9bf",
+                        "surface-container": "#182028",
+                        "on-secondary-fixed": "#161c21",
+                        "on-secondary-fixed-variant": "#41484d",
+                        "primary-fixed-dim": "#9bcbff",
+                        "outline": "#8b919b",
+                        "surface": "#0c141b",
+                        "surface-container-lowest": "#070f16",
+                        "on-primary-fixed-variant": "#004a79",
+                        "on-background": "#dbe3ed",
+                        "on-tertiary-container": "#e7e5e4",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "inverse-primary": "#10629c",
+                        "on-primary-fixed": "#001d34",
+                        "tertiary": "#c8c6c5",
+                        "surface-container-high": "#232b32",
+                        "on-tertiary": "#313030",
+                        "surface-dim": "#0c141b",
+                        "inverse-surface": "#dbe3ed",
+                        "primary": "#9bcbff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar-width": "200px",
+                        "control-height": "32px",
+                        "window-padding": "20px",
+                        "section-margin": "24px",
+                        "widget-gap": "12px"
+                    },
+                    "fontFamily": {
+                        "mono-md": ["monospace"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "mono-md": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .inset-shadow-tech {
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .raised-shadow-tech {
+            box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(0,0,0,0.5);
+        }
+        .custom-chart-gradient {
+            background: linear-gradient(180deg, rgba(31, 106, 165, 0.2) 0%, rgba(31, 106, 165, 0) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-slate-950 flex justify-between items-center px-5 h-16 w-full docked full-width top-0 border-b border-slate-800 transition-colors duration-200">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#1F6AA5] cursor-pointer hover:bg-slate-900 p-2 rounded">grid_view</span>
+<h1 class="font-inter tracking-tight font-semibold text-lg font-black tracking-widest text-slate-100">TRADEMODULAR</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center space-x-6 mr-6">
+<span class="text-slate-400 hover:text-slate-100 cursor-pointer text-label-md font-label-md">Markets</span>
+<span class="text-[#1F6AA5] cursor-pointer text-label-md font-label-md">Journal</span>
+<span class="text-slate-400 hover:text-slate-100 cursor-pointer text-label-md font-label-md">Analytics</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-lg border border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-mono-md font-mono-md text-secondary">LIVE</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:bg-slate-900 p-2 rounded">account_circle</span>
+</div>
+</header>
+<main class="max-w-7xl mx-auto p-window-padding space-y-section-margin">
+<!-- Header Controls (Window Style) -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Portfolio Overview</h2>
+<p class="text-body-sm font-body-sm text-outline">Last updated: Oct 24, 2023, 14:45 WIB</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded text-label-md font-label-md raised-shadow-tech hover:bg-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+                    Past 30 Days
+                </button>
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded text-label-md font-label-md raised-shadow-tech hover:opacity-90 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">file_download</span>
+                    Export CSV
+                </button>
+</div>
+</div>
+<!-- Metric Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-widget-gap">
+<!-- Total Equity -->
+<div class="bg-surface-container border border-outline-variant p-5 rounded-lg space-y-2 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span class="text-label-md font-label-md">Total Equity</span>
+</div>
+<div class="text-2xl font-bold font-headline-lg text-on-surface">Rp 142,800,000</div>
+<div class="flex items-center gap-1 text-green-400 text-body-sm font-body-sm">
+<span class="material-symbols-outlined text-sm">arrow_upward</span>
+<span>+2.4% vs last week</span>
+</div>
+</div>
+<!-- Realized P/L -->
+<div class="bg-surface-container border border-outline-variant p-5 rounded-lg space-y-2">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-sm">task_alt</span>
+<span class="text-label-md font-label-md">Realized P/L</span>
+</div>
+<div class="text-2xl font-bold font-headline-lg text-[#1F6AA5]">+Rp 12,400,000</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-[10px] font-bold">PROFITABLE</span>
+<span class="text-outline text-[10px]">68% Win Rate</span>
+</div>
+</div>
+<!-- Unrealized P/L -->
+<div class="bg-surface-container border border-outline-variant p-5 rounded-lg space-y-2">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-sm">query_stats</span>
+<span class="text-label-md font-label-md">Unrealized P/L</span>
+</div>
+<div class="text-2xl font-bold font-headline-lg text-[#1F6AA5]">+Rp 5,200,000</div>
+<div class="w-full bg-secondary-container h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[45%]"></div>
+</div>
+<div class="text-outline text-[10px]">Open Positions: 12 Stocks</div>
+</div>
+</div>
+<!-- Equity Growth Chart Section -->
+<section class="bg-surface-container border border-outline-variant rounded-lg overflow-hidden">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<div class="flex items-center gap-3">
+<div class="flex gap-1">
+<div class="w-2.5 h-2.5 rounded-full bg-error/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-green-500/40"></div>
+</div>
+<span class="text-label-md font-label-md text-on-surface uppercase tracking-widest opacity-80">Equity_Growth_Visualizer.exe</span>
+</div>
+<div class="flex gap-4">
+<span class="text-primary text-label-md font-label-md cursor-pointer border-b border-primary">1M</span>
+<span class="text-outline text-label-md font-label-md cursor-pointer hover:text-on-surface">3M</span>
+<span class="text-outline text-label-md font-label-md cursor-pointer hover:text-on-surface">6M</span>
+<span class="text-outline text-label-md font-label-md cursor-pointer hover:text-on-surface">YTD</span>
+</div>
+</div>
+<div class="p-6 h-[320px] relative flex items-end">
+<!-- Mock Area Chart using SVG Paths -->
+<svg class="absolute inset-0 w-full h-full p-8" preserveaspectratio="none" viewbox="0 0 1000 300">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1F6AA5" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#1F6AA5" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line stroke="#2e363d" stroke-width="1" x1="0" x2="1000" y1="0" y2="0"></line>
+<line stroke="#2e363d" stroke-width="1" x1="0" x2="1000" y1="75" y2="75"></line>
+<line stroke="#2e363d" stroke-width="1" x1="0" x2="1000" y1="150" y2="150"></line>
+<line stroke="#2e363d" stroke-width="1" x1="0" x2="1000" y1="225" y2="225"></line>
+<!-- Area Fill -->
+<path d="M0,280 L100,240 L200,260 L300,180 L400,210 L500,120 L600,140 L700,60 L800,80 L900,20 L1000,40 L1000,300 L0,300 Z" fill="url(#chartGradient)"></path>
+<!-- Line -->
+<path d="M0,280 L100,240 L200,260 L300,180 L400,210 L500,120 L600,140 L700,60 L800,80 L900,20 L1000,40" fill="none" stroke="#1F6AA5" stroke-linejoin="round" stroke-width="3"></path>
+<!-- Data Point Marker -->
+<circle cx="900" cy="20" fill="#9bcbff" r="4"></circle>
+<line stroke="#1F6AA5" stroke-dasharray="4" x1="900" x2="900" y1="20" y2="300"></line>
+</svg>
+<!-- Axis Labels -->
+<div class="absolute left-4 top-8 bottom-8 flex flex-col justify-between text-[10px] font-mono-md text-outline">
+<span>150M</span>
+<span>145M</span>
+<span>140M</span>
+<span>135M</span>
+</div>
+<div class="absolute bottom-2 left-8 right-8 flex justify-between text-[10px] font-mono-md text-outline">
+<span>Oct 01</span>
+<span>Oct 07</span>
+<span>Oct 14</span>
+<span>Oct 21</span>
+<span>Today</span>
+</div>
+</div>
+</section>
+<!-- Recent Trades Table-like List -->
+<section class="space-y-widget-gap">
+<div class="flex items-center justify-between">
+<h3 class="text-headline-md font-headline-md text-on-surface">Recent Trades</h3>
+<span class="text-[#1F6AA5] text-label-md font-label-md cursor-pointer hover:underline">View All History</span>
+</div>
+<div class="bg-surface-container border border-outline-variant rounded-lg overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="px-6 py-3 text-label-md font-label-md text-outline uppercase tracking-wider">Symbol</th>
+<th class="px-6 py-3 text-label-md font-label-md text-outline uppercase tracking-wider">Action</th>
+<th class="px-6 py-3 text-label-md font-label-md text-outline uppercase tracking-wider">Price</th>
+<th class="px-6 py-3 text-label-md font-label-md text-outline uppercase tracking-wider">Date</th>
+<th class="px-6 py-3 text-label-md font-label-md text-outline uppercase tracking-wider text-right">Total</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-variant transition-colors group cursor-pointer">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white border border-outline-variant">BB</div>
+<div>
+<div class="text-on-surface font-semibold text-body-md">BBCA.JK</div>
+<div class="text-outline text-[10px]">Bank Central Asia</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-sm bg-green-500/20 text-green-400 text-[10px] font-bold">BUY</span>
+</td>
+<td class="px-6 py-4 font-mono-md text-body-md text-on-surface">9,150</td>
+<td class="px-6 py-4 text-outline text-body-sm">Oct 24, 09:30</td>
+<td class="px-6 py-4 text-right font-semibold text-on-surface">Rp 45,750,000</td>
+</tr>
+<tr class="hover:bg-surface-variant transition-colors group cursor-pointer">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white border border-outline-variant">TL</div>
+<div>
+<div class="text-on-surface font-semibold text-body-md">TLKM.JK</div>
+<div class="text-outline text-[10px]">Telkom Indonesia</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-sm bg-red-500/20 text-red-400 text-[10px] font-bold">SELL</span>
+</td>
+<td class="px-6 py-4 font-mono-md text-body-md text-on-surface">3,720</td>
+<td class="px-6 py-4 text-outline text-body-sm">Oct 22, 11:15</td>
+<td class="px-6 py-4 text-right font-semibold text-on-surface">Rp 18,600,000</td>
+</tr>
+<tr class="hover:bg-surface-variant transition-colors group cursor-pointer">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white border border-outline-variant">GT</div>
+<div>
+<div class="text-on-surface font-semibold text-body-md">GOTO.JK</div>
+<div class="text-outline text-[10px]">GoTo Gojek Tokopedia</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-sm bg-green-500/20 text-green-400 text-[10px] font-bold">BUY</span>
+</td>
+<td class="px-6 py-4 font-mono-md text-body-md text-on-surface">62</td>
+<td class="px-6 py-4 text-outline text-body-sm">Oct 21, 15:45</td>
+<td class="px-6 py-4 text-right font-semibold text-on-surface">Rp 6,200,000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+</body></html>
