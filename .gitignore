@@ -76,3 +76,4 @@ tmp_repack/
 # Backup files from modular migration
 desktop_app*backup.py
 *.backup
+conversation_memory.json
