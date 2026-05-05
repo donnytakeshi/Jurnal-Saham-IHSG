@@ -1,0 +1,10 @@
+flask
+flask-cors
+yfinance
+requests
+beautifulsoup4
+fake-useragent
+PyPDF2
+python-docx
+werkzeug
+gunicorn
