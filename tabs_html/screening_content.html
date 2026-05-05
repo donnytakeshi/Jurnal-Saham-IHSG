@@ -20,6 +20,10 @@
     .sub-tab-inactive:hover { background: #232b32; color: #dbe3ed; }
     .page { display: none; }
     .page.active { display: block; }
+    
+    /* Mini chart container */
+    .mini-chart { width: 80px; height: 32px; position: relative; }
+    canvas.sparkline-canvas { width: 100%; height: 100%; }
 </style>
 <script id="tailwind-config">
     tailwind.config = {
@@ -184,9 +188,9 @@
                     <tr>
                         <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase">Stock / Price</th>
                         <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase">Change</th>
-                        <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase text-center">Trend</th>
+                        <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase text-center">Trend (5d)</th>
                         <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase text-center">Momentum</th>
-                        <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase text-center">Top Broker</th>
+                        <th class="px-5 py-4 font-label-md text-[10px] text-outline uppercase text-right">Volume (M)</th>
                     </tr>
                 </thead>
                 <tbody id="results-tbody" class="divide-y divide-outline-variant/30">
@@ -234,9 +238,10 @@
 </main>
 
 <script>
-    const API_URL = 'http://localhost:5001';
+    const API_URL = 'http://localhost:5002';
     let allStocks = [];
     let filteredStocks = [];
+    let chartInstances = {}; // Untuk menyimpan chart sparkline
 
     // ========== Fungsi Screening ==========
     const stockSymbols = [
@@ -270,42 +275,64 @@
         return names[code] || code;
     }
 
-    async function fetchStockData(symbol) {
+    // Fetch data quote (real)
+    async function fetchQuote(symbol) {
         try {
             const res = await fetch(`${API_URL}/quote?symbol=${symbol}`);
             if (!res.ok) return null;
             const data = await res.json();
-            const changePct = data.changePercent || 0;
-            let signal = "NEUTRAL";
-            if (changePct > 1.5) signal = "ACCUMULATION";
-            else if (changePct < -1.5) signal = "DISTRIBUTION";
-            let momentumScore = 50;
-            if (signal === "ACCUMULATION") momentumScore = 70 + Math.min(Math.abs(changePct) * 5, 25);
-            else if (signal === "DISTRIBUTION") momentumScore = 30 - Math.min(Math.abs(changePct) * 5, 25);
-            else momentumScore = 50 + changePct * 2;
-            momentumScore = Math.min(100, Math.max(0, Math.round(momentumScore)));
-            const volume = Math.floor(Math.random() * 100) + 10;
-            const isBidGreater = Math.random() > 0.4;
-            const topBrokers = ["KZ", "RX", "CS", "AK", "BK", "ZP", "CC", "YP"];
-            const topBroker = topBrokers[Math.floor(Math.random() * topBrokers.length)];
             return {
-                code: symbol, name: getStockName(symbol), price: data.price || 0, changePercent: changePct,
-                momentumScore, signal, topBroker, sector: sectorMapping[symbol] || "Consumer",
-                volume, isBidGreater
+                code: symbol,
+                price: data.price || 0,
+                changePercent: data.changePercent || 0,
+                volume: data.volume || 0,
+                isClosed: data.isClosed || false
             };
-        } catch (error) { return null; }
+        } catch (error) {
+            console.error(`Error fetch ${symbol}:`, error);
+            return null;
+        }
+    }
+
+    // Fetch sparkline data (real)
+    async function fetchSparkline(symbol) {
+        try {
+            const res = await fetch(`${API_URL}/sparkline?symbol=${symbol}&period=5d`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data.normalized || [];
+        } catch (error) {
+            console.error(`Sparkline error ${symbol}:`, error);
+            return null;
+        }
     }
 
     async function loadAllStocks() {
-        const promises = stockSymbols.map(s => fetchStockData(s));
+        const promises = stockSymbols.map(s => fetchQuote(s));
         const results = await Promise.all(promises);
         allStocks = results.filter(r => r !== null && r.price > 0);
+        
+        // Hitung momentum score berdasarkan changePercent (real)
+        allStocks.forEach(stock => {
+            let signal = "NEUTRAL";
+            if (stock.changePercent > 1.5) signal = "ACCUMULATION";
+            else if (stock.changePercent < -1.5) signal = "DISTRIBUTION";
+            let momentumScore = 50;
+            if (signal === "ACCUMULATION") momentumScore = 70 + Math.min(Math.abs(stock.changePercent) * 5, 25);
+            else if (signal === "DISTRIBUTION") momentumScore = 30 - Math.min(Math.abs(stock.changePercent) * 5, 25);
+            else momentumScore = 50 + stock.changePercent * 2;
+            stock.momentumScore = Math.min(100, Math.max(0, Math.round(momentumScore)));
+            stock.signal = signal;
+            stock.sector = sectorMapping[stock.code] || "Consumer";
+            // isBidGreater masih dummy, kita biarkan untuk filter (tidak real)
+            stock.isBidGreater = Math.random() > 0.4;
+        });
         return allStocks;
     }
 
     function applyFilters() {
         const maxPrice = parseInt(document.getElementById('price-slider').value);
-        const minVolume = parseInt(document.getElementById('volume-slider').value);
+        const minVolume = parseInt(document.getElementById('volume-slider').value) * 1_000_000; // slider dalam juta
         const bidOfferOnly = document.getElementById('bidOffer').checked;
         const moverOnly = document.getElementById('mover2').checked;
         filteredStocks = allStocks.filter(stock => {
@@ -322,37 +349,95 @@
         updateSectorPulse();
     }
 
-    function renderTable() {
+    async function renderTable() {
         const tbody = document.getElementById('results-tbody');
         if (filteredStocks.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-8 text-center text-on-surface-variant">No stocks match your filters</td></tr>';
             return;
         }
         tbody.innerHTML = '';
-        filteredStocks.slice(0, 20).forEach(stock => {
+        
+        // Ambil sparkline untuk semua saham yang tampil (maks 20) secara paralel
+        const sparklinePromises = filteredStocks.slice(0, 20).map(s => fetchSparkline(s.code));
+        const sparklineDataList = await Promise.all(sparklinePromises);
+        
+        for (let idx = 0; idx < filteredStocks.slice(0, 20).length; idx++) {
+            const stock = filteredStocks[idx];
+            const sparklineData = sparklineDataList[idx];
             const changeClass = stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
             const changeSign = stock.changePercent >= 0 ? '+' : '';
-            // Ikon panah untuk kolom Trend
-            let arrowIcon = '';
-            if (stock.changePercent > 0) arrowIcon = '<span class="material-symbols-outlined text-green-400">arrow_upward</span>';
-            else if (stock.changePercent < 0) arrowIcon = '<span class="material-symbols-outlined text-red-400">arrow_downward</span>';
-            else arrowIcon = '<span class="material-symbols-outlined text-slate-400">remove</span>';
             const scoreColor = stock.momentumScore >= 70 ? 'text-green-400' : (stock.momentumScore >= 50 ? 'text-yellow-400' : 'text-red-400');
+            
             const row = document.createElement('tr');
             row.className = 'stock-row hover:bg-primary/5 transition-colors cursor-pointer';
             row.setAttribute('data-code', stock.code);
             row.addEventListener('click', () => {
                 if (window.parent) window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: stock.code }, '*');
             });
+            
+            // Buat container untuk sparkline
+            const sparkContainer = document.createElement('div');
+            sparkContainer.className = 'mini-chart';
+            const canvasId = `spark-${stock.code}-${Date.now()}-${idx}`;
+            sparkContainer.innerHTML = `<canvas id="${canvasId}" class="sparkline-canvas" width="80" height="32"></canvas>`;
+            
             row.innerHTML = `
                 <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs">${stock.code.substring(0,2)}</div><div><div class="font-headline-md text-on-surface text-sm">${stock.code}</div><div class="font-mono-md text-on-surface-variant text-[11px]">${stock.price.toLocaleString('id-ID')}</div></div></div></td>
                 <td class="px-5 py-4"><span class="${changeClass} font-mono-md text-xs font-bold">${changeSign}${stock.changePercent.toFixed(2)}%</span></td>
-                <td class="px-5 py-4 text-center">${arrowIcon}</td>
+                <td class="px-5 py-4 text-center"><div id="spark-${stock.code}-container" class="flex justify-center"></div></td>
                 <td class="px-5 py-4"><div class="flex flex-col gap-1 w-24 mx-auto"><div class="flex justify-between text-[9px] font-bold ${scoreColor}"><span>${stock.momentumScore}</span><span>/ 100</span></div><div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full ${stock.momentumScore >= 70 ? 'bg-green-500' : (stock.momentumScore >= 50 ? 'bg-yellow-500' : 'bg-red-500')}" style="width: ${stock.momentumScore}%"></div></div></div></td>
-                <td class="px-5 py-4 text-center"><span class="px-2 py-1 bg-surface-container-highest border border-outline-variant rounded text-[10px] font-bold ${stock.momentumScore >= 70 ? 'text-primary' : 'text-on-surface'}">${stock.topBroker}</span></td>
+                <td class="px-5 py-4 text-right font-mono-md text-on-surface">${(stock.volume / 1_000_000).toFixed(1)}M</td>
             `;
+            
+            // Ganti placeholder sparkline dengan canvas yang sudah dibuat
+            const targetCell = row.querySelector(`#spark-${stock.code}-container`);
+            if (targetCell) {
+                targetCell.appendChild(sparkContainer);
+                // Gambar chart jika data tersedia
+                if (sparklineData && sparklineData.length) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: sparklineData.map((_, i) => i),
+                            datasets: [{
+                                data: sparklineData,
+                                borderColor: stock.changePercent >= 0 ? '#67d9cb' : '#ff5e5e',
+                                backgroundColor: 'transparent',
+                                borderWidth: 1.5,
+                                pointRadius: 0,
+                                fill: false,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                            scales: { x: { display: false }, y: { display: false } },
+                            elements: { line: { borderJoin: 'round' } }
+                        }
+                    });
+                } else {
+                    // Fallback: garis lurus
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: [0,1,2,3,4,5],
+                            datasets: [{
+                                data: [30,30,30,30,30,30],
+                                borderColor: '#8b919b',
+                                borderWidth: 1,
+                                pointRadius: 0
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+                    });
+                }
+            }
             tbody.appendChild(row);
-        });
+        }
     }
 
     function updateInsights() {
@@ -551,9 +636,9 @@
     document.getElementById('run-screening').addEventListener('click', runScreening);
     document.getElementById('export-csv').addEventListener('click', () => {
         if (!filteredStocks.length) return;
-        let csv = 'Code,Name,Price,Change %,Momentum Score,Signal,Top Broker\n';
+        let csv = 'Code,Name,Price,Change %,Volume (M),Momentum Score,Signal\n';
         filteredStocks.forEach(s => {
-            csv += `${s.code},${s.name},${s.price},${s.changePercent},${s.momentumScore},${s.signal},${s.topBroker}\n`;
+            csv += `${s.code},${getStockName(s.code)},${s.price},${s.changePercent},${(s.volume/1e6).toFixed(1)},${s.momentumScore},${s.signal}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a');

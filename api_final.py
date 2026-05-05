@@ -28,7 +28,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ============ API KEYS ============
-FINNHUB_KEY = "d7gr8j1r01qmqj46en20d7gr8j1r01qmqj46en2g"
+FINNHUB_KEY = "d7st6j9r01qorsvju63gd7st6j9r01qorsvju640"
 ALPHA_VANTAGE_KEY = "KJ32W2P0SGKC4E19"
 DEEPSEEK_API_KEY = "sk-0422844a615144caabf1fd149087463e"
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
@@ -647,10 +647,7 @@ class UltraResilientOrderBookScraper:
 
 
 # ============ INITIALIZE SCRAPER WITH PROXY ============
-# Proxy list sesuai permintaan
 PROXY_LIST = ['http://185.199.228.220:80', 'http://188.166.190.47:8080']
-
-# Inisialisasi scraper dengan proxy
 orderbook_scraper = UltraResilientOrderBookScraper(
     use_proxy=True, 
     proxy_list=PROXY_LIST
@@ -746,15 +743,12 @@ def get_orderbook():
     if cached:
         return jsonify(cached)
 
-    # Try to get real order book from scraper
     try:
         scraped_data = orderbook_scraper.fetch_orderbook(symbol)
         
         if scraped_data and 'error' not in scraped_data:
-            # Format data untuk frontend
             order_book = []
             
-            # Jika ada bids dan asks dari IDX
             if 'bids' in scraped_data and 'asks' in scraped_data:
                 bids = scraped_data['bids'][:10]
                 asks = scraped_data['asks'][:10]
@@ -772,13 +766,11 @@ def get_orderbook():
                         'ask_freq': ask.get('freq', 0)
                     })
             else:
-                # Format dari Yahoo Finance atau sumber lain
                 bid_price = scraped_data.get('bid_price', 0)
                 ask_price = scraped_data.get('ask_price', 0)
                 bid_size = scraped_data.get('bid_size', 0)
                 ask_size = scraped_data.get('ask_size', 0)
                 
-                # Generate simulated depth based on bid/ask
                 for i in range(10):
                     multiplier = 1 - (i * 0.02)
                     order_book.append({
@@ -803,7 +795,7 @@ def get_orderbook():
     except Exception as e:
         logger.error(f"Orderbook scraper error for {symbol}: {str(e)}")
     
-    # FALLBACK: Data dummy jika scraper gagal
+    # FALLBACK: Data dummy
     quote = fetch_quote_with_fallback(symbol)
     price = quote['price']
     
@@ -834,6 +826,7 @@ def get_orderbook():
     orderbook_cache.set(cache_key, result)
     return jsonify(result)
 
+# ============ FOREIGN TRANSACTION ENDPOINTS (DIPERBAIKI) ============
 @app.route('/foreigntransaction', methods=['GET'])
 def get_foreign_transaction():
     symbol = request.args.get('symbol', '').upper()
@@ -841,23 +834,111 @@ def get_foreign_transaction():
     price = quote['price']
     volume = quote.get('volume', 1000000)
     total_val = (price * volume) / 1000000000 if price and volume else 0
-
+    
+    # Simulasi net foreign flow: antara -30% hingga +30% dari total_val
+    random.seed(hash(symbol) % 10000)
+    net_flow_pct = random.uniform(-0.3, 0.3)  # -30% .. +30%
+    total_foreign_buy = total_val * (0.5 + net_flow_pct/2)
+    total_foreign_sell = total_val * (0.5 - net_flow_pct/2)
+    
+    # Daftar broker (10 nama, akan dipilih 5 secara acak)
+    broker_names = ["Credit Suisse", "Morgan Stanley", "Goldman Sachs", "KZ", "RX", "UBS", "J.P. Morgan", "Deutsche Bank", "ZP", "CC"]
+    random.seed(hash(symbol) % 10000 + 1)
+    selected_buyers = random.sample(broker_names, 5)
+    selected_sellers = random.sample(broker_names, 5)
+    
+    # Alokasi nilai ke masing-masing buyer
+    buyer_weights = [random.random() for _ in range(5)]
+    buyer_weights = [w/sum(buyer_weights) for w in buyer_weights]
+    buyer_allocs = [total_foreign_buy * w for w in buyer_weights]
+    
+    # Alokasi nilai ke masing-masing seller
+    seller_weights = [random.random() for _ in range(5)]
+    seller_weights = [w/sum(seller_weights) for w in seller_weights]
+    seller_allocs = [total_foreign_sell * w for w in seller_weights]
+    
+    buyers = []
+    for i, name in enumerate(selected_buyers):
+        avg_price = round(price * random.uniform(0.995, 0.999))
+        buyers.append({
+            'name': name,
+            'avg': avg_price,
+            'val': round(buyer_allocs[i], 1)
+        })
+    sellers = []
+    for i, name in enumerate(selected_sellers):
+        avg_price = round(price * random.uniform(1.001, 1.005))
+        sellers.append({
+            'name': name,
+            'avg': avg_price,
+            'val': round(seller_allocs[i], 1)
+        })
+    
+    # Urutkan berdasarkan val terbesar
+    buyers.sort(key=lambda x: x['val'], reverse=True)
+    sellers.sort(key=lambda x: x['val'], reverse=True)
+    
     return jsonify({
         'symbol': symbol,
-        'buyers': [
-            {'name': 'Credit Suisse', 'avg': round(price * 0.998, 0), 'val': round(total_val * 0.25, 1)},
-            {'name': 'Morgan Stanley', 'avg': round(price * 0.999, 0), 'val': round(total_val * 0.18, 1)},
-            {'name': 'Goldman Sachs', 'avg': round(price * 0.997, 0), 'val': round(total_val * 0.15, 1)},
-            {'name': 'KZ', 'avg': round(price * 0.996, 0), 'val': round(total_val * 0.12, 1)},
-            {'name': 'RX', 'avg': round(price * 0.995, 0), 'val': round(total_val * 0.10, 1)}
-        ],
-        'sellers': [
-            {'name': 'J.P. Morgan', 'avg': round(price * 1.002, 0), 'val': round(total_val * 0.22, 1)},
-            {'name': 'UBS', 'avg': round(price * 1.003, 0), 'val': round(total_val * 0.16, 1)},
-            {'name': 'Deutsche Bank', 'avg': round(price * 1.004, 0), 'val': round(total_val * 0.14, 1)},
-            {'name': 'ZP', 'avg': round(price * 1.005, 0), 'val': round(total_val * 0.11, 1)},
-            {'name': 'CC', 'avg': round(price * 1.006, 0), 'val': round(total_val * 0.09, 1)}
-        ]
+        'buyers': buyers[:5],
+        'sellers': sellers[:5]
+    })
+
+@app.route('/bulk/foreigntransaction', methods=['POST'])
+def get_bulk_foreign_transaction():
+    data = request.json
+    symbols = data.get('symbols', [])
+    if not symbols:
+        return jsonify({'error': 'No symbols provided'}), 400
+    
+    results = {}
+    for symbol in symbols:
+        symbol = symbol.upper()
+        quote = fetch_quote_with_fallback(symbol)
+        price = quote['price']
+        volume = quote.get('volume', 1000000)
+        total_val = (price * volume) / 1000000000 if price and volume else 0
+        
+        random.seed(hash(symbol) % 10000)
+        net_flow_pct = random.uniform(-0.3, 0.3)
+        total_foreign_buy = total_val * (0.5 + net_flow_pct/2)
+        total_foreign_sell = total_val * (0.5 - net_flow_pct/2)
+        
+        broker_names = ["Credit Suisse", "Morgan Stanley", "Goldman Sachs", "KZ", "RX", "UBS", "J.P. Morgan", "Deutsche Bank", "ZP", "CC"]
+        random.seed(hash(symbol) % 10000 + 1)
+        selected_buyers = random.sample(broker_names, 5)
+        selected_sellers = random.sample(broker_names, 5)
+        
+        buyer_weights = [random.random() for _ in range(5)]
+        buyer_weights = [w/sum(buyer_weights) for w in buyer_weights]
+        buyer_allocs = [total_foreign_buy * w for w in buyer_weights]
+        
+        seller_weights = [random.random() for _ in range(5)]
+        seller_weights = [w/sum(seller_weights) for w in seller_weights]
+        seller_allocs = [total_foreign_sell * w for w in seller_weights]
+        
+        buyers = []
+        for i, name in enumerate(selected_buyers):
+            avg_price = round(price * random.uniform(0.995, 0.999))
+            buyers.append({'name': name, 'avg': avg_price, 'val': round(buyer_allocs[i], 1)})
+        sellers = []
+        for i, name in enumerate(selected_sellers):
+            avg_price = round(price * random.uniform(1.001, 1.005))
+            sellers.append({'name': name, 'avg': avg_price, 'val': round(seller_allocs[i], 1)})
+        
+        buyers.sort(key=lambda x: x['val'], reverse=True)
+        sellers.sort(key=lambda x: x['val'], reverse=True)
+        
+        results[symbol] = {
+            'buyers': buyers[:5],
+            'sellers': sellers[:5]
+        }
+    
+    return jsonify({
+        'success': True, 
+        'count': len(results), 
+        'data': results,
+        'timestamp': datetime.now().isoformat()
     })
 
 @app.route('/bandarmology', methods=['GET'])
@@ -877,21 +958,59 @@ def get_foreign_transaction_history():
     symbol = request.args.get('symbol', '').upper()
     period = request.args.get('period', '5d')
     
-    quote = fetch_quote_with_fallback(symbol)
-    price = quote['price']
+    try:
+        yf_symbol = f"{symbol}.JK"
+        ticker = yf.Ticker(yf_symbol)
+        
+        if period == '5d':
+            hist = ticker.history(period='5d', interval='1d')
+        elif period == '1m':
+            hist = ticker.history(period='1mo', interval='1d')
+        else:
+            hist = ticker.history(period='ytd', interval='1d')
+        
+        if hist.empty:
+            raise Exception("No historical data")
+        
+        prices = hist['Close'].tolist()
+        volumes = (hist['Volume'] / 1_000_000).tolist()
+        dates = [d.strftime('%d %b') for d in hist.index]
+        
+        net_values = []
+        for i in range(1, len(prices)):
+            pct_change = (prices[i] - prices[i-1]) / prices[i-1] * 100
+            vol_factor = min(volumes[i] / 2000, 1.5) if volumes[i] else 0.5
+            net = pct_change * vol_factor * 5
+            net_values.append(round(net, 1))
+        net_values.insert(0, 0)
+        
+        if len(dates) > len(net_values):
+            net_values = net_values[:len(dates)]
+        if len(dates) < len(net_values):
+            net_values = net_values[:len(dates)]
+        
+        if len(dates) < 2:
+            raise Exception("Insufficient data")
+            
+    except Exception as e:
+        print(f"History error for {symbol}: {e}. Using fallback.")
+        random.seed(hash(symbol) % 10000 + hash(period) % 100)
+        if period == '5d':
+            dates = ['20 May', '21 May', '22 May', '23 May', '24 May']
+            net_values = [random.uniform(-30, 50) for _ in range(5)]
+            volumes = [random.randint(300, 1500) for _ in range(5)]
+        elif period == '1m':
+            dates = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+            net_values = [random.uniform(-20, 40) for _ in range(4)]
+            volumes = [random.randint(1000, 3000) for _ in range(4)]
+        else:
+            months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            length = random.randint(5, 12)
+            dates = months[:length]
+            net_values = [random.uniform(-30, 40) for _ in range(length)]
+            volumes = [random.randint(5000, 15000) for _ in range(length)]
     
-    if period == '5d':
-        dates = ['20 May', '21 May', '22 May', '23 May', '24 May']
-        net_values = [25.5, -12.3, 38.7, -8.2, 45.1]
-        volumes = [850, 620, 1200, 450, 980]
-    elif period == '1m':
-        dates = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
-        net_values = [18.2, -5.7, 42.3, -15.8]
-        volumes = [2100, 1800, 3200, 1500]
-    else:
-        dates = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        net_values = [12.5, 8.3, -22.1, 35.6, 18.9, -5.2, 28.4, 42.1, -12.7, 15.3, 22.8, 30.5]
-        volumes = [8500, 7200, 6400, 8900, 7800, 6600, 9500, 11000, 7100, 8200, 9100, 10500]
+    net_values = [round(v, 1) for v in net_values]
     
     return jsonify({
         'symbol': symbol,
@@ -899,11 +1018,11 @@ def get_foreign_transaction_history():
         'dates': dates,
         'net_values': net_values,
         'volumes': volumes,
-        'current_price': price,
+        'current_price': fetch_quote_with_fallback(symbol).get('price', 0),
         'timestamp': datetime.now().isoformat()
     })
 
-# ============ ENDPOINT: SPARKLINE DATA ============
+# ============ SPARKLINE ENDPOINT ============
 @app.route('/sparkline', methods=['GET'])
 def get_sparkline():
     symbol = request.args.get('symbol', '').upper()
@@ -953,47 +1072,7 @@ def get_sparkline():
             'timestamp': datetime.now().isoformat()
         })
 
-# ============ BULK ENDPOINT FOR FOREIGN TRANSACTION ============
-@app.route('/bulk/foreigntransaction', methods=['POST'])
-def get_bulk_foreign_transaction():
-    data = request.json
-    symbols = data.get('symbols', [])
-    if not symbols:
-        return jsonify({'error': 'No symbols provided'}), 400
-    
-    results = {}
-    for symbol in symbols:
-        symbol = symbol.upper()
-        quote = fetch_quote_with_fallback(symbol)
-        price = quote['price']
-        volume = quote.get('volume', 1000000)
-        total_val = (price * volume) / 1000000000 if price and volume else 0
-        
-        results[symbol] = {
-            'buyers': [
-                {'name': 'Credit Suisse', 'avg': round(price * 0.998, 0), 'val': round(total_val * 0.25, 1)},
-                {'name': 'Morgan Stanley', 'avg': round(price * 0.999, 0), 'val': round(total_val * 0.18, 1)},
-                {'name': 'Goldman Sachs', 'avg': round(price * 0.997, 0), 'val': round(total_val * 0.15, 1)},
-                {'name': 'KZ', 'avg': round(price * 0.996, 0), 'val': round(total_val * 0.12, 1)},
-                {'name': 'RX', 'avg': round(price * 0.995, 0), 'val': round(total_val * 0.10, 1)}
-            ],
-            'sellers': [
-                {'name': 'J.P. Morgan', 'avg': round(price * 1.002, 0), 'val': round(total_val * 0.22, 1)},
-                {'name': 'UBS', 'avg': round(price * 1.003, 0), 'val': round(total_val * 0.16, 1)},
-                {'name': 'Deutsche Bank', 'avg': round(price * 1.004, 0), 'val': round(total_val * 0.14, 1)},
-                {'name': 'ZP', 'avg': round(price * 1.005, 0), 'val': round(total_val * 0.11, 1)},
-                {'name': 'CC', 'avg': round(price * 1.006, 0), 'val': round(total_val * 0.09, 1)}
-            ]
-        }
-    
-    return jsonify({
-        'success': True, 
-        'count': len(results), 
-        'data': results,
-        'timestamp': datetime.now().isoformat()
-    })
-
-# ============ BULK ORDERBOOK ENDPOINT ============
+# ============ BULK OTHER ENDPOINTS ==========
 @app.route('/bulk/orderbook', methods=['POST'])
 def get_bulk_orderbook():
     data = request.json
@@ -1027,7 +1106,6 @@ def get_bulk_orderbook():
     
     return jsonify({'success': True, 'count': len(results), 'data': results, 'timestamp': datetime.now().isoformat()})
 
-# ============ BULK OTHER ENDPOINTS ============
 @app.route('/bulk', methods=['POST'])
 def get_bulk():
     data = request.json
