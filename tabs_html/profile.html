@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    body { background: #0c141b; font-family: 'Inter', sans-serif; }
+    .card { background: #181c21; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); }
+    .btn-primary { background: #159D91; transition: all 0.2s; }
+    .btn-primary:hover { background: #0f7a70; transform: scale(0.98); }
+    .btn-secondary { background: #2a2a2a; transition: all 0.2s; }
+    .btn-secondary:hover { background: #3a3a3a; }
+</style>
+</head>
+<body class="min-h-screen p-6">
+    <div class="max-w-md mx-auto">
+        <!-- Header with back button -->
+        <div class="flex items-center gap-3 mb-6">
+            <a href="index.html" class="material-symbols-outlined text-teal-400">arrow_back</a>
+            <h1 class="text-xl font-bold text-white">Profil Saya</h1>
+        </div>
+
+        <div class="card p-6 mb-5">
+            <!-- Avatar preview -->
+            <div class="flex flex-col items-center mb-6">
+                <div id="avatar-preview" class="w-24 h-24 rounded-full bg-teal-500/20 flex items-center justify-center overflow-hidden border-2 border-teal-500 mb-3">
+                    <span class="material-symbols-outlined text-5xl text-teal-500">account_circle</span>
+                </div>
+                <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/gif" class="hidden">
+                <button id="upload-avatar-btn" class="text-sm text-teal-400 hover:underline">Upload Foto Profil</button>
+                <p class="text-xs text-slate-500 mt-2">Maks 5MB (JPG/PNG)</p>
+            </div>
+
+            <!-- Form data -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email</label>
+                    <input type="email" id="email" class="w-full bg-[#0c141b] border border-[#2a2a2a] rounded-xl py-2 px-4 text-white" readonly disabled>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Nama Lengkap</label>
+                    <input type="text" id="fullname" class="w-full bg-[#0c141b] border border-[#2a2a2a] rounded-xl py-2 px-4 text-white focus:border-teal-500 focus:outline-none">
+                </div>
+                <button id="save-profile" class="w-full btn-primary text-white font-semibold py-2 rounded-xl">Simpan Perubahan</button>
+            </div>
+        </div>
+
+        <div class="text-center text-xs text-slate-500">
+            Data tersimpan di cloud, sinkron otomatis ke semua perangkat.
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ofnswkzbscuwoueromaf.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Kp_J4xszV6GbIfsikhnT8w_CgqUQsp1';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let currentProfile = null;
+
+        async function loadProfile() {
+            const { data: { user }, error } = await sb.auth.getUser();
+            if (error || !user) {
+                window.location.href = 'signin.html';
+                return;
+            }
+            currentUser = user;
+            document.getElementById('email').value = user.email;
+            
+            const { data: profile, error: profileError } = await sb
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', user.id)
+                .single();
+            
+            if (profile) {
+                currentProfile = profile;
+                document.getElementById('fullname').value = profile.full_name || '';
+                if (profile.avatar_url) {
+                    const previewDiv = document.getElementById('avatar-preview');
+                    previewDiv.innerHTML = `<img src="${profile.avatar_url}" class="w-full h-full object-cover">`;
+                }
+            }
+        }
+
+        // Simpan nama
+        document.getElementById('save-profile').addEventListener('click', async () => {
+            const newName = document.getElementById('fullname').value.trim();
+            if (!newName) return alert('Nama tidak boleh kosong');
+            
+            const { error } = await sb
+                .from('profiles')
+                .update({ full_name: newName, updated_at: new Date() })
+                .eq('id', currentUser.id);
+            
+            if (error) alert('Gagal update: ' + error.message);
+            else alert('Nama berhasil diupdate');
+        });
+
+        // Upload avatar
+        document.getElementById('upload-avatar-btn').addEventListener('click', () => {
+            document.getElementById('avatar-input').click();
+        });
+
+        document.getElementById('avatar-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) return alert('File terlalu besar (maks 5MB)');
+            if (!file.type.startsWith('image/')) return alert('Hanya file gambar');
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
+            
+            // Upload ke bucket 'avatars'
+            const { error: uploadError } = await sb.storage
+                .from('avatars')
+                .upload(fileName, file, { upsert: true });
+            
+            if (uploadError) return alert('Upload gagal: ' + uploadError.message);
+            
+            // Dapatkan public URL
+            const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(fileName);
+            
+            // Update profile
+            const { error: updateError } = await sb
+                .from('profiles')
+                .update({ avatar_url: publicUrl, updated_at: new Date() })
+                .eq('id', currentUser.id);
+            
+            if (updateError) alert('Gagal update avatar: ' + updateError.message);
+            else {
+                // Refresh tampilan
+                const previewDiv = document.getElementById('avatar-preview');
+                previewDiv.innerHTML = `<img src="${publicUrl}" class="w-full h-full object-cover">`;
+                alert('Avatar berhasil diupdate');
+            }
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>

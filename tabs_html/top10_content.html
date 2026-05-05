@@ -38,6 +38,14 @@
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .stock-row:hover {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding-left: 8px;
+            padding-right: 8px;
         }
         .stock-row:last-child { border-bottom: none; }
         
@@ -87,7 +95,7 @@
     <div class="flex justify-between items-center">
         <div>
             <div class="text-white text-lg font-bold">Top 10 IHSG</div>
-            <div class="text-xs text-slate-500">Market Volatility Snapshot</div>
+            <div class="text-xs text-slate-500">Klik kode saham untuk analisis detail</div>
         </div>
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-2">
@@ -163,7 +171,7 @@
 <div id="last-update" class="last-update">--</div>
 
 <script>
-    const API_URL = 'http://localhost:5001';
+    const API_URL = 'http://localhost:5002';
     
     const sectorStocks = {
         tech: ["TLKM", "GOTO", "ERAA", "TOWR"],
@@ -179,6 +187,19 @@
     ];
     
     let allQuotes = [];
+    
+    // ==================== INTEGRASI KODE SAHAM ====================
+    function openStockInCekEmiten(stockCode) {
+        console.log(`📤 Top10 mengirim kode saham: ${stockCode} ke parent`);
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'OPEN_STOCK',
+                stockCode: stockCode
+            }, '*');
+        } else {
+            alert(`Buka saham ${stockCode} di tab Cek Emiten`);
+        }
+    }
     
     async function fetchQuote(symbol) {
         try {
@@ -255,18 +276,27 @@
     function renderStockRow(stock, isGainer) {
         const changeClass = isGainer ? 'positive' : 'negative';
         const changeSign = stock.changePercent > 0 ? '+' : '';
-        return `
-            <div class="stock-row">
-                <div>
-                    <div class="stock-code">${stock.code}</div>
-                    <div class="stock-name">${getStockName(stock.code)}</div>
-                </div>
-                <div class="text-right">
-                    <div class="price">${formatNumber(stock.price)}</div>
-                    <div class="change ${changeClass}">${changeSign}${stock.changePercent.toFixed(2)}%</div>
-                </div>
+        
+        // Buat elemen row dengan event listener
+        const row = document.createElement('div');
+        row.className = 'stock-row';
+        row.innerHTML = `
+            <div>
+                <div class="stock-code" data-code="${stock.code}">${stock.code}</div>
+                <div class="stock-name">${getStockName(stock.code)}</div>
+            </div>
+            <div class="text-right">
+                <div class="price">${formatNumber(stock.price)}</div>
+                <div class="change ${changeClass}">${changeSign}${stock.changePercent.toFixed(2)}%</div>
             </div>
         `;
+        
+        // Event klik untuk integrasi kode saham
+        row.addEventListener('click', () => {
+            openStockInCekEmiten(stock.code);
+        });
+        
+        return row;
     }
     
     async function renderTop10() {
@@ -281,13 +311,19 @@
         if (gainers.length === 0) {
             gainersDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">No gainers</div></div>';
         } else {
-            gainersDiv.innerHTML = gainers.map(s => renderStockRow(s, true)).join('');
+            gainersDiv.innerHTML = '';
+            gainers.forEach(s => {
+                gainersDiv.appendChild(renderStockRow(s, true));
+            });
         }
         
         if (losers.length === 0) {
             losersDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">No losers</div></div>';
         } else {
-            losersDiv.innerHTML = losers.map(s => renderStockRow(s, false)).join('');
+            losersDiv.innerHTML = '';
+            losers.forEach(s => {
+                losersDiv.appendChild(renderStockRow(s, false));
+            });
         }
         
         const total = gainers.length + losers.length;
@@ -314,7 +350,7 @@
         document.getElementById('sector-finance').innerHTML = formatSector(sectorPerf.finance || 0);
         document.getElementById('sector-finance').className = `sector-value ${(sectorPerf.finance || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
         
-        document.getElementById('last-update').innerHTML = `Last update: ${new Date().toLocaleTimeString('id-ID')}`;
+        document.getElementById('last-update').innerHTML = `Last update: ${new Date().toLocaleTimeString('id-ID')} (Klik saham untuk detail)`;
         document.getElementById('api-status').innerHTML = `Connected (${allQuotes.length})`;
     }
     

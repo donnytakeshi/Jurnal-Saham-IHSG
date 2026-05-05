@@ -6,6 +6,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
         body { background: #0c141b; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
@@ -16,6 +17,12 @@
         .page.active { display: block; }
         .card { background: #181c21; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
         .metric-card { background: #181c21; border-radius: 12px; padding: 16px; }
+        .clickable-row { cursor: pointer; }
+        .clickable-row:hover { background: #232b32; }
+        .btn-primary { background: #159D91; transition: all 0.2s; }
+        .btn-primary:hover { background: #0f7a70; transform: scale(0.98); }
+        .btn-secondary { background: #2a2a2a; transition: all 0.2s; }
+        .btn-secondary:hover { background: #3a3a3a; }
     </style>
 </head>
 <body>
@@ -35,121 +42,85 @@
 
 <!-- PAGE 1: JOURNAL TRANSACTION -->
 <div id="page-journal" class="page active" style="padding: 16px;">
-    <!-- Metrics Row -->
+    <!-- Metrics Row (sementara masih dummy, nanti bisa dihitung dari data real) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
         <div class="metric-card">
             <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">TOTAL EQUITY</p>
-            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">Rp 1.450.250.000</p>
+            <p id="total-equity" style="color: white; font-size: 20px; font-weight: bold; margin: 0;">Rp 0</p>
         </div>
         <div class="metric-card" style="border-left: 3px solid #67d9cb;">
             <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">REALIZED P/L</p>
-            <p style="color: #67d9cb; font-size: 20px; font-weight: bold; margin: 0;">+Rp 84.300.000</p>
+            <p id="realized-pl" style="color: #67d9cb; font-size: 20px; font-weight: bold; margin: 0;">+Rp 0</p>
         </div>
         <div class="metric-card">
             <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">WIN RATE</p>
-            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">68%</p>
+            <p id="win-rate" style="color: white; font-size: 20px; font-weight: bold; margin: 0;">0%</p>
         </div>
     </div>
 
-    <!-- Search Bar -->
+    <!-- Search Bar (cari berdasarkan kode saham) -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="color: white; font-size: 16px; font-weight: 600; margin: 0;">Trading Journal</h2>
         <div style="position: relative;">
-            <input type="text" placeholder="Search stock code..." style="background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 8px 12px 8px 32px; color: white; font-size: 13px; width: 200px; outline: none;">
+            <input type="text" id="search-stock" placeholder="Cari kode saham..." style="background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 8px 12px 8px 32px; color: white; font-size: 13px; width: 200px; outline: none;">
             <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #8b919b; font-size: 14px;">🔍</span>
         </div>
     </div>
 
     <!-- Transaction List -->
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">BBCA.JK</p>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="background: rgba(21, 157, 145, 0.2); color: #159D91; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">BUY</span>
-                    <span style="color: #8b919b; font-size: 11px;">24 Oct 2023, 09:15</span>
-                </div>
-            </div>
-            <div>
-                <span style="color: #67d9cb; font-size: 12px; font-weight: 500;">Closed</span>
-            </div>
-        </div>
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">TLKM.JK</p>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="background: rgba(255, 94, 94, 0.2); color: #ff5e5e; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">SELL</span>
-                    <span style="color: #8b919b; font-size: 11px;">25 Oct 2023, 11:20</span>
-                </div>
-            </div>
-            <div>
-                <span style="color: #159D91; font-size: 12px; font-weight: 500;">Open</span>
-            </div>
-        </div>
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">GOTO.JK</p>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="background: rgba(21, 157, 145, 0.2); color: #159D91; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">BUY</span>
-                    <span style="color: #8b919b; font-size: 11px;">26 Oct 2023, 14:00</span>
-                </div>
-            </div>
-            <div>
-                <span style="color: #67d9cb; font-size: 12px; font-weight: 500;">Closed</span>
-            </div>
-        </div>
+    <div id="transactions-list" style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="text-center py-8 text-slate-400">Memuat data...</div>
     </div>
 </div>
 
 <!-- PAGE 2: TAMBAH/EDIT -->
 <div id="page-form" class="page" style="padding: 16px;">
     <div class="card" style="max-width: 600px; margin: 0 auto;">
-        <h2 style="color: white; font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Tambah/Edit Transaksi</h2>
+        <h2 style="color: white; font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Tambah Transaksi</h2>
         
         <div style="margin-bottom: 16px;">
             <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Kode Saham</label>
-            <input type="text" placeholder="Contoh: BBCA" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+            <input type="text" id="form-stock-code" placeholder="Contoh: BBCA" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
         </div>
         
         <div style="margin-bottom: 16px;">
             <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Tanggal</label>
-            <input type="date" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+            <input type="date" id="form-date" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
         </div>
         
         <div style="margin-bottom: 16px;">
             <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Tipe Transaksi</label>
             <div style="display: flex; gap: 12px;">
-                <button style="background: #159D91; color: white; padding: 8px 20px; border-radius: 12px; border: none; cursor: pointer;">Buy</button>
-                <button style="background: #181c21; color: #8b919b; padding: 8px 20px; border-radius: 12px; border: 1px solid #2a2a2a; cursor: pointer;">Sell</button>
+                <button type="button" id="type-buy" data-type="BUY" style="background: #159D91; color: white; padding: 8px 20px; border-radius: 12px; border: none; cursor: pointer;">Buy</button>
+                <button type="button" id="type-sell" data-type="SELL" style="background: #181c21; color: #8b919b; padding: 8px 20px; border-radius: 12px; border: 1px solid #2a2a2a; cursor: pointer;">Sell</button>
             </div>
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
             <div>
                 <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Harga (Per Lembar)</label>
-                <input type="number" placeholder="0" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+                <input type="number" id="form-price" placeholder="0" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
             </div>
             <div>
                 <label style="color: #8b919b; font-size: 12px; display: block; margin-bottom: 6px;">Jumlah Lot</label>
-                <input type="number" placeholder="0" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
+                <input type="number" id="form-lot" placeholder="0" style="width: 100%; background: #0c141b; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 12px; color: white; outline: none;">
             </div>
         </div>
         
         <div style="display: flex; justify-content: flex-end; gap: 12px;">
-            <button style="background: #2a2a2a; color: #8b919b; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;">Batal</button>
-            <button style="background: #159D91; color: white; padding: 10px 24px; border-radius: 12px; border: none; cursor: pointer;">Simpan</button>
+            <button id="form-cancel" style="background: #2a2a2a; color: #8b919b; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;">Batal</button>
+            <button id="form-save" style="background: #159D91; color: white; padding: 10px 24px; border-radius: 12px; border: none; cursor: pointer;">Simpan</button>
         </div>
     </div>
 </div>
 
-<!-- PAGE 3: PERFORMANCE REPORT -->
+<!-- PAGE 3: PERFORMANCE REPORT (sementara masih statis) -->
 <div id="page-report" class="page" style="padding: 16px;">
-    <!-- Chart Card -->
     <div class="card" style="margin-bottom: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <div>
                 <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Net P/L Growth</p>
-                <p style="color: #159D91; font-size: 20px; font-weight: bold; margin: 0;">+Rp 14.250.000 <span style="color: #8b919b; font-size: 12px;">(+8.4%)</span></p>
+                <p id="report-pl" style="color: #159D91; font-size: 20px; font-weight: bold; margin: 0;">+Rp 0</p>
             </div>
         </div>
         <div style="background: #0c141b; border-radius: 12px; height: 200px; display: flex; align-items: center; justify-content: center;">
@@ -159,32 +130,170 @@
             </svg>
         </div>
     </div>
-    
-    <!-- Stats Grid -->
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-        <div class="metric-card">
-            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Total Trades</p>
-            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">142</p>
-        </div>
-        <div class="metric-card">
-            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Avg. Profit</p>
-            <p style="color: #159D91; font-size: 20px; font-weight: bold; margin: 0;">Rp 1.2M</p>
-        </div>
-        <div class="metric-card">
-            <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">Win Rate</p>
-            <p style="color: white; font-size: 20px; font-weight: bold; margin: 0;">64.5%</p>
-        </div>
+        <div class="metric-card"><p style="color: #8b919b; font-size: 11px;">Total Trades</p><p id="total-trades" class="text-white text-xl font-bold">0</p></div>
+        <div class="metric-card"><p style="color: #8b919b; font-size: 11px;">Avg. Profit</p><p id="avg-profit" class="text-teal-400 text-xl font-bold">Rp 0</p></div>
+        <div class="metric-card"><p style="color: #8b919b; font-size: 11px;">Win Rate</p><p id="report-winrate" class="text-white text-xl font-bold">0%</p></div>
     </div>
 </div>
 
 <script>
+    // Supabase konfigurasi
+    const SUPABASE_URL = 'https://ofnswkzbscuwoueromaf.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Kp_J4xszV6GbIfsikhnT8w_CgqUQsp1';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let allTransactions = [];
+    let selectedType = 'BUY'; // default
+
+    // Fungsi untuk memuat data transaksi dari Supabase
+    async function loadTransactions() {
+        const { data: { user }, error: userError } = await sb.auth.getUser();
+        if (userError || !user) {
+            console.error('User tidak login');
+            return;
+        }
+        currentUser = user;
+        
+        const { data, error } = await sb
+            .from('transactions')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('trade_date', { ascending: false });
+        
+        if (error) {
+            console.error(error);
+            return;
+        }
+        allTransactions = data;
+        renderTransactions();
+        updateMetrics();
+    }
+
+    // Render daftar transaksi
+    function renderTransactions() {
+        const container = document.getElementById('transactions-list');
+        const searchTerm = document.getElementById('search-stock').value.trim().toUpperCase();
+        let filtered = allTransactions;
+        if (searchTerm) {
+            filtered = allTransactions.filter(t => t.stock_code.includes(searchTerm));
+        }
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-slate-400">Belum ada transaksi. Tambahkan melalui tab "Tambah/Edit".</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        filtered.forEach(tx => {
+            const card = document.createElement('div');
+            card.className = 'card clickable-row';
+            card.setAttribute('data-stock-code', tx.stock_code);
+            const typeClass = tx.type === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400';
+            const statusClass = tx.type === 'BUY' ? 'Open' : 'Closed'; // dummy status, boleh disesuaikan
+            const statusColor = tx.type === 'BUY' ? 'text-teal-400' : 'text-slate-400';
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <p style="font-weight: bold; color: white; margin: 0 0 4px 0;">${tx.stock_code}.JK</p>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${typeClass}">${tx.type}</span>
+                            <span style="color: #8b919b; font-size: 11px;">${new Date(tx.trade_date).toLocaleDateString('id-ID')}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #8b919b; margin-top: 4px;">${tx.lot} lot @ ${tx.price.toLocaleString('id-ID')}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: white;">Rp ${(tx.price * tx.lot * 100).toLocaleString('id-ID')}</div>
+                        <div style="font-size: 11px; ${statusColor}">${statusClass}</div>
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', () => {
+                // Integrasi ke Cek Emiten (sama seperti sebelumnya)
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: tx.stock_code }, '*');
+                }
+            });
+            container.appendChild(card);
+        });
+    }
+
+    // Update metric cards (equity, P/L, win rate) dan report page
+    async function updateMetrics() {
+        if (!allTransactions.length) {
+            document.getElementById('total-equity').innerText = 'Rp 0';
+            document.getElementById('realized-pl').innerHTML = '+Rp 0';
+            document.getElementById('win-rate').innerText = '0%';
+            document.getElementById('total-trades').innerText = '0';
+            document.getElementById('avg-profit').innerHTML = 'Rp 0';
+            document.getElementById('report-winrate').innerText = '0%';
+            document.getElementById('report-pl').innerHTML = '+Rp 0';
+            return;
+        }
+        
+        // Hitung total invested (buy) dan total sold (sell) -> equity
+        let totalBuy = 0, totalSell = 0;
+        let profitSum = 0;
+        let winningTrades = 0;
+        let tradeCount = 0;
+        // Karena belum ada sistem penutupan posisi, kita asumsikan setiap SELL adalah profit terhadap BUY terakhir? Untuk demo, kita hitung unrealized? Lebih baik sederhana: total value dari semua transaksi (buy - sell)
+        for (let tx of allTransactions) {
+            const value = tx.price * tx.lot * 100;
+            if (tx.type === 'BUY') {
+                totalBuy += value;
+            } else {
+                totalSell += value;
+                // Sederhana: profit = sell - buy, tapi tidak paired. Kita hitung unrealized sementara:
+                // Untuk demo, profit dihitung dari selisih total sell - total buy
+            }
+            tradeCount++;
+        }
+        const realizedPL = totalSell - totalBuy;
+        const equity = totalBuy - totalSell; // jika positif berarti masih hold
+        document.getElementById('total-equity').innerHTML = `Rp ${Math.abs(equity).toLocaleString('id-ID')}`;
+        const plColor = realizedPL >= 0 ? 'text-green-400' : 'text-red-400';
+        document.getElementById('realized-pl').innerHTML = `<span class="${plColor}">${realizedPL >= 0 ? '+' : ''}Rp ${realizedPL.toLocaleString('id-ID')}</span>`;
+        
+        // Win rate dummy: asumsikan profit jika sell > buy? Di sini kita hanya bisa hitung per transaksi jika ada pairing. Sementara 50%
+        const winRate = tradeCount ? (allTransactions.filter(t => t.type === 'SELL' && (t.price * t.lot * 100) > 0).length / tradeCount * 100) : 0;
+        document.getElementById('win-rate').innerHTML = `${Math.round(winRate)}%`;
+        document.getElementById('total-trades').innerText = tradeCount;
+        document.getElementById('avg-profit').innerHTML = `Rp ${(realizedPL / (tradeCount || 1)).toLocaleString('id-ID')}`;
+        document.getElementById('report-winrate').innerHTML = `${Math.round(winRate)}%`;
+        document.getElementById('report-pl').innerHTML = `${realizedPL >= 0 ? '+' : ''}Rp ${realizedPL.toLocaleString('id-ID')}`;
+    }
+
+    // Tambah transaksi
+    async function addTransaction(stockCode, date, type, price, lot) {
+        if (!stockCode || !date || !price || !lot) {
+            alert('Semua field harus diisi');
+            return false;
+        }
+        const user = currentUser || (await sb.auth.getUser()).data.user;
+        if (!user) return false;
+        
+        const { error } = await sb.from('transactions').insert({
+            user_id: user.id,
+            stock_code: stockCode.toUpperCase(),
+            type: type,
+            price: parseInt(price),
+            lot: parseInt(lot),
+            trade_date: date
+        });
+        if (error) {
+            alert('Gagal menambah transaksi: ' + error.message);
+            return false;
+        }
+        return true;
+    }
+
+    // Event listeners untuk sub-tab
     const subTabBtns = document.querySelectorAll('.sub-tab-btn');
     const pages = document.querySelectorAll('.page');
-    
     subTabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const pageId = btn.dataset.page;
-            
             subTabBtns.forEach(b => {
                 if (b.dataset.page === pageId) {
                     b.classList.remove('sub-tab-inactive');
@@ -194,16 +303,67 @@
                     b.classList.add('sub-tab-inactive');
                 }
             });
-            
             pages.forEach(page => {
-                if (page.id === `page-${pageId}`) {
-                    page.classList.add('active');
-                } else {
-                    page.classList.remove('active');
-                }
+                page.classList.toggle('active', page.id === `page-${pageId}`);
             });
+            if (pageId === 'journal') {
+                loadTransactions();
+            }
         });
     });
+
+    // Tombol tipe transaksi
+    document.getElementById('type-buy').addEventListener('click', () => {
+        selectedType = 'BUY';
+        document.getElementById('type-buy').style.background = '#159D91';
+        document.getElementById('type-buy').style.color = 'white';
+        document.getElementById('type-sell').style.background = '#181c21';
+        document.getElementById('type-sell').style.color = '#8b919b';
+    });
+    document.getElementById('type-sell').addEventListener('click', () => {
+        selectedType = 'SELL';
+        document.getElementById('type-sell').style.background = '#159D91';
+        document.getElementById('type-sell').style.color = 'white';
+        document.getElementById('type-buy').style.background = '#181c21';
+        document.getElementById('type-buy').style.color = '#8b919b';
+    });
+
+    // Simpan transaksi
+    document.getElementById('form-save').addEventListener('click', async () => {
+        const stockCode = document.getElementById('form-stock-code').value.trim();
+        const date = document.getElementById('form-date').value;
+        const price = document.getElementById('form-price').value;
+        const lot = document.getElementById('form-lot').value;
+        const success = await addTransaction(stockCode, date, selectedType, price, lot);
+        if (success) {
+            // Reset form dan pindah ke journal
+            document.getElementById('form-stock-code').value = '';
+            document.getElementById('form-date').value = '';
+            document.getElementById('form-price').value = '';
+            document.getElementById('form-lot').value = '';
+            alert('Transaksi berhasil ditambahkan!');
+            // Pindah ke tab journal
+            const journalBtn = document.querySelector('.sub-tab-btn[data-page="journal"]');
+            journalBtn.click();
+        }
+    });
+
+    // Batal
+    document.getElementById('form-cancel').addEventListener('click', () => {
+        document.getElementById('form-stock-code').value = '';
+        document.getElementById('form-date').value = '';
+        document.getElementById('form-price').value = '';
+        document.getElementById('form-lot').value = '';
+        document.getElementById('type-buy').click(); // reset ke BUY
+    });
+
+    // Search
+    document.getElementById('search-stock').addEventListener('input', () => {
+        renderTransactions();
+    });
+
+    // Load awal
+    loadTransactions();
 </script>
 </body>
 </html>

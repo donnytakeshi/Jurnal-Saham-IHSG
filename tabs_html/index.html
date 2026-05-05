@@ -1,122 +1,160 @@
 <!DOCTYPE html>
 <html class="dark">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #0c141b; margin: 0; padding: 0; }
-        iframe { border: none; width: 100%; height: calc(100vh - 120px); }
-        .material-symbols-outlined { font-size: 22px; }
-        .tab-active { color: #159D91; background-color: rgba(21, 157, 145, 0.1); border-radius: 12px; }
-        .tab-inactive { color: #8b919b; }
-    </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { height: 100%; overflow: hidden; background: #0c141b; font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0c141b; }
+    ::-webkit-scrollbar-thumb { background: #159D91; border-radius: 10px; }
+    .tab-active { color: #159D91; background-color: rgba(21,157,145,0.15); border-radius: 12px; }
+    .tab-inactive { color: #8b919b; }
+    .tab-btn { transition: all 0.2s ease; }
+    .tab-btn:hover { background-color: rgba(255,255,255,0.05); border-radius: 12px; }
+    #iframe-container { width: 100%; height: 100%; }
+    iframe { width: 100%; height: 100%; border: none; background: #0c141b; }
+    .header-icon, .footer-icon { transition: all 0.2s; }
+    .header-icon:hover, .footer-icon:hover { color: #159D91; }
+</style>
 </head>
-<body>
-
-<!-- HEADER (sticky) -->
-<header style="position: fixed; top: 0; left: 0; width: 100%; z-index: 50; background: #101419; border-bottom: 1px solid #2a2a2a; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-weight: bold; font-size: 24px; color: #159D91;">QuantFlow</span>
-        <h1 id="page-title" style="font-weight: 600; font-size: 18px; color: white; margin: 0;">Watchlist</h1>
-    </div>
-    <button id="refresh-btn" style="background: none; border: none; cursor: pointer; color: #8b919b;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">refresh</span>
-    </button>
-</header>
-
-<!-- IFRAME KONTEN -->
-<iframe id="content-frame" src="watchlist_content.html" style="margin-top: 65px;"></iframe>
-
-<!-- BOTTOM NAVIGATION (sticky) dengan Material Icons (7 TAB) -->
-<nav style="position: fixed; bottom: 0; left: 0; width: 100%; background: #181c21; border-top: 1px solid #2a2a2a; display: flex; justify-content: space-around; padding: 8px 0;">
-    
-    <a href="#" data-tab="watchlist" class="tab-btn tab-active" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">trending_up</span>
-        <span style="font-size: 10px; font-weight: 500;">Watchlist</span>
-    </a>
-    
-    <a href="#" data-tab="top10" class="tab-btn tab-inactive" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">format_list_numbered</span>
-        <span style="font-size: 10px; font-weight: 500;">Top 10</span>
-    </a>
-    
-    <a href="#" data-tab="jurnal" class="tab-btn tab-inactive" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">menu_book</span>
-        <span style="font-size: 10px; font-weight: 500;">Jurnal</span>
-    </a>
-    
-    <a href="#" data-tab="screening" class="tab-btn tab-inactive" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">search</span>
-        <span style="font-size: 10px; font-weight: 500;">Screening</span>
-    </a>
-    
-    <a href="#" data-tab="cek_emiten" class="tab-btn tab-inactive" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">business</span>
-        <span style="font-size: 10px; font-weight: 500;">Cek Emiten</span>
-    </a>
-    
-    <a href="#" data-tab="predictions" class="tab-btn tab-inactive" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">insights</span>
-        <span style="font-size: 10px; font-weight: 500;">Prediksi</span>
-    </a>
-    
-    <a href="#" data-tab="ai_chat" class="tab-btn tab-inactive" style="display: flex; flex-direction: column; align-items: center; padding: 8px 12px; text-decoration: none; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 22px;">smart_toy</span>
-        <span style="font-size: 10px; font-weight: 500;">AI Chat</span>
-    </a>
-</nav>
+<body class="flex flex-col h-screen overflow-hidden">
+    <header class="fixed top-0 left-0 w-full z-50 bg-[#0C141B]/90 backdrop-blur-md border-b border-white/10 px-4 flex justify-between items-center h-[56px]">
+        <div class="flex items-center gap-2 w-1/4">
+            <a href="profile.html" id="user-avatar-link" class="cursor-pointer">
+                <span class="material-symbols-outlined text-[#8b919b] header-icon" id="user-avatar">account_circle</span>
+            </a>
+        </div>
+        <div class="flex-grow text-center">
+            <h1 class="font-bold text-sm text-white tracking-wide" id="page-title">Watchlist</h1>
+        </div>
+        <div class="flex items-center justify-end gap-3 w-1/4">
+            <button class="bg-transparent border-none cursor-pointer text-[#8b919b] header-icon" id="logout-btn">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </header>
+    <main class="flex-grow mt-[56px] mb-[64px] w-full h-full">
+        <div id="iframe-container" class="w-full h-full bg-[#0c141b]"></div>
+    </main>
+    <nav class="fixed bottom-0 left-0 w-full bg-[#0C141B]/90 backdrop-blur-md border-t border-white/10 z-50 h-[64px] flex items-center justify-around px-2">
+        <a class="tab-btn tab-active flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="watchlist" href="#"><span class="material-symbols-outlined text-xl">trending_up</span><span class="text-[9px] mt-0.5">Watchlist</span></a>
+        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="top10" href="#"><span class="material-symbols-outlined text-xl">format_list_numbered</span><span class="text-[9px] mt-0.5">Top 10</span></a>
+        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="jurnal" href="#"><span class="material-symbols-outlined text-xl">menu_book</span><span class="text-[9px] mt-0.5">Jurnal</span></a>
+        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="screening" href="#"><span class="material-symbols-outlined text-xl">search</span><span class="text-[9px] mt-0.5">Screening</span></a>
+        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="cek_emiten" href="#"><span class="material-symbols-outlined text-xl">business</span><span class="text-[9px] mt-0.5">Cek</span></a>
+        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="ai_chat" href="#"><span class="material-symbols-outlined text-xl">smart_toy</span><span class="text-[9px] mt-0.5">AI Chat</span></a>
+    </nav>
 
 <script>
-    const tabFiles = {
-        watchlist: "watchlist_content.html",
-        top10: "top10_content.html",
-        jurnal: "portfolio_content.html",
-        screening: "screening_content.html",
-        cek_emiten: "cek_emiten_content.html",
-        predictions: "predictions_content.html",
-        ai_chat: "ai_chat_content.html"
-    };
-    
-    const tabNames = {
-        watchlist: "Watchlist",
-        top10: "Top 10",
-        jurnal: "Jurnal",
-        screening: "Screening",
-        cek_emiten: "Cek Emiten",
-        predictions: "Prediksi Saham",
-        ai_chat: "AI Chat"
-    };
-    
-    const iframe = document.getElementById('content-frame');
-    const pageTitle = document.getElementById('page-title');
-    
-    function switchTab(tabId) {
-        iframe.src = tabFiles[tabId];
-        pageTitle.textContent = tabNames[tabId];
+    (async function() {
+        const SUPABASE_URL = 'https://ofnswkzbscuwoueromaf.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Kp_J4xszV6GbIfsikhnT8w_CgqUQsp1';
+        
+        const isGuest = localStorage.getItem('guest_mode') === 'true';
+        let sb = null;
+        let currentUser = null;
+        
+        if (!isGuest) {
+            if (typeof supabase === 'undefined') {
+                document.getElementById('iframe-container').innerHTML = '<div class="flex items-center justify-center h-full text-red-400">Gagal memuat Supabase.</div>';
+                return;
+            }
+            sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { session }, error } = await sb.auth.getSession();
+            if (error || !session) {
+                window.location.href = 'signin.html';
+                return;
+            }
+            currentUser = session.user;
+            
+            const { data: profile, error: profileError } = await sb
+                .from('profiles')
+                .select('avatar_url, full_name')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (profile && profile.avatar_url) {
+                document.getElementById('user-avatar').innerHTML = `<img src="${profile.avatar_url}" class="w-6 h-6 rounded-full object-cover border border-teal-500">`;
+            } else {
+                const initial = (profile?.full_name?.[0] || currentUser.email?.[0] || 'U').toUpperCase();
+                document.getElementById('user-avatar').innerHTML = `<span class="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-xs font-bold text-white">${initial}</span>`;
+            }
+        } else {
+            document.getElementById('user-avatar').innerHTML = `<span class="material-symbols-outlined text-[#8b919b]">account_circle</span>`;
+        }
+        
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            if (!isGuest && sb) await sb.auth.signOut();
+            localStorage.removeItem('guest_mode');
+            window.location.href = 'signin.html';
+        });
+        
+        const tabFiles = {
+            watchlist: "watchlist_content.html",
+            top10: "top10_content.html",
+            jurnal: "portfolio_content.html",
+            screening: "screening_content.html",
+            cek_emiten: "cek_emiten_content.html",
+            ai_chat: "ai_chat_content.html"
+        };
+        
+        let currentIframe = null;
+        const container = document.getElementById('iframe-container');
+        
+        function loadTab(tabId) {
+            const src = tabFiles[tabId];
+            if (!src) return;
+            if (currentIframe) container.removeChild(currentIframe);
+            const iframe = document.createElement('iframe');
+            iframe.src = src;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.style.background = '#0c141b';
+            container.appendChild(iframe);
+            currentIframe = iframe;
+            
+            const titles = { watchlist: 'Watchlist', top10: 'Top 10', jurnal: 'Jurnal', screening: 'Screening', cek_emiten: 'Cek Emiten', ai_chat: 'AI Chat' };
+            document.getElementById('page-title').innerText = titles[tabId] || tabId;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const btnTab = btn.getAttribute('data-tab');
+                if (btnTab === tabId) {
+                    btn.classList.add('tab-active');
+                    btn.classList.remove('tab-inactive');
+                } else {
+                    btn.classList.add('tab-inactive');
+                    btn.classList.remove('tab-active');
+                }
+            });
+        }
         
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            if (btn.dataset.tab === tabId) {
-                btn.classList.remove('tab-inactive');
-                btn.classList.add('tab-active');
-            } else {
-                btn.classList.remove('tab-active');
-                btn.classList.add('tab-inactive');
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = btn.getAttribute('data-tab');
+                if (tabId) loadTab(tabId);
+            });
+        });
+        
+        window.addEventListener('message', (event) => {
+            if (event.data?.type === 'OPEN_STOCK' && event.data.stockCode) {
+                loadTab('cek_emiten');
+                setTimeout(() => {
+                    if (currentIframe?.contentWindow) {
+                        currentIframe.contentWindow.postMessage({ type: 'SET_STOCK_CODE', stockCode: event.data.stockCode }, '*');
+                    }
+                }, 500);
             }
         });
-    }
-    
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchTab(btn.dataset.tab);
-        });
-    });
-    
-    document.getElementById('refresh-btn').addEventListener('click', () => {
-        iframe.src = iframe.src;
-    });
+        
+        loadTab('watchlist');
+    })();
 </script>
 </body>
 </html>

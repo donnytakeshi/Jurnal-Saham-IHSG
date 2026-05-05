@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    body { background: #0c141b; font-family: 'Inter', sans-serif; }
+    .glass-card { background: rgba(20,28,35,0.8); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); }
+    .btn-primary { background: #159D91; transition: all 0.2s; }
+    .btn-primary:hover { background: #0f7a70; transform: scale(0.98); }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md glass-card rounded-2xl p-6">
+        <div class="text-center mb-6">
+            <div class="text-3xl font-bold text-white mb-1">QuantFlow</div>
+            <div class="text-sm text-slate-400">Jurnal Saham IHSG</div>
+        </div>
+        <form id="signup-form" class="space-y-4">
+            <input type="text" id="fullname" placeholder="Nama Lengkap" class="w-full bg-[#0c141b] border border-[#2a2a2a] rounded-xl py-3 px-4 text-white placeholder:text-slate-500 focus:border-teal-500 focus:outline-none">
+            <input type="email" id="email" placeholder="Email" class="w-full bg-[#0c141b] border border-[#2a2a2a] rounded-xl py-3 px-4 text-white placeholder:text-slate-500 focus:border-teal-500 focus:outline-none">
+            <input type="password" id="password" placeholder="Password" class="w-full bg-[#0c141b] border border-[#2a2a2a] rounded-xl py-3 px-4 text-white placeholder:text-slate-500 focus:border-teal-500 focus:outline-none">
+            <button type="submit" class="w-full btn-primary text-white font-semibold py-3 rounded-xl">Daftar</button>
+        </form>
+        <div class="mt-6 text-center text-sm text-slate-400">
+            Sudah punya akun? <a href="signin.html" class="text-teal-400 hover:underline">Masuk</a>
+        </div>
+    </div>
+    <script>
+        const SUPABASE_URL = 'https://ofnswkzbscuwoueromaf.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_Kp_J4xszV6GbIfsikhnT8w_CgqUQsp1';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const fullname = document.getElementById('fullname').value.trim();
+            if (!email || !password || !fullname) return alert('Semua field harus diisi');
+            const { error } = await sb.auth.signUp({ 
+                email, 
+                password, 
+                options: { data: { full_name: fullname } } 
+            });
+            if (error) alert(error.message);
+            else {
+                alert('Pendaftaran berhasil! Silakan login.');
+                window.location.href = 'signin.html';
+            }
+        });
+    </script>
+</body>
+</html>

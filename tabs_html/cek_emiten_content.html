@@ -222,7 +222,7 @@
 </main>
 
 <script>
-    const API_URL = 'http://localhost:5001';
+    const API_URL = 'http://localhost:5002';
     let currentSymbol = 'BBCA';
     let currentPeriod = '5d';
     let refreshInterval;
@@ -351,7 +351,7 @@
                 <td class="py-2 text-center text-error font-bold">${item.ask_price}</td>
                 <td class="py-2 text-right text-error">${formatNumber(item.ask_lot)}</td>
                 <td class="py-2 text-right text-error">${item.ask_freq}</td>
-            </tr>`;
+              </tr>`;
         }
         tbody.innerHTML = rows;
     }
@@ -433,7 +433,7 @@
                 <td class="px-4 py-2 font-mono-md text-primary">${b.name}</td>
                 <td class="px-4 py-2 text-right text-on-surface-variant">${formatNumber(b.avg)}</td>
                 <td class="px-4 py-2 text-right text-green-400">${b.val}B</td>
-            </tr>`;
+              </tr>`;
         }
         buyersHtml += '</tbody></table>';
         
@@ -443,7 +443,7 @@
                 <td class="px-4 py-2 font-mono-md text-primary">${s.name}</td>
                 <td class="px-4 py-2 text-right text-on-surface-variant">${formatNumber(s.avg)}</td>
                 <td class="px-4 py-2 text-right text-red-400">${s.val}B</td>
-            </tr>`;
+              </tr>`;
         }
         sellersHtml += '</tbody></table>';
         
@@ -658,6 +658,22 @@
     });
     
     setupPeriodButtons();
+    
+    // ============================================================
+    // INTEGRASI KODE SAHAM - Menerima pesan dari parent window
+    // ============================================================
+    window.addEventListener('message', function(event) {
+        const data = event.data;
+        if (data && data.type === 'SET_STOCK_CODE' && data.stockCode) {
+            console.log(`📥 Cek Emiten menerima kode saham: ${data.stockCode}`);
+            const searchInput = document.getElementById('stock-search-input');
+            if (searchInput) {
+                searchInput.value = data.stockCode;
+                searchStock();
+            }
+        }
+    });
+    
     updateUI('BBCA');
 </script>
 </body>

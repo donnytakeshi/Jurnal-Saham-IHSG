@@ -1235,4 +1235,4 @@ if __name__ == '__main__':
     print(f"  - Proxy List: {PROXY_LIST}")
     print(f"  - Sources: Yahoo Finance, IDX Official, Investing.com")
     print("=" * 60)
-    app.run(host='0.0.0.0', port=5001, debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=5002, debug=True, threaded=True)

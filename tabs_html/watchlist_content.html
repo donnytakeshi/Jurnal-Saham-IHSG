@@ -9,11 +9,13 @@
         body { background: #0c141b; font-family: 'Inter', sans-serif; padding: 16px; margin: 0; }
         .positive { color: #67d9cb; }
         .negative { color: #ff5e5e; }
-        .stock-card { background: #181c21; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-        .stock-card:hover { background: #2e363d; }
-        .stock-card-watchlist { background: #1a2027; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 8px; overflow: hidden; }
+        .stock-card { background: #181c21; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease; }
+        .stock-card:hover { background: #2e363d; transform: translateX(4px); }
+        .stock-card-watchlist { background: #1a2027; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 8px; overflow: hidden; transition: all 0.2s ease; }
+        .stock-card-watchlist:hover { background: #2e363d; }
         .stock-card-watchlist.swiped .stock-card-inner { transform: translateX(-60px); }
-        .stock-card-watchlist .stock-card-inner { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; transition: transform 0.2s ease; background: #1a2027; }
+        .stock-card-watchlist .stock-card-inner { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; transition: transform 0.2s ease; background: #1a2027; cursor: pointer; }
+        .stock-card-watchlist .stock-card-inner:hover { background: #2e363d; }
         .swipe-area { display: flex; align-items: center; justify-content: flex-end; width: 60px; margin-left: -60px; background: #ff5e5e; border-radius: 0 12px 12px 0; height: 100%; }
         .remove-bin { background: none; border: none; color: white; font-size: 20px; cursor: pointer; width: 60px; height: 100%; display: flex; align-items: center; justify-content: center; }
         .stock-row-wrapper { position: relative; overflow: hidden; }
@@ -103,7 +105,7 @@
     <p id="add-error" style="color: #ff5e5e; font-size: 11px; margin-top: 8px; display: none;">Kode saham tidak valid</p>
 </div>
 
-<div id="api-error-msg" class="error-text" style="display: none;">⚠️ Gagal terhubung ke API server. Pastikan server berjalan di http://localhost:5000</div>
+<div id="api-error-msg" class="error-text" style="display: none;">⚠️ Gagal terhubung ke API server. Pastikan server berjalan di http://localhost:5001</div>
 
 <script>
     // ==================== KONFIGURASI ====================
@@ -150,6 +152,19 @@
         return `<svg class="w-[80px] h-[32px]" viewBox="0 0 80 32">
                     <polyline fill="none" points="${points.join(' ')}" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>`;
+    }
+    
+    // ==================== INTEGRASI KODE SAHAM ====================
+    function openStockInCekEmiten(stockCode) {
+        console.log(`📤 Mengirim kode saham: ${stockCode} ke parent`);
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'OPEN_STOCK',
+                stockCode: stockCode
+            }, '*');
+        } else {
+            alert(`Buka saham ${stockCode} di tab Cek Emiten`);
+        }
     }
     
     // ==================== FETCH DARI API SERVER ====================
@@ -235,6 +250,12 @@
                 </div>
             </div>
         `;
+        
+        // EVENT KLIK LANGSUNG PADA CARD
+        card.addEventListener('click', () => {
+            openStockInCekEmiten(stock.code);
+        });
+        
         return card;
     }
     
@@ -263,6 +284,13 @@
                 </div>
             </div>
         `;
+        
+        // EVENT KLIK LANGSUNG PADA INNER
+        inner.addEventListener('click', (e) => {
+            if (!e.target.closest('.remove-bin')) {
+                openStockInCekEmiten(code);
+            }
+        });
         
         const swipeArea = document.createElement('div');
         swipeArea.className = 'swipe-area';
@@ -334,7 +362,6 @@
             watchlist.forEach(code => {
                 watchlistContainer.appendChild(createWatchlistCard(code));
             });
-            // Update harga untuk watchlist
             await updateAllPrices();
         }
     }
