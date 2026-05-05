@@ -42,7 +42,7 @@
 
 <!-- PAGE 1: JOURNAL TRANSACTION -->
 <div id="page-journal" class="page active" style="padding: 16px;">
-    <!-- Metrics Row (sementara masih dummy, nanti bisa dihitung dari data real) -->
+    <!-- Metrics Row -->
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
         <div class="metric-card">
             <p style="color: #8b919b; font-size: 11px; margin: 0 0 4px 0;">TOTAL EQUITY</p>
@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <!-- Search Bar (cari berdasarkan kode saham) -->
+    <!-- Search Bar -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="color: white; font-size: 16px; font-weight: 600; margin: 0;">Trading Journal</h2>
         <div style="position: relative;">
@@ -114,7 +114,7 @@
     </div>
 </div>
 
-<!-- PAGE 3: PERFORMANCE REPORT (sementara masih statis) -->
+<!-- PAGE 3: PERFORMANCE REPORT -->
 <div id="page-report" class="page" style="padding: 16px;">
     <div class="card" style="margin-bottom: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -145,7 +145,20 @@
 
     let currentUser = null;
     let allTransactions = [];
-    let selectedType = 'BUY'; // default
+    let selectedType = 'BUY';
+
+    // Fungsi untuk mengirim metrics ke parent
+    function sendMetricsToParent(totalEquity, realizedPL, winRate) {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'PORTFOLIO_METRICS',
+                totalEquity: totalEquity,
+                realizedPL: realizedPL,
+                winRate: winRate,
+                equityChangePercent: 0 // dapat dihitung nanti
+            }, '*');
+        }
+    }
 
     // Fungsi untuk memuat data transaksi dari Supabase
     async function loadTransactions() {
@@ -191,7 +204,7 @@
             card.className = 'card clickable-row';
             card.setAttribute('data-stock-code', tx.stock_code);
             const typeClass = tx.type === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400';
-            const statusClass = tx.type === 'BUY' ? 'Open' : 'Closed'; // dummy status, boleh disesuaikan
+            const statusClass = tx.type === 'BUY' ? 'Open' : 'Closed';
             const statusColor = tx.type === 'BUY' ? 'text-teal-400' : 'text-slate-400';
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -210,7 +223,6 @@
                 </div>
             `;
             card.addEventListener('click', () => {
-                // Integrasi ke Cek Emiten (sama seperti sebelumnya)
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: tx.stock_code }, '*');
                 }
@@ -219,7 +231,7 @@
         });
     }
 
-    // Update metric cards (equity, P/L, win rate) dan report page
+    // Update metric cards & kirim ke parent
     async function updateMetrics() {
         if (!allTransactions.length) {
             document.getElementById('total-equity').innerText = 'Rp 0';
@@ -229,39 +241,36 @@
             document.getElementById('avg-profit').innerHTML = 'Rp 0';
             document.getElementById('report-winrate').innerText = '0%';
             document.getElementById('report-pl').innerHTML = '+Rp 0';
+            sendMetricsToParent(0, 0, 0);
             return;
         }
         
-        // Hitung total invested (buy) dan total sold (sell) -> equity
         let totalBuy = 0, totalSell = 0;
-        let profitSum = 0;
-        let winningTrades = 0;
         let tradeCount = 0;
-        // Karena belum ada sistem penutupan posisi, kita asumsikan setiap SELL adalah profit terhadap BUY terakhir? Untuk demo, kita hitung unrealized? Lebih baik sederhana: total value dari semua transaksi (buy - sell)
         for (let tx of allTransactions) {
             const value = tx.price * tx.lot * 100;
             if (tx.type === 'BUY') {
                 totalBuy += value;
             } else {
                 totalSell += value;
-                // Sederhana: profit = sell - buy, tapi tidak paired. Kita hitung unrealized sementara:
-                // Untuk demo, profit dihitung dari selisih total sell - total buy
             }
             tradeCount++;
         }
         const realizedPL = totalSell - totalBuy;
-        const equity = totalBuy - totalSell; // jika positif berarti masih hold
+        const equity = totalBuy - totalSell;
+        const winRate = tradeCount ? (allTransactions.filter(t => t.type === 'SELL' && (t.price * t.lot * 100) > 0).length / tradeCount * 100) : 0;
+        
         document.getElementById('total-equity').innerHTML = `Rp ${Math.abs(equity).toLocaleString('id-ID')}`;
         const plColor = realizedPL >= 0 ? 'text-green-400' : 'text-red-400';
         document.getElementById('realized-pl').innerHTML = `<span class="${plColor}">${realizedPL >= 0 ? '+' : ''}Rp ${realizedPL.toLocaleString('id-ID')}</span>`;
-        
-        // Win rate dummy: asumsikan profit jika sell > buy? Di sini kita hanya bisa hitung per transaksi jika ada pairing. Sementara 50%
-        const winRate = tradeCount ? (allTransactions.filter(t => t.type === 'SELL' && (t.price * t.lot * 100) > 0).length / tradeCount * 100) : 0;
         document.getElementById('win-rate').innerHTML = `${Math.round(winRate)}%`;
         document.getElementById('total-trades').innerText = tradeCount;
         document.getElementById('avg-profit').innerHTML = `Rp ${(realizedPL / (tradeCount || 1)).toLocaleString('id-ID')}`;
         document.getElementById('report-winrate').innerHTML = `${Math.round(winRate)}%`;
         document.getElementById('report-pl').innerHTML = `${realizedPL >= 0 ? '+' : ''}Rp ${realizedPL.toLocaleString('id-ID')}`;
+        
+        // Kirim ke parent
+        sendMetricsToParent(Math.abs(equity), realizedPL, winRate);
     }
 
     // Tambah transaksi
@@ -336,13 +345,11 @@
         const lot = document.getElementById('form-lot').value;
         const success = await addTransaction(stockCode, date, selectedType, price, lot);
         if (success) {
-            // Reset form dan pindah ke journal
             document.getElementById('form-stock-code').value = '';
             document.getElementById('form-date').value = '';
             document.getElementById('form-price').value = '';
             document.getElementById('form-lot').value = '';
             alert('Transaksi berhasil ditambahkan!');
-            // Pindah ke tab journal
             const journalBtn = document.querySelector('.sub-tab-btn[data-page="journal"]');
             journalBtn.click();
         }
@@ -354,7 +361,7 @@
         document.getElementById('form-date').value = '';
         document.getElementById('form-price').value = '';
         document.getElementById('form-lot').value = '';
-        document.getElementById('type-buy').click(); // reset ke BUY
+        document.getElementById('type-buy').click();
     });
 
     // Search

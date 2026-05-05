@@ -59,6 +59,14 @@
         let sb = null;
         let currentUser = null;
         
+        // Simpan portfolio metrics untuk disampaikan ke watchlist
+        let portfolioMetrics = {
+            totalEquity: null,
+            realizedPL: null,
+            winRate: null,
+            equityChangePercent: 0
+        };
+        
         if (!isGuest) {
             if (typeof supabase === 'undefined') {
                 document.getElementById('iframe-container').innerHTML = '<div class="flex items-center justify-center h-full text-red-400">Gagal memuat Supabase.</div>';
@@ -142,17 +150,59 @@
             });
         });
         
+        // ========== PENGIRIMAN PORTFOLIO METRICS ANTAR TAB ==========
         window.addEventListener('message', (event) => {
-            if (event.data?.type === 'OPEN_STOCK' && event.data.stockCode) {
+            const data = event.data;
+            // 1. Terima metrics dari tab jurnal (portfolio_content.html)
+            if (data && data.type === 'PORTFOLIO_METRICS') {
+                console.log('📊 Received portfolio metrics from Jurnal tab:', data);
+                // Simpan metrics yang diterima
+                portfolioMetrics = {
+                    totalEquity: data.totalEquity,
+                    realizedPL: data.realizedPL,
+                    winRate: data.winRate,
+                    equityChangePercent: data.equityChangePercent || 0
+                };
+                // Jika saat ini tab yang aktif adalah watchlist, langsung kirim metrics ke watchlist
+                const activeTab = document.querySelector('.tab-btn.tab-active')?.getAttribute('data-tab');
+                if (activeTab === 'watchlist' && currentIframe && currentIframe.contentWindow) {
+                    currentIframe.contentWindow.postMessage({
+                        type: 'PORTFOLIO_METRICS',
+                        totalEquity: portfolioMetrics.totalEquity,
+                        realizedPL: portfolioMetrics.realizedPL,
+                        winRate: portfolioMetrics.winRate,
+                        equityChangePercent: portfolioMetrics.equityChangePercent
+                    }, '*');
+                }
+            }
+            
+            // 2. Terima permintaan metrics dari watchlist
+            if (data && data.type === 'REQUEST_PORTFOLIO_METRICS') {
+                console.log('📢 Watchlist meminta portfolio metrics');
+                if (currentIframe && currentIframe.contentWindow) {
+                    // Kirim metrics yang tersimpan (bisa null jika jurnal belum pernah dimuat)
+                    currentIframe.contentWindow.postMessage({
+                        type: 'PORTFOLIO_METRICS',
+                        totalEquity: portfolioMetrics.totalEquity,
+                        realizedPL: portfolioMetrics.realizedPL,
+                        winRate: portfolioMetrics.winRate,
+                        equityChangePercent: portfolioMetrics.equityChangePercent
+                    }, '*');
+                }
+            }
+            
+            // 3. Integrasi kode saham (existing)
+            if (data && data.type === 'OPEN_STOCK' && data.stockCode) {
                 loadTab('cek_emiten');
                 setTimeout(() => {
                     if (currentIframe?.contentWindow) {
-                        currentIframe.contentWindow.postMessage({ type: 'SET_STOCK_CODE', stockCode: event.data.stockCode }, '*');
+                        currentIframe.contentWindow.postMessage({ type: 'SET_STOCK_CODE', stockCode: data.stockCode }, '*');
                     }
                 }, 500);
             }
         });
         
+        // Load default tab
         loadTab('watchlist');
     })();
 </script>

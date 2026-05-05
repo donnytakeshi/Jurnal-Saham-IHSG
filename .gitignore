@@ -37,7 +37,6 @@ ENV/
 
 # Logs & Temporary
 *.log
-*.txt
 *.tmp
 *.pid
 .device_*
