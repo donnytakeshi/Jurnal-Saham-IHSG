@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+    <script src="capacitor.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -101,34 +102,38 @@
         else alert(`Buka ${stockCode} di Cek Emiten`);
     }
     
-    async function fetchQuote(symbol) {
-        try {
-            const url = `${API_URL}/quote?symbol=${symbol}`;
-            console.log(`[DEBUG] Fetching: ${url}`);
-            const res = await fetch(url);
-            if (!res.ok) {
-                console.warn(`[DEBUG] ${symbol} HTTP ${res.status}`);
-                return null;
+    async function fetchQuote(symbol, retry = 2) {
+        for (let i = 0; i < retry; i++) {
+            try {
+                const url = `${API_URL}/quote?symbol=${symbol}`;
+                console.log(`[TOP10] Fetching ${symbol} (Attempt ${i+1})...`);
+                const res = await fetch(url);
+                const text = await res.text();
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = JSON.parse(text);
+                if (data && typeof data.price === 'number' && data.price > 0) {
+                    return { code: symbol, price: data.price, changePercent: data.changePercent };
+                }
+                throw new Error("Invalid data");
+            } catch (e) {
+                console.warn(`[TOP10] ${symbol} error (Attempt ${i+1}):`, e);
+                if (i === retry - 1) return null;
+                await new Promise(r => setTimeout(r, 1000));
             }
-            const data = await res.json();
-            console.log(`[DEBUG] ${symbol} response:`, data);
-            if (data && typeof data.price === 'number' && data.price > 0) {
-                return { code: symbol, price: data.price, changePercent: data.changePercent };
-            } else {
-                console.warn(`[DEBUG] ${symbol} price invalid:`, data.price);
-                return null;
-            }
-        } catch (e) {
-            console.error(`[DEBUG] ${symbol} error:`, e);
-            return null;
         }
     }
     
     async function fetchAllQuotes() {
-        console.log("[DEBUG] Fetching all quotes...");
-        const results = await Promise.all(allStocks.map(s => fetchQuote(s)));
+        console.log("[TOP10] Fetching all quotes in batches...");
+        const results = [];
+        const batchSize = 4;
+        for (let i = 0; i < allStocks.length; i += batchSize) {
+            const batch = allStocks.slice(i, i + batchSize);
+            const batchRes = await Promise.all(batch.map(s => fetchQuote(s)));
+            results.push(...batchRes);
+        }
         allQuotes = results.filter(q => q && q.price > 0);
-        console.log(`[DEBUG] Got ${allQuotes.length} valid quotes`);
+        console.log(`[TOP10] Got ${allQuotes.length} valid quotes`);
         return allQuotes;
     }
     

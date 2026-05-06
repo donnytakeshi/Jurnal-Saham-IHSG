@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<script src="capacitor.js"></script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -211,11 +212,11 @@
         </div>
     </section>
 
-    <!-- Top Second Liner -->
+    <!-- Top Mover -->
     <section class="bg-surface-container border border-outline-variant rounded-card p-5">
-        <h2 class="text-center text-lg font-bold mb-6 text-on-surface">Top Second Liner <span class="text-xs text-muted-text">(Under IDR 500)</span></h2>
-        <div id="secondliner-list" class="space-y-1">
-            <div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Loading second liner stocks...</span></div>
+        <h2 class="text-center text-lg font-bold mb-6 text-on-surface">Top Mover</h2>
+        <div id="topmover-list" class="space-y-1">
+            <div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Loading top movers...</span></div>
         </div>
     </section>
 </div>
@@ -308,8 +309,13 @@
     }
 
     async function loadAllStocks() {
-        const promises = stockSymbols.map(s => fetchQuote(s));
-        const results = await Promise.all(promises);
+        const results = [];
+        const batchSize = 5;
+        for (let i = 0; i < stockSymbols.length; i += batchSize) {
+            const batch = stockSymbols.slice(i, i + batchSize);
+            const res = await Promise.all(batch.map(s => fetchQuote(s)));
+            results.push(...res);
+        }
         allStocks = results.filter(r => r !== null && r.price > 0);
         
         // Hitung momentum score berdasarkan changePercent (real)
@@ -357,11 +363,17 @@
         }
         tbody.innerHTML = '';
         
-        // Ambil sparkline untuk semua saham yang tampil (maks 20) secara paralel
-        const sparklinePromises = filteredStocks.slice(0, 20).map(s => fetchSparkline(s.code));
-        const sparklineDataList = await Promise.all(sparklinePromises);
+        // Ambil sparkline dalam batch kecil
+        const visibleStocks = filteredStocks.slice(0, 20);
+        const sparklineDataList = [];
+        const sparkBatchSize = 4;
+        for (let i = 0; i < visibleStocks.length; i += sparkBatchSize) {
+            const batch = visibleStocks.slice(i, i + sparkBatchSize);
+            const res = await Promise.all(batch.map(s => fetchSparkline(s.code)));
+            sparklineDataList.push(...res);
+        }
         
-        for (let idx = 0; idx < filteredStocks.slice(0, 20).length; idx++) {
+        for (let idx = 0; idx < visibleStocks.length; idx++) {
             const stock = filteredStocks[idx];
             const sparklineData = sparklineDataList[idx];
             const changeClass = stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
@@ -394,8 +406,9 @@
             if (targetCell) {
                 targetCell.appendChild(sparkContainer);
                 // Gambar chart jika data tersedia
-                if (sparklineData && sparklineData.length) {
-                    const ctx = document.getElementById(canvasId).getContext('2d');
+                const canvas = sparkContainer.querySelector('canvas');
+                if (canvas && sparklineData && sparklineData.length) {
+                    const ctx = canvas.getContext('2d');
                     new Chart(ctx, {
                         type: 'line',
                         data: {
@@ -418,9 +431,9 @@
                             elements: { line: { borderJoin: 'round' } }
                         }
                     });
-                } else {
+                } else if (canvas) {
                     // Fallback: garis lurus
-                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    const ctx = canvas.getContext('2d');
                     new Chart(ctx, {
                         type: 'line',
                         data: {
@@ -483,73 +496,21 @@
         });
     }
 
-    async function runScreening() {
-        const btn = document.getElementById('run-screening');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="loading-spinner"></span> PROCESSING...';
-        btn.disabled = true;
-        await loadAllStocks();
-        applyFilters();
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-
-    // ========== SECOND LINER ==========
-    const secondlineSymbols = [
-        "BAPA", "ADHI", "INDS", "APII", "BTEK", "CINT", "DNET",
-        "ENVY", "FAST", "GZCO", "HITS", "IKAI", "JKSW", "KICI"
-    ];
-
-    function getStockNameSecondline(code) {
-        const names = {
-            "BAPA": "Bekasi Asri", "ADHI": "Adhi Karya", "INDS": "Indah Prakasa", 
-            "APII": "Arita Prima", "BTEK": "Bumi Teknokultura", "CINT": "Chitose Internasional", 
-            "DNET": "Indoritel", "ENVY": "Envy Technologies", "FAST": "Fast Food Indonesia", 
-            "GZCO": "Gozco Plantations", "HITS": "Hits Textile", "IKAI": "Intikeramik", 
-            "JKSW": "Jakarta Kyoei", "KICI": "Kedaung Indah"
-        };
-        return names[code] || code;
-    }
-
-    async function fetchSecondlineData(symbol) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-            const response = await fetch(`${API_URL}/quote?symbol=${symbol}`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            if (!response.ok) return null;
-            const data = await response.json();
-            return {
-                code: symbol,
-                name: getStockNameSecondline(symbol),
-                price: data.price || 0,
-                changePercent: data.changePercent || 0
-            };
-        } catch (e) {
-            console.warn(`Gagal fetch ${symbol}: ${e.message}`);
-            return null;
+    // ========== TOP MOVER ==========
+    async function updateTopMoverUI() {
+        const container = document.getElementById('topmover-list');
+        if (!allStocks || allStocks.length === 0) {
+            container.innerHTML = '<div class="text-center text-slate-400 py-4">Run screening first to see top movers</div>';
+            return;
         }
-    }
 
-    async function loadSecondlineStocks() {
-        const promises = secondlineSymbols.map(s => fetchSecondlineData(s));
-        const results = await Promise.all(promises);
-        const valid = results.filter(r => r !== null && r.price > 0 && r.price <= 500);
-        valid.sort((a, b) => b.changePercent - a.changePercent);
-        return valid.slice(0, 10);
-    }
-
-    async function updateSecondlinerUI() {
-        const container = document.getElementById('secondliner-list');
-        container.innerHTML = '<div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Loading second liner stocks...</span></div>';
         try {
-            const stocks = await loadSecondlineStocks();
-            if (stocks.length === 0) {
-                container.innerHTML = '<div class="text-center text-slate-400 py-4">No second liner stocks under IDR 500</div>';
-                return;
-            }
+            // Urutan saham dari prosentase kenaikan tertinggi
+            const sortedStocks = [...allStocks].sort((a, b) => b.changePercent - a.changePercent);
+            const top10 = sortedStocks.slice(0, 10);
+
             container.innerHTML = '';
-            stocks.forEach(stock => {
+            top10.forEach(stock => {
                 const changeClass = stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
                 const changeSign = stock.changePercent >= 0 ? '+' : '';
                 const item = document.createElement('div');
@@ -568,85 +529,22 @@
                 container.appendChild(item);
             });
         } catch (error) {
-            console.error("Error second liner:", error);
-            container.innerHTML = '<div class="text-center text-red-400 py-4">Error loading second liner data</div>';
+            console.error("Error top mover:", error);
+            container.innerHTML = '<div class="text-center text-red-400 py-4">Error loading top mover data</div>';
         }
     }
 
-    // ========== Prediksi ==========
-    async function loadPredictions() {
-        const container = document.getElementById('predictions-list');
-        container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="loading-spinner inline-block mr-2"></div>Memuat rekomendasi...</div>';
-        try {
-            const resp = await fetch(`${API_URL}/predict`);
-            const data = await resp.json();
-            const predictions = data.predictions || [];
-            if (predictions.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-slate-400">Tidak ada rekomendasi saat ini</div>';
-                return;
-            }
-            container.innerHTML = '';
-            predictions.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'bg-surface-container-low border border-outline-variant rounded-lg p-4 cursor-pointer hover:bg-surface-container-highest transition-colors';
-                card.setAttribute('data-code', p.symbol);
-                card.addEventListener('click', () => {
-                    if (window.parent) window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: p.symbol }, '*');
-                });
-                const changeClass = p.potentialGain >= 0 ? 'text-green-400' : 'text-red-400';
-                const recClass = p.recommendation === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-slate-600/30 text-slate-300';
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="font-headline-md text-on-surface">${p.symbol}</div>
-                            <div class="text-xs text-on-surface-variant">${p.name || p.symbol}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-bold text-on-surface">Rp ${(p.price || 0).toLocaleString('id-ID')}</div>
-                            <div class="text-xs ${changeClass}">${p.potentialGain > 0 ? '+' : ''}${p.potentialGain}%</div>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center mt-3">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${recClass}">${p.recommendation}</span>
-                        <span class="text-[10px] text-on-surface-variant">Signal: ${p.signal}</span>
-                        <span class="text-[10px] text-on-surface-variant">Vol Ratio: ${p.volumeRatio}x</span>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        } catch (err) {
-            console.error(err);
-            container.innerHTML = '<div class="text-center py-8 text-red-400">Gagal memuat data prediksi</div>';
-        }
+    async function runScreening() {
+        const btn = document.getElementById('run-screening');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-spinner"></span> PROCESSING...';
+        btn.disabled = true;
+        await loadAllStocks();
+        applyFilters();
+        updateTopMoverUI(); // Update Top Mover setelah screening selesai
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
-
-    // ========== Event Listeners ==========
-    document.getElementById('price-slider').addEventListener('input', (e) => {
-        document.getElementById('price-range-label').innerHTML = `0 - ${parseInt(e.target.value).toLocaleString('id-ID')}`;
-        applyFilters();
-    });
-    document.getElementById('volume-slider').addEventListener('input', (e) => {
-        document.getElementById('volume-range-label').innerHTML = `${e.target.value}M+`;
-        applyFilters();
-    });
-    document.getElementById('bidOffer').addEventListener('change', () => applyFilters());
-    document.getElementById('openLow').addEventListener('change', () => applyFilters());
-    document.getElementById('mover2').addEventListener('change', () => applyFilters());
-    document.getElementById('netBuySell').addEventListener('change', () => applyFilters());
-    document.getElementById('run-screening').addEventListener('click', runScreening);
-    document.getElementById('export-csv').addEventListener('click', () => {
-        if (!filteredStocks.length) return;
-        let csv = 'Code,Name,Price,Change %,Volume (M),Momentum Score,Signal\n';
-        filteredStocks.forEach(s => {
-            csv += `${s.code},${getStockName(s.code)},${s.price},${s.changePercent},${(s.volume/1e6).toFixed(1)},${s.momentumScore},${s.signal}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `screening_${new Date().toISOString().slice(0,19)}.csv`;
-        a.click();
-        URL.revokeObjectURL(blob);
-    });
 
     // ========== Sub‑tab Navigation ==========
     const subTabBtns = document.querySelectorAll('.sub-tab-btn');
@@ -668,15 +566,13 @@
                 else page.classList.remove('active');
             });
             if (pageId === 'prediksi') loadPredictions();
-            else if (pageId === 'screening') updateSecondlinerUI();
+            else if (pageId === 'screening') updateTopMoverUI();
         });
     });
 
     // Start
     runScreening();
-    updateSecondlinerUI();
     setInterval(runScreening, 30000);
-    setInterval(updateSecondlinerUI, 30000);
     setInterval(() => {
         if (document.getElementById('page-prediksi').classList.contains('active')) loadPredictions();
     }, 30000);

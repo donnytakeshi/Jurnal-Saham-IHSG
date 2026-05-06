@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+    <script src="capacitor.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -169,20 +170,24 @@
     }
     
     // ==================== FETCH QUOTE (REAL) ====================
-    async function fetchQuote(symbol) {
-        try {
-            const response = await fetch(`${API_URL}/quote?symbol=${symbol}`);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            return {
-                price: data.price || 0,
-                changePercent: data.changePercent || 0,
-                isClosed: data.isClosed || false,
-                volume: data.volume || 0
-            };
-        } catch (error) {
-            console.error(`Fetch error ${symbol}:`, error);
-            return null;
+    async function fetchQuote(symbol, retry = 3) {
+        for (let i = 0; i < retry; i++) {
+            try {
+                console.log(`[WATCHLIST] Fetching ${symbol} (Attempt ${i+1})...`);
+                const response = await fetch(`${API_URL}/quote?symbol=${symbol}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return {
+                    price: data.price || 0,
+                    changePercent: data.changePercent || 0,
+                    isClosed: data.isClosed || false,
+                    volume: data.volume || 0
+                };
+            } catch (error) {
+                console.warn(`[WATCHLIST] Fetch error ${symbol} (Attempt ${i+1}):`, error);
+                if (i === retry - 1) return null;
+                await new Promise(r => setTimeout(r, 2000)); // Wait before retry
+            }
         }
     }
     
@@ -240,11 +245,12 @@
                 chartInstances.set(canvasId, chart);
             } else {
                 // Fallback garis datar
-                new Chart(ctx, {
+                const chart = new Chart(ctx, {
                     type: 'line',
                     data: { labels: [0,1,2,3,4], datasets: [{ data: [50,50,50,50,50], borderColor: '#8b919b', borderWidth: 1, pointRadius: 0 }] },
                     options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
                 });
+                chartInstances.set(canvasId, chart);
             }
         };
         
@@ -263,30 +269,39 @@
     // ==================== UPDATE SEMUA HARGA & SPARKLINE ====================
     async function updateAllPrices() {
         const allSymbols = [...new Set([...defaultStocks.map(s => s.code), ...watchlist])];
-        for (const sym of allSymbols) {
-            const quote = await fetchQuote(sym);
-            if (!quote) continue;
-            priceCache[sym] = quote;
-            // Update bluechip
-            const priceElem = document.getElementById(`price-${sym}`);
-            const changeElem = document.getElementById(`change-${sym}`);
-            if (priceElem) {
-                priceElem.innerText = quote.price.toLocaleString('id-ID');
-                const sign = quote.changePercent >= 0 ? '+' : '';
-                changeElem.innerHTML = `${sign}${quote.changePercent.toFixed(2)}%`;
-                changeElem.className = `text-xs font-semibold ${quote.changePercent >= 0 ? 'positive' : 'negative'}`;
-            }
-            // Update watchlist
-            const watchPriceElem = document.getElementById(`price-${sym}-watch`);
-            const watchChangeElem = document.getElementById(`change-${sym}-watch`);
-            if (watchPriceElem) {
-                watchPriceElem.innerText = quote.price.toLocaleString('id-ID');
-                const sign = quote.changePercent >= 0 ? '+' : '';
-                watchChangeElem.innerHTML = `${sign}${quote.changePercent.toFixed(2)}%`;
-                watchChangeElem.className = `text-xs font-semibold ${quote.changePercent >= 0 ? 'positive' : 'negative'}`;
-            }
-            await renderSparkline(sym);
+        document.getElementById('api-status').innerHTML = '⏳ Updating...';
+
+        // Fetch in batches to not overwhelm the server
+        const batchSize = 3;
+        for (let i = 0; i < allSymbols.length; i += batchSize) {
+            const batch = allSymbols.slice(i, i + batchSize);
+            await Promise.all(batch.map(async (sym) => {
+                const quote = await fetchQuote(sym);
+                if (!quote) return;
+                priceCache[sym] = quote;
+                // Update bluechip
+                const priceElem = document.getElementById(`price-${sym}`);
+                const changeElem = document.getElementById(`change-${sym}`);
+                if (priceElem) {
+                    priceElem.innerText = quote.price.toLocaleString('id-ID');
+                    const sign = quote.changePercent >= 0 ? '+' : '';
+                    changeElem.innerHTML = `${sign}${quote.changePercent.toFixed(2)}%`;
+                    changeElem.className = `text-xs font-semibold ${quote.changePercent >= 0 ? 'positive' : 'negative'}`;
+                }
+                // Update watchlist
+                const watchPriceElem = document.getElementById(`price-${sym}-watch`);
+                const watchChangeElem = document.getElementById(`change-${sym}-watch`);
+                if (watchPriceElem) {
+                    watchPriceElem.innerText = quote.price.toLocaleString('id-ID');
+                    const sign = quote.changePercent >= 0 ? '+' : '';
+                    watchChangeElem.innerHTML = `${sign}${quote.changePercent.toFixed(2)}%`;
+                    watchChangeElem.className = `text-xs font-semibold ${quote.changePercent >= 0 ? 'positive' : 'negative'}`;
+                }
+                await renderSparkline(sym);
+            }));
         }
+        document.getElementById('api-status').innerHTML = '✅ Connected';
+        document.getElementById('api-status').style.color = '#67d9cb';
     }
     
     // ==================== CREATE CARD ====================
@@ -374,25 +389,7 @@
         defaultStocks.forEach(stock => {
             bluechipContainer.appendChild(createBluechipCard(stock));
         });
-        
-        let online = false;
-        try {
-            const test = await fetch(`${API_URL}/quote?symbol=BBCA`);
-            if (test.ok) {
-                online = true;
-                document.getElementById('api-status').innerHTML = '✅ Connected';
-                document.getElementById('api-status').style.color = '#67d9cb';
-                document.getElementById('api-error-msg').style.display = 'none';
-                await updateAllPrices();
-            } else {
-                throw new Error('API not ready');
-            }
-        } catch (e) {
-            document.getElementById('api-status').innerHTML = '❌ Offline';
-            document.getElementById('api-status').style.color = '#ff5e5e';
-            document.getElementById('api-error-msg').style.display = 'block';
-        }
-        
+
         // Render watchlist
         const watchlistSection = document.getElementById('watchlist-section');
         const watchlistContainer = document.getElementById('watchlist-container');
@@ -404,9 +401,16 @@
             watchlist.forEach(code => {
                 watchlistContainer.appendChild(createWatchlistCard(code));
             });
-            if (online) await updateAllPrices();
         }
+
         updatePortfolioUI();
+
+        // Mulai ambil data tanpa memblokir UI
+        updateAllPrices().catch(err => {
+            console.error("Initial load failed:", err);
+            document.getElementById('api-status').innerHTML = '❌ Error';
+            document.getElementById('api-error-msg').style.display = 'block';
+        });
     }
     
     // ==================== ADD MANUAL STOCK ====================

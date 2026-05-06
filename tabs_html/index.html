@@ -9,202 +9,107 @@
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body, html { height: 100%; overflow: hidden; background: #0c141b; font-family: 'Inter', sans-serif; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #0c141b; }
-    ::-webkit-scrollbar-thumb { background: #159D91; border-radius: 10px; }
     .tab-active { color: #159D91; background-color: rgba(21,157,145,0.15); border-radius: 12px; }
     .tab-inactive { color: #8b919b; }
-    .tab-btn { transition: all 0.2s ease; }
-    .tab-btn:hover { background-color: rgba(255,255,255,0.05); border-radius: 12px; }
-    #iframe-container { width: 100%; height: 100%; }
-    iframe { width: 100%; height: 100%; border: none; background: #0c141b; }
-    .header-icon, .footer-icon { transition: all 0.2s; }
-    .header-icon:hover, .footer-icon:hover { color: #159D91; }
+    #iframe-container { width: 100%; height: 100%; position: relative; }
+    iframe { width: 100%; height: 100%; border: none; background: #0c141b; position: absolute; top: 0; left: 0; }
 </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
     <header class="fixed top-0 left-0 w-full z-50 bg-[#0C141B]/90 backdrop-blur-md border-b border-white/10 px-4 flex justify-between items-center h-[56px]">
         <div class="flex items-center gap-2 w-1/4">
             <a href="profile.html" id="user-avatar-link" class="cursor-pointer">
-                <span class="material-symbols-outlined text-[#8b919b] header-icon" id="user-avatar">account_circle</span>
+                <span class="material-symbols-outlined text-[#8b919b]" id="user-avatar">account_circle</span>
             </a>
         </div>
         <div class="flex-grow text-center">
             <h1 class="font-bold text-sm text-white tracking-wide" id="page-title">Watchlist</h1>
         </div>
         <div class="flex items-center justify-end gap-3 w-1/4">
-            <button class="bg-transparent border-none cursor-pointer text-[#8b919b] header-icon" id="logout-btn">
+            <button class="bg-transparent border-none cursor-pointer text-[#8b919b]" id="logout-btn">
                 <span class="material-symbols-outlined">logout</span>
             </button>
         </div>
     </header>
+
     <main class="flex-grow mt-[56px] mb-[64px] w-full h-full">
-        <div id="iframe-container" class="w-full h-full bg-[#0c141b]"></div>
+        <div id="iframe-container"></div>
     </main>
+
     <nav class="fixed bottom-0 left-0 w-full bg-[#0C141B]/90 backdrop-blur-md border-t border-white/10 z-50 h-[64px] flex items-center justify-around px-2">
-        <a class="tab-btn tab-active flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="watchlist" href="#"><span class="material-symbols-outlined text-xl">trending_up</span><span class="text-[9px] mt-0.5">Watchlist</span></a>
-        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="top10" href="#"><span class="material-symbols-outlined text-xl">format_list_numbered</span><span class="text-[9px] mt-0.5">Top 10</span></a>
-        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="jurnal" href="#"><span class="material-symbols-outlined text-xl">menu_book</span><span class="text-[9px] mt-0.5">Jurnal</span></a>
-        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="screening" href="#"><span class="material-symbols-outlined text-xl">search</span><span class="text-[9px] mt-0.5">Screening</span></a>
-        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="cek_emiten" href="#"><span class="material-symbols-outlined text-xl">business</span><span class="text-[9px] mt-0.5">Cek</span></a>
-        <a class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all" data-tab="ai_chat" href="#"><span class="material-symbols-outlined text-xl">smart_toy</span><span class="text-[9px] mt-0.5">AI Chat</span></a>
+        <div class="tab-btn tab-active flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer" data-tab="watchlist"><span class="material-symbols-outlined text-xl">trending_up</span><span class="text-[9px] mt-0.5">Watchlist</span></div>
+        <div class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer" data-tab="top10"><span class="material-symbols-outlined text-xl">format_list_numbered</span><span class="text-[9px] mt-0.5">Top 10</span></div>
+        <div class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer" data-tab="jurnal"><span class="material-symbols-outlined text-xl">menu_book</span><span class="text-[9px] mt-0.5">Jurnal</span></div>
+        <div class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer" data-tab="screening"><span class="material-symbols-outlined text-xl">search</span><span class="text-[9px] mt-0.5">Screening</span></div>
+        <div class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer" data-tab="cek_emiten"><span class="material-symbols-outlined text-xl">business</span><span class="text-[9px] mt-0.5">Cek</span></div>
+        <div class="tab-btn tab-inactive flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer" data-tab="ai_chat"><span class="material-symbols-outlined text-xl">smart_toy</span><span class="text-[9px] mt-0.5">AI Chat</span></div>
     </nav>
 
 <script>
-    (async function() {
-        const SUPABASE_URL = 'https://ofnswkzbscuwoueromaf.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_Kp_J4xszV6GbIfsikhnT8w_CgqUQsp1';
-        
-        const isGuest = localStorage.getItem('guest_mode') === 'true';
-        let sb = null;
-        let currentUser = null;
-        
-        // Simpan portfolio metrics untuk disampaikan ke watchlist
-        let portfolioMetrics = {
-            totalEquity: null,
-            realizedPL: null,
-            winRate: null,
-            equityChangePercent: 0
-        };
-        
-        if (!isGuest) {
-            if (typeof supabase === 'undefined') {
-                document.getElementById('iframe-container').innerHTML = '<div class="flex items-center justify-center h-full text-red-400">Gagal memuat Supabase.</div>';
-                return;
-            }
-            sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            const { data: { session }, error } = await sb.auth.getSession();
-            if (error || !session) {
-                window.location.href = 'signin.html';
-                return;
-            }
-            currentUser = session.user;
-            
-            const { data: profile, error: profileError } = await sb
-                .from('profiles')
-                .select('avatar_url, full_name')
-                .eq('id', currentUser.id)
-                .single();
-            
-            if (profile && profile.avatar_url) {
-                document.getElementById('user-avatar').innerHTML = `<img src="${profile.avatar_url}" class="w-6 h-6 rounded-full object-cover border border-teal-500">`;
-            } else {
-                const initial = (profile?.full_name?.[0] || currentUser.email?.[0] || 'U').toUpperCase();
-                document.getElementById('user-avatar').innerHTML = `<span class="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-xs font-bold text-white">${initial}</span>`;
-            }
-        } else {
-            document.getElementById('user-avatar').innerHTML = `<span class="material-symbols-outlined text-[#8b919b]">account_circle</span>`;
-        }
-        
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            if (!isGuest && sb) await sb.auth.signOut();
-            localStorage.removeItem('guest_mode');
-            window.location.href = 'signin.html';
-        });
-        
-        const tabFiles = {
-            watchlist: "watchlist_content.html",
-            top10: "top10_content.html",
-            jurnal: "portfolio_content.html",
-            screening: "screening_content.html",
-            cek_emiten: "cek_emiten_content.html",
-            ai_chat: "ai_chat_content.html"
-        };
-        
-        let currentIframe = null;
-        const container = document.getElementById('iframe-container');
-        
-        function loadTab(tabId) {
-            const src = tabFiles[tabId];
-            if (!src) return;
-            if (currentIframe) container.removeChild(currentIframe);
+    const tabFiles = {
+        watchlist: "watchlist_content.html",
+        top10: "top10_content.html",
+        jurnal: "portfolio_content.html",
+        screening: "screening_content.html",
+        cek_emiten: "cek_emiten_content.html",
+        ai_chat: "ai_chat_content.html"
+    };
+    const iframes = {};
+    const container = document.getElementById('iframe-container');
+    let portfolioMetrics = {};
+
+    function loadTab(tabId) {
+        if (!tabFiles[tabId]) return;
+
+        // Hide all
+        Object.values(iframes).forEach(iframe => iframe.style.display = 'none');
+
+        // Lazy load & Show
+        if (!iframes[tabId]) {
             const iframe = document.createElement('iframe');
-            iframe.src = src;
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            iframe.style.border = 'none';
-            iframe.style.background = '#0c141b';
+            iframe.src = tabFiles[tabId];
             container.appendChild(iframe);
-            currentIframe = iframe;
-            
-            const titles = { watchlist: 'Watchlist', top10: 'Top 10', jurnal: 'Jurnal', screening: 'Screening', cek_emiten: 'Cek Emiten', ai_chat: 'AI Chat' };
-            document.getElementById('page-title').innerText = titles[tabId] || tabId;
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                const btnTab = btn.getAttribute('data-tab');
-                if (btnTab === tabId) {
-                    btn.classList.add('tab-active');
-                    btn.classList.remove('tab-inactive');
-                } else {
-                    btn.classList.add('tab-inactive');
-                    btn.classList.remove('tab-active');
-                }
-            });
+            iframes[tabId] = iframe;
+        } else {
+            iframes[tabId].style.display = 'block';
         }
-        
+
+        // UI Updates
+        const titles = { watchlist: 'Watchlist', top10: 'Top 10', jurnal: 'Jurnal', screening: 'Screening', cek_emiten: 'Cek Emiten', ai_chat: 'AI Chat' };
+        document.getElementById('page-title').innerText = titles[tabId] || tabId;
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const tabId = btn.getAttribute('data-tab');
-                if (tabId) loadTab(tabId);
-            });
+            const isMatch = btn.getAttribute('data-tab') === tabId;
+            btn.className = `tab-btn flex flex-col items-center justify-center flex-1 py-1 rounded-xl cursor-pointer ${isMatch ? 'tab-active' : 'tab-inactive'}`;
         });
-        
-        // ========== PENGIRIMAN PORTFOLIO METRICS ANTAR TAB ==========
-        window.addEventListener('message', (event) => {
-            const data = event.data;
-            // 1. Terima metrics dari tab jurnal (portfolio_content.html)
-            if (data && data.type === 'PORTFOLIO_METRICS') {
-                console.log('📊 Received portfolio metrics from Jurnal tab:', data);
-                // Simpan metrics yang diterima
-                portfolioMetrics = {
-                    totalEquity: data.totalEquity,
-                    realizedPL: data.realizedPL,
-                    winRate: data.winRate,
-                    equityChangePercent: data.equityChangePercent || 0
-                };
-                // Jika saat ini tab yang aktif adalah watchlist, langsung kirim metrics ke watchlist
-                const activeTab = document.querySelector('.tab-btn.tab-active')?.getAttribute('data-tab');
-                if (activeTab === 'watchlist' && currentIframe && currentIframe.contentWindow) {
-                    currentIframe.contentWindow.postMessage({
-                        type: 'PORTFOLIO_METRICS',
-                        totalEquity: portfolioMetrics.totalEquity,
-                        realizedPL: portfolioMetrics.realizedPL,
-                        winRate: portfolioMetrics.winRate,
-                        equityChangePercent: portfolioMetrics.equityChangePercent
-                    }, '*');
-                }
-            }
-            
-            // 2. Terima permintaan metrics dari watchlist
-            if (data && data.type === 'REQUEST_PORTFOLIO_METRICS') {
-                console.log('📢 Watchlist meminta portfolio metrics');
-                if (currentIframe && currentIframe.contentWindow) {
-                    // Kirim metrics yang tersimpan (bisa null jika jurnal belum pernah dimuat)
-                    currentIframe.contentWindow.postMessage({
-                        type: 'PORTFOLIO_METRICS',
-                        totalEquity: portfolioMetrics.totalEquity,
-                        realizedPL: portfolioMetrics.realizedPL,
-                        winRate: portfolioMetrics.winRate,
-                        equityChangePercent: portfolioMetrics.equityChangePercent
-                    }, '*');
-                }
-            }
-            
-            // 3. Integrasi kode saham (existing)
-            if (data && data.type === 'OPEN_STOCK' && data.stockCode) {
-                loadTab('cek_emiten');
-                setTimeout(() => {
-                    if (currentIframe?.contentWindow) {
-                        currentIframe.contentWindow.postMessage({ type: 'SET_STOCK_CODE', stockCode: data.stockCode }, '*');
-                    }
-                }, 500);
-            }
-        });
-        
-        // Load default tab
-        loadTab('watchlist');
-    })();
+    }
+
+    // Attach Listeners
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => loadTab(btn.getAttribute('data-tab')));
+    });
+
+    // Message Bridge
+    window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data) return;
+
+        if (data.type === 'PORTFOLIO_METRICS') {
+            portfolioMetrics = data;
+            if (iframes['watchlist']?.contentWindow) iframes['watchlist'].contentWindow.postMessage(data, '*');
+        }
+        if (data.type === 'REQUEST_PORTFOLIO_METRICS') {
+            if (iframes['watchlist']?.contentWindow) iframes['watchlist'].contentWindow.postMessage({type: 'PORTFOLIO_METRICS', ...portfolioMetrics}, '*');
+        }
+        if (data.type === 'OPEN_STOCK' && data.stockCode) {
+            loadTab('cek_emiten');
+            setTimeout(() => {
+                if (iframes['cek_emiten']?.contentWindow) iframes['cek_emiten'].contentWindow.postMessage({ type: 'SET_STOCK_CODE', stockCode: data.stockCode }, '*');
+            }, 600);
+        }
+    });
+
+    // Initial Load
+    loadTab('watchlist');
 </script>
 </body>
 </html>
