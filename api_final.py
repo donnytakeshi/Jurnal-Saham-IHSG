@@ -801,3 +801,4 @@ def clear_session():
 if __name__ == '__main__':
     print("="*60); print("API Server Starting..."); print("Port: 5002")
     app.run(host='0.0.0.0', port=5002, debug=True, threaded=True)
+# trigger redeploy for top_movers
