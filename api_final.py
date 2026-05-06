@@ -300,7 +300,7 @@ def fetch_quote_with_fallback(symbol):
         cached['cached'] = True
         return cached
 
-    for fetcher in [fetch_from_finnhub, fetch_from_alpha_vantage, fetch_from_yfinance]:
+    for fetcher in [fetch_from_yfinance, fetch_from_finnhub, fetch_from_alpha_vantage]:
         result = fetcher(symbol)
         if result['success']:
             result['cached'] = False
@@ -1302,7 +1302,7 @@ def clear_session():
 if __name__ == '__main__':
     print("=" * 60)
     print("API Server Starting...")
-    print("Finnhub + Alpha Vantage + yfinance (fallback)")
+    print("yfinance + Finnhub + Alpha Vantage (fallback)")
     print("Supported: PDF, DOCX, TXT, CSV")
     print("Images: NOT processed (OCR disabled)")
     print("Response format: SHORT and STRUCTURED")
