@@ -644,17 +644,37 @@ def get_top_movers():
     limit = request.args.get('limit', default=10, type=int)
     cache_key = f"top_movers_{limit}"
     cached = quote_cache.get(cache_key)
-    if cached: return jsonify(cached)
+    if cached:
+        return jsonify(cached)
+
     results = []
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = {executor.submit(fetch_quote_for_top_mover, sym): sym for sym in IHSG_STOCKS}
-        for future in as_completed(futures):
-            res = future.result()
-            if res: results.append(res)
+    # Daftar saham minimalis untuk testing
+    stock_list = ["BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "UNVR", "ADRO"]
+    
+    for sym in stock_list:
+        try:
+            yf_symbol = f"{sym}.JK"
+            ticker = yf.Ticker(yf_symbol)
+            info = ticker.info
+            price = info.get('regularMarketPrice', 0)
+            prev_close = info.get('previousClose', price)
+            change_pct = ((price - prev_close) / prev_close * 100) if prev_close else 0
+            if price > 0:
+                results.append({'symbol': sym, 'price': price, 'changePercent': change_pct})
+        except Exception as e:
+            # Log error ke console server Render
+            print(f"Error fetching {sym}: {str(e)}")
+            continue
+
     results.sort(key=lambda x: x['changePercent'], reverse=True)
-    top = results[:limit]
-    response = {'success':True,'count':len(top),'top_movers':top,
-                'timestamp':datetime.now().isoformat(),'total_stocks_processed':len(results)}
+    top_results = results[:limit]
+    response = {
+        'success': True,
+        'count': len(top_results),
+        'top_movers': top_results,
+        'timestamp': datetime.now().isoformat(),
+        'total_stocks_processed': len(results)
+    }
     quote_cache.set(cache_key, response)
     return jsonify(response)
 
