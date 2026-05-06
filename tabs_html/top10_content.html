@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
-    <script src="capacitor.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -11,33 +10,87 @@
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .positive { color: #67d9cb; }
         .negative { color: #ff5e5e; }
-        .card { background: #181c21; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2a2a2a; }
+        
+        .card {
+            background: #181c21;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
         .section-title { font-weight: 600; font-size: 14px; letter-spacing: 0.5px; }
         .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
         .badge-bullish { background: #67d9cb20; color: #67d9cb; }
         .badge-bearish { background: #ff5e5e20; color: #ff5e5e; }
-        .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: background 0.2s ease; }
-        .stock-row:hover { background: #2a2a2a; border-radius: 8px; padding-left: 8px; padding-right: 8px; }
+        
+        .stock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .stock-row:hover {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
         .stock-row:last-child { border-bottom: none; }
+        
         .stock-code { font-weight: 700; color: white; font-size: 14px; }
         .stock-name { font-size: 10px; color: #6b7280; margin-top: 2px; }
         .price { font-weight: 600; color: white; font-size: 13px; }
         .change { font-size: 11px; font-weight: 600; margin-top: 2px; }
+        
         .status-badge { font-size: 11px; background: #2a2a2a; border-radius: 20px; padding: 4px 12px; display: inline-block; }
         .status-badge.online { background: #67d9cb20; color: #67d9cb; }
+        .status-badge.offline { background: #ff5e5e20; color: #ff5e5e; }
+        
         .last-update { font-size: 10px; color: #6b7280; text-align: center; margin-top: 8px; }
-        .sentiment-bar { height: 4px; background: #2a2a2a; border-radius: 4px; overflow: hidden; display: flex; margin: 12px 0; }
+        
+        .sentiment-bar {
+            height: 4px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            margin: 12px 0;
+        }
         .sentiment-bar-adv { background: #67d9cb; height: 100%; }
         .sentiment-bar-dec { background: #ff5e5e; height: 100%; }
-        .sector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .sector-item { background: #1a2027; border-radius: 12px; padding: 12px; text-align: center; }
+        
+        .sector-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .sector-item {
+            background: #1a2027;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
         .sector-name { font-size: 10px; color: #6b7280; text-transform: uppercase; }
         .sector-value { font-size: 14px; font-weight: 600; margin-top: 4px; }
+        
+        .two-columns { display: block; }
     </style>
 </head>
 <body>
 
+<!-- Header Card -->
 <div class="card">
     <div class="flex justify-between items-center">
         <div>
@@ -54,22 +107,45 @@
     </div>
 </div>
 
+<!-- Top Gainers Card -->
 <div class="card">
-    <div class="card-header"><div class="section-title text-green-400">Top Gainers</div><span class="badge badge-bullish">BULLISH</span></div>
-    <div id="gainers-list"><div class="stock-row"><div class="text-slate-500 text-center w-full">Memuat data...</div></div></div>
+    <div class="card-header">
+        <div class="section-title text-green-400">Top Gainers</div>
+        <span class="badge badge-bullish">BULLISH</span>
+    </div>
+    <div id="gainers-list">
+        <div class="stock-row"><div class="text-slate-500 text-center w-full">Loading...</div></div>
+    </div>
 </div>
 
+<!-- Top Losers Card -->
 <div class="card">
-    <div class="card-header"><div class="section-title text-red-400">Top Losers</div><span class="badge badge-bearish">BEARISH</span></div>
-    <div id="losers-list"><div class="stock-row"><div class="text-slate-500 text-center w-full">Memuat data...</div></div></div>
+    <div class="card-header">
+        <div class="section-title text-red-400">Top Losers</div>
+        <span class="badge badge-bearish">BEARISH</span>
+    </div>
+    <div id="losers-list">
+        <div class="stock-row"><div class="text-slate-500 text-center w-full">Loading...</div></div>
+    </div>
 </div>
 
+<!-- Market Sentiment Card -->
 <div class="card">
-    <div class="flex justify-between items-center mb-3"><div class="section-title text-white">Volatility Pulse</div><span id="vix-value" class="text-xs text-slate-400">Adv/Dec: --</span></div>
-    <div class="sentiment-bar"><div id="advancing-bar" class="sentiment-bar-adv" style="width: 0%;"></div><div id="declining-bar" class="sentiment-bar-dec" style="width: 0%;"></div></div>
-    <div class="flex justify-between text-xs"><span id="advancing-pct" class="text-green-400">0% Advancing</span><span id="declining-pct" class="text-red-400">0% Declining</span></div>
+    <div class="flex justify-between items-center mb-3">
+        <div class="section-title text-white">Volatility Pulse</div>
+        <span id="vix-value" class="text-xs text-slate-400">Adv/Dec: --</span>
+    </div>
+    <div class="sentiment-bar">
+        <div id="advancing-bar" class="sentiment-bar-adv" style="width: 0%;"></div>
+        <div id="declining-bar" class="sentiment-bar-dec" style="width: 0%;"></div>
+    </div>
+    <div class="flex justify-between text-xs">
+        <span id="advancing-pct" class="text-green-400">0% Advancing</span>
+        <span id="declining-pct" class="text-red-400">0% Declining</span>
+    </div>
 </div>
 
+<!-- Sector Performance Card -->
 <div class="card">
     <div class="section-title text-white mb-3">Sector Performance</div>
     <div class="sector-grid">
@@ -79,10 +155,11 @@
         <div class="sector-item"><div class="sector-name">Finance</div><div id="sector-finance" class="sector-value">--</div></div>
     </div>
 </div>
+
 <div id="last-update" class="last-update">--</div>
 
 <script>
-    const API_URL = 'https://ihsg-api-cphs.onrender.com';
+    const API_URL = 'https://ihsg-api-cpchs.onrender.com'; // Sesuaikan dengan URL backend Anda
     
     const sectorStocks = {
         tech: ["TLKM", "GOTO", "ERAA", "TOWR"],
@@ -90,11 +167,13 @@
         health: ["SIDO", "JPFA", "CPIN", "ICBP", "INDF"],
         finance: ["BBCA", "BBRI", "BMRI", "BRIS", "BBNI"]
     };
+    
     const allStocks = [
         "BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "UNVR", "ADRO",
         "CPIN", "ICBP", "INDF", "MEDC", "PGAS", "SMGR", "ANTM",
         "SIDO", "JPFA", "MDKA", "INKP", "TKIM", "HRUM", "TOWR", "ERAA"
     ];
+    
     let allQuotes = [];
     
     function openStockInCekEmiten(stockCode) {
@@ -102,97 +181,139 @@
         else alert(`Buka ${stockCode} di Cek Emiten`);
     }
     
-    async function fetchQuote(symbol, retry = 2) {
-        for (let i = 0; i < retry; i++) {
-            try {
-                const url = `${API_URL}/quote?symbol=${symbol}`;
-                console.log(`[TOP10] Fetching ${symbol} (Attempt ${i+1})...`);
-                const res = await fetch(url);
-                const text = await res.text();
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = JSON.parse(text);
-                if (data && typeof data.price === 'number' && data.price > 0) {
-                    return { code: symbol, price: data.price, changePercent: data.changePercent };
-                }
-                throw new Error("Invalid data");
-            } catch (e) {
-                console.warn(`[TOP10] ${symbol} error (Attempt ${i+1}):`, e);
-                if (i === retry - 1) return null;
-                await new Promise(r => setTimeout(r, 1000));
-            }
+    async function fetchQuote(symbol) {
+        try {
+            const res = await fetch(`${API_URL}/quote?symbol=${symbol}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            return { code: symbol, price: data.price, changePercent: data.changePercent };
+        } catch (e) {
+            return null;
         }
     }
     
     async function fetchAllQuotes() {
-        console.log("[TOP10] Fetching all quotes in batches...");
-        const results = [];
-        const batchSize = 4;
-        for (let i = 0; i < allStocks.length; i += batchSize) {
-            const batch = allStocks.slice(i, i + batchSize);
-            const batchRes = await Promise.all(batch.map(s => fetchQuote(s)));
-            results.push(...batchRes);
-        }
-        allQuotes = results.filter(q => q && q.price > 0);
-        console.log(`[TOP10] Got ${allQuotes.length} valid quotes`);
+        const results = await Promise.all(allStocks.map(s => fetchQuote(s)));
+        allQuotes = results.filter(q => q !== null && q.price > 0);
         return allQuotes;
     }
     
-    function getTopGainers() { return [...allQuotes].filter(q => q.changePercent > 0).sort((a,b) => b.changePercent - a.changePercent).slice(0,5); }
-    function getTopLosers() { return [...allQuotes].filter(q => q.changePercent < 0).sort((a,b) => a.changePercent - b.changePercent).slice(0,5); }
-    function getSectorPerformance() {
-        const res = {};
-        for (const [sec, stocks] of Object.entries(sectorStocks)) {
-            let sum = 0, cnt = 0;
-            for (const code of stocks) {
-                const q = allQuotes.find(q => q.code === code);
-                if (q && q.changePercent !== undefined) { sum += q.changePercent; cnt++; }
-            }
-            res[sec] = cnt ? sum / cnt : 0;
-        }
-        return res;
+    function getTopGainers() {
+        return [...allQuotes]
+            .filter(q => q.changePercent > 0)
+            .sort((a, b) => b.changePercent - a.changePercent)
+            .slice(0, 10);
     }
+    
+    function getTopLosers() {
+        return [...allQuotes]
+            .filter(q => q.changePercent < 0)
+            .sort((a, b) => a.changePercent - b.changePercent)
+            .slice(0, 10);
+    }
+    
+    function getSectorPerformance() {
+        const sectorChanges = {};
+        for (const [sector, stocks] of Object.entries(sectorStocks)) {
+            let sum = 0, count = 0;
+            for (const code of stocks) {
+                const quote = allQuotes.find(q => q.code === code);
+                if (quote && quote.changePercent !== undefined) {
+                    sum += quote.changePercent;
+                    count++;
+                }
+            }
+            sectorChanges[sector] = count > 0 ? sum / count : 0;
+        }
+        return sectorChanges;
+    }
+    
     function formatNumber(n) { return n ? n.toLocaleString('id-ID') : '---'; }
-    function getStockName(code) { 
-        const names = { "BBCA":"Bank Central Asia","BBRI":"Bank Rakyat Indonesia","BMRI":"Bank Mandiri","TLKM":"Telkom Indonesia","ASII":"Astra International","GOTO":"GoTo","UNVR":"Unilever Indonesia","ADRO":"Adaro Energy","CPIN":"Charoen Pokphand","ICBP":"Indofood CBP","INDF":"Indofood","MEDC":"Medco Energi","PGAS":"PGAS","SMGR":"Semen Indonesia","ANTM":"Aneka Tambang","SIDO":"Sido Muncul","JPFA":"Japfa Comfeed","MDKA":"Merdeka Copper","INKP":"Indah Kiat Pulp","TKIM":"Tjiwi Kimia","HRUM":"Harum Energy","TOWR":"Sarana Menara","ERAA":"Erajaya" };
+    
+    function getStockName(code) {
+        const names = {
+            "BBCA":"Bank Central Asia","BBRI":"Bank Rakyat Indonesia","BMRI":"Bank Mandiri",
+            "TLKM":"Telkom Indonesia","ASII":"Astra International","GOTO":"GoTo",
+            "UNVR":"Unilever Indonesia","ADRO":"Adaro Energy","CPIN":"Charoen Pokphand",
+            "ICBP":"Indofood CBP","INDF":"Indofood","MEDC":"Medco Energi","PGAS":"PGAS",
+            "SMGR":"Semen Indonesia","ANTM":"Aneka Tambang","SIDO":"Sido Muncul",
+            "JPFA":"Japfa Comfeed","MDKA":"Merdeka Copper","INKP":"Indah Kiat Pulp",
+            "TKIM":"Tjiwi Kimia","HRUM":"Harum Energy","TOWR":"Sarana Menara","ERAA":"Erajaya"
+        };
         return names[code] || code;
     }
+    
     function renderStockRow(stock, isGainer) {
-        const row = document.createElement('div'); row.className = 'stock-row';
-        row.innerHTML = `<div><div class="stock-code">${stock.code}</div><div class="stock-name">${getStockName(stock.code)}</div></div><div class="text-right"><div class="price">${formatNumber(stock.price)}</div><div class="change ${isGainer ? 'positive' : 'negative'}">${stock.changePercent > 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%</div></div>`;
+        const row = document.createElement('div');
+        row.className = 'stock-row';
+        row.innerHTML = `
+            <div>
+                <div class="stock-code">${stock.code}</div>
+                <div class="stock-name">${getStockName(stock.code)}</div>
+            </div>
+            <div class="text-right">
+                <div class="price">${formatNumber(stock.price)}</div>
+                <div class="change ${isGainer ? 'positive' : 'negative'}">${stock.changePercent > 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%</div>
+            </div>
+        `;
         row.addEventListener('click', () => openStockInCekEmiten(stock.code));
         return row;
     }
     
     async function renderTop10() {
+        const statusSpan = document.getElementById('api-status');
+        statusSpan.textContent = "Memuat...";
+        statusSpan.className = "status-badge online";
+        
         try {
             await fetchAllQuotes();
-            if (!allQuotes.length) throw new Error("No data");
-            const gainers = getTopGainers(), losers = getTopLosers();
-            const gDiv = document.getElementById('gainers-list'), lDiv = document.getElementById('losers-list');
-            gDiv.innerHTML = ''; lDiv.innerHTML = '';
-            if (gainers.length) gainers.forEach(s => gDiv.appendChild(renderStockRow(s, true)));
-            else gDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">Tidak ada gainer</div></div>';
-            if (losers.length) losers.forEach(s => lDiv.appendChild(renderStockRow(s, false)));
-            else lDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">Tidak ada loser</div></div>';
+            if (!allQuotes.length) throw new Error("Tidak ada data");
+            
+            const gainers = getTopGainers();
+            const losers = getTopLosers();
+            
+            const gainersDiv = document.getElementById('gainers-list');
+            const losersDiv = document.getElementById('losers-list');
+            gainersDiv.innerHTML = '';
+            losersDiv.innerHTML = '';
+            
+            if (gainers.length) gainers.forEach(g => gainersDiv.appendChild(renderStockRow(g, true)));
+            else gainersDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">No gainers</div></div>';
+            
+            if (losers.length) losers.forEach(l => losersDiv.appendChild(renderStockRow(l, false)));
+            else losersDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">No losers</div></div>';
+            
             const total = gainers.length + losers.length;
-            const advPct = total ? (gainers.length / total) * 100 : 0, decPct = total ? (losers.length / total) * 100 : 0;
+            const advPct = total ? (gainers.length / total) * 100 : 0;
+            const decPct = total ? (losers.length / total) * 100 : 0;
             document.getElementById('advancing-bar').style.width = `${advPct}%`;
             document.getElementById('declining-bar').style.width = `${decPct}%`;
             document.getElementById('advancing-pct').innerHTML = `${Math.round(advPct)}% Advancing`;
             document.getElementById('declining-pct').innerHTML = `${Math.round(decPct)}% Declining`;
             document.getElementById('vix-value').innerHTML = `Adv/Dec: ${gainers.length}/${losers.length}`;
-            const sec = getSectorPerformance();
-            for (const [name, val] of Object.entries(sec)) {
-                const el = document.getElementById(`sector-${name === 'tech' ? 'tech' : name === 'energy' ? 'energy' : name === 'health' ? 'health' : 'finance'}`);
-                if (el) { el.innerHTML = `${val > 0 ? '+' : ''}${val.toFixed(1)}%`; el.className = `sector-value ${val >= 0 ? 'text-green-400' : 'text-red-400'}`; }
-            }
-            document.getElementById('last-update').innerHTML = `Update: ${new Date().toLocaleTimeString('id-ID')}`;
-            document.getElementById('api-status').innerHTML = `Connected (${allQuotes.length})`;
-        } catch(e) {
-            console.error(e);
-            document.getElementById('api-status').innerHTML = `Cek API`;
+            
+            const sectorPerf = getSectorPerformance();
+            const formatSector = (val) => `${val > 0 ? '+' : ''}${val.toFixed(1)}%`;
+            document.getElementById('sector-tech').innerHTML = formatSector(sectorPerf.tech || 0);
+            document.getElementById('sector-tech').className = `sector-value ${(sectorPerf.tech || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            document.getElementById('sector-energy').innerHTML = formatSector(sectorPerf.energy || 0);
+            document.getElementById('sector-energy').className = `sector-value ${(sectorPerf.energy || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            document.getElementById('sector-health').innerHTML = formatSector(sectorPerf.health || 0);
+            document.getElementById('sector-health').className = `sector-value ${(sectorPerf.health || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            document.getElementById('sector-finance').innerHTML = formatSector(sectorPerf.finance || 0);
+            document.getElementById('sector-finance').className = `sector-value ${(sectorPerf.finance || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            
+            document.getElementById('last-update').innerHTML = `Last update: ${new Date().toLocaleTimeString('id-ID')}`;
+            statusSpan.textContent = `Connected (${allQuotes.length})`;
+            statusSpan.className = "status-badge online";
+        } catch (err) {
+            statusSpan.textContent = "Cek API";
+            statusSpan.className = "status-badge offline";
+            document.getElementById('gainers-list').innerHTML = '<div class="stock-row"><div class="text-red-400 text-center w-full">⚠️ Gagal memuat data. Periksa koneksi API.</div></div>';
+            document.getElementById('losers-list').innerHTML = '<div class="stock-row"><div class="text-red-400 text-center w-full">⚠️ Pastikan server backend berjalan.</div></div>';
         }
     }
+    
     renderTop10();
     setInterval(renderTop10, 15000);
 </script>
