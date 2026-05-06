@@ -23,6 +23,7 @@ import docx
 import csv
 import tempfile
 from werkzeug.utils import secure_filename
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 app = Flask(__name__)
 CORS(app)
@@ -300,6 +301,7 @@ def fetch_quote_with_fallback(symbol):
         cached['cached'] = True
         return cached
 
+    # Urutan baru: yfinance sebagai primary (lebih real-time untuk IHSG)
     for fetcher in [fetch_from_yfinance, fetch_from_finnhub, fetch_from_alpha_vantage]:
         result = fetcher(symbol)
         if result['success']:
@@ -392,8 +394,54 @@ def get_top_predictions(limit=8):
     results.sort(key=lambda x: x.get('potentialGain', 0), reverse=True)
     return results[:limit]
 
-# ============ ULTRA RESILIENT ORDER BOOK SCRAPER ============
+# ============ DAFTAR SAHAM IHSG (200+ simbol) ============
+IHSG_STOCKS = [
+    "BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "UNVR", "ADRO",
+    "CPIN", "ICBP", "INDF", "MEDC", "PGAS", "SMGR", "ANTM", "HRUM",
+    "TOWR", "ERAA", "SIDO", "JPFA", "MDKA", "INKP", "TKIM", "BRIS",
+    "BBNI", "UNTR", "WIKA", "AMMN", "RAJA", "BUMI", "PTRO", "ACES",
+    "ADMF", "AGII", "AKRA", "AMRT", "APLN", "ARTO", "ASSA", "BFIN",
+    "BHIT", "BIRD", "BISI", "BNGA", "BNII", "BSDE", "BTPS", "BUKA",
+    "BULL", "BWPT", "CAMP", "CBMF", "CENT", "CFIN", "CINT", "CITA",
+    "CLPI", "CMNP", "CNKO", "COAL", "CPRO", "CSAP", "CTRA", "DART",
+    "DIVA", "DMAS", "DNET", "DOOH", "DPNS", "DSSA", "DSNG", "DTLA",
+    "DUTI", "DYAN", "EAST", "ECII", "EKAD", "ELSA", "EMDE", "ENRG",
+    "ENVY", "EPMT", "ERAA", "ESIP", "ESSM", "EXCL", "FAST", "FILM",
+    "FISH", "FITT", "FREN", "GAMA", "GDST", "GEMA", "GGRM", "GJTL",
+    "GLVA", "GMTD", "GOLD", "GPRA", "GRPM", "GSMF", "GTBO", "GTSI",
+    "GWSA", "HADE", "HALO", "HATM", "HEAL", "HERO", "HOKI", "HOMI",
+    "HOPE", "HRTA", "HITS", "ICBP", "IDEA", "IDPR", "IFII", "IGAR",
+    "IIKP", "IKAI", "IKBI", "IMAS", "IMPC", "INAF", "INCF", "INCO",
+    "INDR", "INTA", "INTD", "INTP", "IPCC", "IPOL", "IRRA", "ISAT",
+    "ITMA", "JAWA", "JECC", "JKSW", "JPFA", "JSKY", "JSMR", "KAEF",
+    "KARW", "KBLI", "KBLM", "KBNK", "KDSI", "KIAS", "KICI", "KINO",
+    "KKGI", "KLBF", "KOBX", "KOIN", "KONI", "KRAH", "KRAS", "LAPD",
+    "LBAI", "LCGP", "LEAD", "LIFE", "LINK", "LMPI", "LPKR", "LPPS",
+    "LSIP", "LSPL", "LUCY", "MABA", "MAGP", "MAIN", "MAMI", "MAPA",
+    "MASB", "MATI", "MBAP", "MBTO", "MCOR", "MDIA", "MDRN", "MEGA",
+    "MERK", "MFIN", "MICE", "MKPI", "MLBI", "MLIA", "MMLP", "MNCN",
+    "MORA", "MPMX", "MPPA", "MRAT", "MSIN", "MTDL", "MTFN", "MYOR",
+    "NAGA", "NATO", "NBAK", "NELY", "NICK", "NISP", "NUSA", "OASA",
+    "OCAP", "OMRE", "PADA", "PANI", "PANS", "PBRX", "PDES", "PEHA",
+    "PICO", "PJAA", "PKPK", "PLAS", "PLIN", "PNBN", "PNLF", "PNSE",
+    "POLY", "POSA", "PPRE", "PRAS", "PRAY", "PRDA", "PSAB", "PSSI",
+    "PTIS", "PTPP", "PURA", "PWON", "PYFA", "RAFI", "RALS", "RBMS",
+    "RDTX", "REAL", "RELI", "RICY", "RODA", "ROTI", "RUIS", "SAFE",
+    "SAME", "SAMF", "SAPX", "SCCO", "SCMA", "SDPC", "SDRA", "SEMA",
+    "SFAN", "SGER", "SGRO", "SIDO", "SIGN", "SIHP", "SILO", "SINI",
+    "SKRN", "SKYB", "SMAR", "SMDR", "SMGR", "SMMA", "SMMT", "SMRU",
+    "SMTO", "SNLK", "SONA", "SPMA", "SQBB", "SRIL", "SRTG", "SSIA",
+    "SSMS", "SSTM", "STAR", "STTP", "SUPR", "SURY", "TAMU", "TAPG",
+    "TARA", "TAYS", "TBIG", "TBLA", "TEBE", "TECH", "TEFA", "TELE",
+    "TIFA", "TINS", "TIRA", "TKIJ", "TKIM", "TMAS", "TMPO", "TMPP",
+    "TMTI", "TOTL", "TPIA", "TPMA", "TRAM", "TRIM", "TRIN", "TRJA",
+    "TRUK", "TRUS", "TSLA", "UBPB", "UGTR", "ULTJ", "UNIC", "UNIQ",
+    "UNTR", "UNVR", "VALU", "VICI", "VINS", "VRNA", "VROO", "WAPO",
+    "WARK", "WEGE", "WICO", "WIIM", "WIKA", "WINS", "WOMF", "WSBP",
+    "WSKT", "WTON", "YELO", "YULE", "ZBRA", "ZINC"
+]
 
+# ============ ULTRA RESILIENT ORDER BOOK SCRAPER ============
 class UltraResilientOrderBookScraper:
     """Ultra resilient scraper for IHSG order book data"""
     
@@ -645,7 +693,6 @@ class UltraResilientOrderBookScraper:
             'sources_available': len(self.sources)
         }
 
-
 # ============ INITIALIZE SCRAPER WITH PROXY ============
 PROXY_LIST = ['http://185.199.228.220:80', 'http://188.166.190.47:8080']
 orderbook_scraper = UltraResilientOrderBookScraper(
@@ -826,7 +873,6 @@ def get_orderbook():
     orderbook_cache.set(cache_key, result)
     return jsonify(result)
 
-# ============ FOREIGN TRANSACTION ENDPOINTS (DIPERBAIKI) ============
 @app.route('/foreigntransaction', methods=['GET'])
 def get_foreign_transaction():
     symbol = request.args.get('symbol', '').upper()
@@ -847,12 +893,10 @@ def get_foreign_transaction():
     selected_buyers = random.sample(broker_names, 5)
     selected_sellers = random.sample(broker_names, 5)
     
-    # Alokasi nilai ke masing-masing buyer
     buyer_weights = [random.random() for _ in range(5)]
     buyer_weights = [w/sum(buyer_weights) for w in buyer_weights]
     buyer_allocs = [total_foreign_buy * w for w in buyer_weights]
     
-    # Alokasi nilai ke masing-masing seller
     seller_weights = [random.random() for _ in range(5)]
     seller_weights = [w/sum(seller_weights) for w in seller_weights]
     seller_allocs = [total_foreign_sell * w for w in seller_weights]
@@ -874,7 +918,6 @@ def get_foreign_transaction():
             'val': round(seller_allocs[i], 1)
         })
     
-    # Urutkan berdasarkan val terbesar
     buyers.sort(key=lambda x: x['val'], reverse=True)
     sellers.sort(key=lambda x: x['val'], reverse=True)
     
@@ -882,63 +925,6 @@ def get_foreign_transaction():
         'symbol': symbol,
         'buyers': buyers[:5],
         'sellers': sellers[:5]
-    })
-
-@app.route('/bulk/foreigntransaction', methods=['POST'])
-def get_bulk_foreign_transaction():
-    data = request.json
-    symbols = data.get('symbols', [])
-    if not symbols:
-        return jsonify({'error': 'No symbols provided'}), 400
-    
-    results = {}
-    for symbol in symbols:
-        symbol = symbol.upper()
-        quote = fetch_quote_with_fallback(symbol)
-        price = quote['price']
-        volume = quote.get('volume', 1000000)
-        total_val = (price * volume) / 1000000000 if price and volume else 0
-        
-        random.seed(hash(symbol) % 10000)
-        net_flow_pct = random.uniform(-0.3, 0.3)
-        total_foreign_buy = total_val * (0.5 + net_flow_pct/2)
-        total_foreign_sell = total_val * (0.5 - net_flow_pct/2)
-        
-        broker_names = ["Credit Suisse", "Morgan Stanley", "Goldman Sachs", "KZ", "RX", "UBS", "J.P. Morgan", "Deutsche Bank", "ZP", "CC"]
-        random.seed(hash(symbol) % 10000 + 1)
-        selected_buyers = random.sample(broker_names, 5)
-        selected_sellers = random.sample(broker_names, 5)
-        
-        buyer_weights = [random.random() for _ in range(5)]
-        buyer_weights = [w/sum(buyer_weights) for w in buyer_weights]
-        buyer_allocs = [total_foreign_buy * w for w in buyer_weights]
-        
-        seller_weights = [random.random() for _ in range(5)]
-        seller_weights = [w/sum(seller_weights) for w in seller_weights]
-        seller_allocs = [total_foreign_sell * w for w in seller_weights]
-        
-        buyers = []
-        for i, name in enumerate(selected_buyers):
-            avg_price = round(price * random.uniform(0.995, 0.999))
-            buyers.append({'name': name, 'avg': avg_price, 'val': round(buyer_allocs[i], 1)})
-        sellers = []
-        for i, name in enumerate(selected_sellers):
-            avg_price = round(price * random.uniform(1.001, 1.005))
-            sellers.append({'name': name, 'avg': avg_price, 'val': round(seller_allocs[i], 1)})
-        
-        buyers.sort(key=lambda x: x['val'], reverse=True)
-        sellers.sort(key=lambda x: x['val'], reverse=True)
-        
-        results[symbol] = {
-            'buyers': buyers[:5],
-            'sellers': sellers[:5]
-        }
-    
-    return jsonify({
-        'success': True, 
-        'count': len(results), 
-        'data': results,
-        'timestamp': datetime.now().isoformat()
     })
 
 @app.route('/bandarmology', methods=['GET'])
@@ -1072,7 +1058,107 @@ def get_sparkline():
             'timestamp': datetime.now().isoformat()
         })
 
-# ============ BULK OTHER ENDPOINTS ==========
+# ============ TOP MOVERS ENDPOINT (200+ SAHAM) ============
+def fetch_quote_for_top_mover(symbol):
+    """Fetch quote untuk satu simbol, return None jika gagal."""
+    try:
+        yf_symbol = f"{symbol}.JK"
+        ticker = yf.Ticker(yf_symbol)
+        info = ticker.info
+        price = info.get('regularMarketPrice', 0)
+        prev_close = info.get('previousClose', price)
+        change_pct = ((price - prev_close) / prev_close * 100) if prev_close else 0
+        if price > 0:
+            return {'symbol': symbol, 'price': price, 'changePercent': change_pct}
+    except Exception as e:
+        pass
+    return None
+
+@app.route('/top_movers', methods=['GET'])
+def get_top_movers():
+    limit = request.args.get('limit', default=10, type=int)
+    cache_key = f"top_movers_{limit}"
+    cached = quote_cache.get(cache_key)
+    if cached:
+        return jsonify(cached)
+
+    results = []
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_symbol = {executor.submit(fetch_quote_for_top_mover, sym): sym for sym in IHSG_STOCKS}
+        for future in as_completed(future_to_symbol):
+            res = future.result()
+            if res:
+                results.append(res)
+    results.sort(key=lambda x: x['changePercent'], reverse=True)
+    top_results = results[:limit]
+    response = {
+        'success': True,
+        'count': len(top_results),
+        'top_movers': top_results,
+        'timestamp': datetime.now().isoformat(),
+        'total_stocks_processed': len(results)
+    }
+    quote_cache.set(cache_key, response)
+    return jsonify(response)
+
+# ============ BULK ENDPOINTS ============
+@app.route('/bulk/foreigntransaction', methods=['POST'])
+def get_bulk_foreign_transaction():
+    data = request.json
+    symbols = data.get('symbols', [])
+    if not symbols:
+        return jsonify({'error': 'No symbols provided'}), 400
+    
+    results = {}
+    for symbol in symbols:
+        symbol = symbol.upper()
+        quote = fetch_quote_with_fallback(symbol)
+        price = quote['price']
+        volume = quote.get('volume', 1000000)
+        total_val = (price * volume) / 1000000000 if price and volume else 0
+        
+        random.seed(hash(symbol) % 10000)
+        net_flow_pct = random.uniform(-0.3, 0.3)
+        total_foreign_buy = total_val * (0.5 + net_flow_pct/2)
+        total_foreign_sell = total_val * (0.5 - net_flow_pct/2)
+        
+        broker_names = ["Credit Suisse", "Morgan Stanley", "Goldman Sachs", "KZ", "RX", "UBS", "J.P. Morgan", "Deutsche Bank", "ZP", "CC"]
+        random.seed(hash(symbol) % 10000 + 1)
+        selected_buyers = random.sample(broker_names, 5)
+        selected_sellers = random.sample(broker_names, 5)
+        
+        buyer_weights = [random.random() for _ in range(5)]
+        buyer_weights = [w/sum(buyer_weights) for w in buyer_weights]
+        buyer_allocs = [total_foreign_buy * w for w in buyer_weights]
+        
+        seller_weights = [random.random() for _ in range(5)]
+        seller_weights = [w/sum(seller_weights) for w in seller_weights]
+        seller_allocs = [total_foreign_sell * w for w in seller_weights]
+        
+        buyers = []
+        for i, name in enumerate(selected_buyers):
+            avg_price = round(price * random.uniform(0.995, 0.999))
+            buyers.append({'name': name, 'avg': avg_price, 'val': round(buyer_allocs[i], 1)})
+        sellers = []
+        for i, name in enumerate(selected_sellers):
+            avg_price = round(price * random.uniform(1.001, 1.005))
+            sellers.append({'name': name, 'avg': avg_price, 'val': round(seller_allocs[i], 1)})
+        
+        buyers.sort(key=lambda x: x['val'], reverse=True)
+        sellers.sort(key=lambda x: x['val'], reverse=True)
+        
+        results[symbol] = {
+            'buyers': buyers[:5],
+            'sellers': sellers[:5]
+        }
+    
+    return jsonify({
+        'success': True, 
+        'count': len(results), 
+        'data': results,
+        'timestamp': datetime.now().isoformat()
+    })
+
 @app.route('/bulk/orderbook', methods=['POST'])
 def get_bulk_orderbook():
     data = request.json
@@ -1302,7 +1388,7 @@ def clear_session():
 if __name__ == '__main__':
     print("=" * 60)
     print("API Server Starting...")
-    print("yfinance + Finnhub + Alpha Vantage (fallback)")
+    print("Finnhub + Alpha Vantage + yfinance (fallback)")
     print("Supported: PDF, DOCX, TXT, CSV")
     print("Images: NOT processed (OCR disabled)")
     print("Response format: SHORT and STRUCTURED")
