@@ -215,7 +215,7 @@
 
     <!-- Top Mover (200+ saham via endpoint /top_movers) -->
     <section class="bg-surface-container border border-outline-variant rounded-card p-5">
-        <h2 class="text-center text-lg font-bold mb-6 text-on-surface">Top Mover (200+ Saham)</h2>
+        <h2 class="text-center text-lg font-bold mb-6 text-on-surface">Top Mover</h2>
         <div id="topmover-list" class="space-y-1">
             <div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Memuat data 200+ saham...</span></div>
         </div>
@@ -240,7 +240,7 @@
 </main>
 
 <script>
-    const API_URL = 'https://ihsg-api-cpchs.onrender.com'; // Sesuaikan dengan URL service Anda
+    const API_URL = 'https://ihsg-api-cphs.onrender.com'; // Sesuaikan dengan URL service Anda
     let allStocks = [];
     let filteredStocks = [];
     let chartInstances = {};
@@ -312,22 +312,24 @@
     // ========== TOP MOVER dari endpoint khusus ==========
     async function updateTopMover() {
         const container = document.getElementById('topmover-list');
-        container.innerHTML = '<div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Memuat data dari 200+ saham...</span></div>';
+        container.innerHTML = '<div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Memuat data...</span></div>';
         try {
             const response = await fetch(`${API_URL}/top_movers?limit=10`);
             if (!response.ok) throw new Error('Gagal fetch top movers');
             const data = await response.json();
-            if (!data.success || !data.top_movers || data.top_movers.length === 0) {
+            const movers = data.top_movers || [];
+
+            if (movers.length === 0) {
                 container.innerHTML = '<div class="text-center text-slate-400 py-4">Tidak ada data top mover</div>';
                 return;
             }
+
             container.innerHTML = '';
-            data.top_movers.forEach(stock => {
+            movers.forEach(stock => {
                 const changeClass = stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
                 const changeSign = stock.changePercent >= 0 ? '+' : '';
                 const item = document.createElement('div');
-                item.className = 'clickable-row flex items-center justify-between p-3 rounded-lg transition-colors';
-                item.style.cursor = 'pointer';
+                item.className = 'clickable-row flex items-center justify-between p-3 rounded-lg hover:bg-surface-variant/20 transition-colors cursor-pointer';
                 item.setAttribute('data-code', stock.symbol);
                 item.addEventListener('click', () => {
                     if (window.parent) window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: stock.symbol }, '*');
@@ -341,14 +343,17 @@
                 `;
                 container.appendChild(item);
             });
-            // Info jumlah saham diproses
-            const info = document.createElement('div');
-            info.className = 'text-center text-[10px] text-slate-500 mt-3';
-            info.innerText = `Berdasarkan ${data.total_stocks_processed} saham IHSG | update ${new Date(data.timestamp).toLocaleTimeString('id-ID')}`;
-            container.appendChild(info);
+
+            // Tambahkan info jumlah saham yang diproses
+            if (data.total_stocks_processed) {
+                const info = document.createElement('div');
+                info.className = 'text-center text-[10px] text-slate-500 mt-3';
+                info.innerText = `Berdasarkan ${data.total_stocks_processed} saham | update ${new Date(data.timestamp).toLocaleTimeString('id-ID')}`;
+                container.appendChild(info);
+            }
         } catch (error) {
             console.error("Error top mover:", error);
-            container.innerHTML = '<div class="text-center text-red-400 py-4">Gagal memuat data top mover</div>';
+            container.innerHTML = '<div class="text-center text-red-400 py-4">Gagal memuat data</div>';
         }
     }
 
