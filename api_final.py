@@ -680,13 +680,24 @@ def get_top_movers():
         try:
             yf_symbol = f"{sym}.JK"
             ticker = yf.Ticker(yf_symbol)
-            # Menggunakan history(1d) lebih cepat daripada info untuk batch besar
+            # Menggunakan history(2d) untuk mendapatkan data hari ini dan kemarin
             hist = ticker.history(period="2d")
             if len(hist) >= 2:
                 price = hist['Close'].iloc[-1]
                 prev_close = hist['Close'].iloc[-2]
+                high = hist['High'].iloc[-1]
+                low = hist['Low'].iloc[-1]
+
                 change_pct = ((price - prev_close) / prev_close * 100)
-                return {'symbol': sym, 'price': price, 'changePercent': change_pct}
+                # Volatilitas dihitung dari rentang harga harian (High - Low) relatif terhadap harga penutupan
+                volatility = ((high - low) / prev_close * 100) if prev_close > 0 else 0
+
+                return {
+                    'symbol': sym,
+                    'price': price,
+                    'changePercent': change_pct,
+                    'volatility': volatility
+                }
         except:
             pass
         return None
@@ -699,8 +710,13 @@ def get_top_movers():
             if res:
                 results.append(res)
 
-    results.sort(key=lambda x: x['changePercent'], reverse=True)
-    top_results = results[:limit]
+    # 1. Cari saham ter-volatil (ambil top 50 yang paling fluktuatif harganya)
+    results.sort(key=lambda x: x['volatility'], reverse=True)
+    volatile_top_50 = results[:50]
+
+    # 2. Tampilkan 10 besar dari grup tersebut berdasarkan urutan prosentase gain tertinggi
+    volatile_top_50.sort(key=lambda x: x['changePercent'], reverse=True)
+    top_results = volatile_top_50[:limit]
 
     response = {
         'success': True,
