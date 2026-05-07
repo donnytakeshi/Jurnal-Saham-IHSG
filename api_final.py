@@ -639,6 +639,33 @@ def fetch_quote_for_top_mover(symbol):
     except: pass
     return None
 
+# ============ DAFTAR SAHAM IHSG (200+ saham) ============
+IHSG_STOCKS_200 = [
+    "BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "UNVR", "ADRO", "CPIN", "ICBP",
+    "INDF", "MEDC", "PGAS", "SMGR", "ANTM", "HRUM", "TOWR", "ERAA", "SIDO", "JPFA",
+    "MDKA", "INKP", "TKIM", "BRIS", "BBNI", "UNTR", "WIKA", "AMMN", "RAJA", "BUMI",
+    "PTRO", "ACES", "ADMF", "AGII", "AKRA", "AMRT", "APLN", "ARTO", "ASSA", "BFIN",
+    "BHIT", "BIRD", "BISI", "BNGA", "BNII", "BSDE", "BTPS", "BUKA", "BULL", "BWPT",
+    "CAMP", "CBMF", "CENT", "CFIN", "CINT", "CITA", "CLPI", "CMNP", "CNKO", "COAL",
+    "CPRO", "CSAP", "CTRA", "DART", "DIVA", "DMAS", "DNET", "DOOH", "DPNS", "DSSA",
+    "DSNG", "DTLA", "DYAN", "EKAD", "ELSA", "EMTK", "ENRG", "ERTX", "ESIP", "ESSA",
+    "FAPA", "FAST", "FISH", "FORZ", "FPNI", "GDST", "GEMS", "GGRM", "GIAA", "GJTL",
+    "GLOB", "GLVA", "GPRA", "GPSO", "GSMF", "GZCO", "HADE", "HDFA", "HDIT", "HEAL",
+    "HELP", "HELS", "HERO", "HITS", "HKMU", "HMSP", "HOKI", "HOMI", "HOTL", "HRTA",
+    "IATA", "IBST", "ICBP", "ICON", "IDPR", "IFII", "IFSH", "IGAR", "IIKP", "IKAI",
+    "IKAN", "IMAS", "IMJS", "IMPC", "INAF", "INAI", "INCF", "INCO", "INDS", "INDX",
+    "INKP", "INPC", "INPP", "INPS", "INRU", "INTD", "INTP", "IPCC", "IPCM", "IPOL",
+    "IPTV", "IRRA", "ISAT", "ISIG", "ISSP", "ITIC", "ITMA", "ITMG", "JAWA", "JECC",
+    "JGLE", "JIHD", "JKON", "JKSW", "JMAS", "JPFA", "JRPT", "JSKY", "JSMR", "JSPT",
+    "JTPE", "KAEF", "KARY", "KAYU", "KBAG", "KBLI", "KBLM", "KBLV", "KDSI", "KEEN",
+    "KEJU", "KIAS", "KICI", "KIJA", "KINO", "KIOS", "KJEN", "KLBF", "KMDS", "KMTR",
+    "KOBX", "KOIN", "KONI", "KOPI", "KOTA", "KPAS", "KPIG", "KRAH", "KRAS", "KREN",
+    "LCAS", "LPCK", "LPKR", "LPPF", "LPPS", "LRNA", "LSIP", "LUCK", "MAGP", "MAIN",
+    "MAMI", "MAPA", "MAPB", "MAPI", "MARI", "MARK", "MASA", "MAYA", "MBAP", "MBSS",
+    "MBTO", "MCAS", "MCOR", "MDIA", "MDKA", "MDKI", "MDLN", "MDRN", "MEDC", "MEGA",
+    "MERK", "META", "MFIN", "MFMI", "MGNA", "MGLV", "MICE", "MIDI", "MIKA", "MINA"
+]
+
 @app.route('/top_movers', methods=['GET'])
 def get_top_movers():
     limit = request.args.get('limit', default=10, type=int)
@@ -648,26 +675,33 @@ def get_top_movers():
         return jsonify(cached)
 
     results = []
-    # Daftar saham minimalis untuk testing
-    stock_list = ["BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "UNVR", "ADRO"]
-    
-    for sym in stock_list:
+
+    def fetch_data(sym):
         try:
             yf_symbol = f"{sym}.JK"
             ticker = yf.Ticker(yf_symbol)
-            info = ticker.info
-            price = info.get('regularMarketPrice', 0)
-            prev_close = info.get('previousClose', price)
-            change_pct = ((price - prev_close) / prev_close * 100) if prev_close else 0
-            if price > 0:
-                results.append({'symbol': sym, 'price': price, 'changePercent': change_pct})
-        except Exception as e:
-            # Log error ke console server Render
-            print(f"Error fetching {sym}: {str(e)}")
-            continue
+            # Menggunakan history(1d) lebih cepat daripada info untuk batch besar
+            hist = ticker.history(period="2d")
+            if len(hist) >= 2:
+                price = hist['Close'].iloc[-1]
+                prev_close = hist['Close'].iloc[-2]
+                change_pct = ((price - prev_close) / prev_close * 100)
+                return {'symbol': sym, 'price': price, 'changePercent': change_pct}
+        except:
+            pass
+        return None
+
+    # Gunakan ThreadPoolExecutor untuk memproses 200+ saham secara paralel
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        future_to_stock = {executor.submit(fetch_data, sym): sym for sym in IHSG_STOCKS_200}
+        for future in as_completed(future_to_stock):
+            res = future.result()
+            if res:
+                results.append(res)
 
     results.sort(key=lambda x: x['changePercent'], reverse=True)
     top_results = results[:limit]
+
     response = {
         'success': True,
         'count': len(top_results),
