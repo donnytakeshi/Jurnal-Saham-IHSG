@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JurnalSaham</string>
+    <string name="title_activity_main">JurnalSaham</string>
+    <string name="package_name">com.donnytakeshi.jurnalsaham</string>
+    <string name="custom_url_scheme">com.donnytakeshi.jurnalsaham</string>
+</resources>

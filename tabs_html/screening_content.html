@@ -21,7 +21,6 @@
     .page { display: none; }
     .page.active { display: block; }
     
-    /* Mini chart container */
     .mini-chart { width: 80px; height: 32px; position: relative; }
     canvas.sparkline-canvas { width: 100%; height: 100%; }
     .clickable-row { cursor: pointer; transition: background 0.2s; }
@@ -91,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Search Parameters -->
+    <!-- Search Parameters (sama seperti sebelumnya) -->
     <section class="bg-surface-container border border-outline-variant rounded-card p-5 mb-6">
         <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
@@ -173,7 +172,7 @@
         </div>
     </section>
 
-    <!-- Results Terminal -->
+    <!-- Results Terminal (tabel 28 saham) -->
     <div class="bg-surface-container border border-outline-variant rounded-card overflow-hidden mb-6">
         <div class="px-5 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
             <h3 class="font-headline-md text-on-surface">Terminal Results</h3>
@@ -213,16 +212,14 @@
         </div>
     </section>
 
-    <!-- Top Mover (200+ saham via endpoint /top_movers) -->
+    <!-- Top Mover (dengan seamless update) -->
     <section class="bg-surface-container border border-outline-variant rounded-card p-5">
         <h2 class="text-center text-lg font-bold mb-6 text-on-surface">Top Mover</h2>
-        <div id="topmover-list" class="space-y-1">
-            <div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Memuat data 200+ saham...</span></div>
-        </div>
+        <div id="topmover-list" class="space-y-1"></div>
     </section>
 </div>
 
-<!-- PAGE 2: PREDIKSI SAHAM -->
+<!-- PAGE 2: PREDIKSI SAHAM (tidak berubah) -->
 <div id="page-prediksi" class="page">
     <div class="bg-surface-container border border-outline-variant rounded-card p-5">
         <div class="flex items-center gap-2 mb-4">
@@ -240,7 +237,7 @@
 </main>
 
 <script>
-    const API_URL = 'https://ihsg-api-cphs.onrender.com'; // Sesuaikan dengan URL service Anda
+    const API_URL = 'https://ihsg-api-cphs.onrender.com';
     let allStocks = [];
     let filteredStocks = [];
     let chartInstances = {};
@@ -309,55 +306,78 @@
         }
     }
 
-    // ========== TOP MOVER dari endpoint khusus ==========
-    async function updateTopMover() {
+    // ========== TOP MOVER SEAMLESS ==========
+    let topMoverContainer = null;
+    let topMoverItems = [];
+
+    function buildTopMoverCards() {
         const container = document.getElementById('topmover-list');
-        container.innerHTML = '<div class="flex justify-center py-8"><div class="loading-spinner"></div><span class="text-slate-400 ml-2">Memuat data...</span></div>';
-        try {
-            const response = await fetch(`${API_URL}/top_movers?limit=10`);
-            if (!response.ok) throw new Error('Gagal fetch top movers');
-            const data = await response.json();
-            const movers = data.top_movers || [];
-
-            if (movers.length === 0) {
-                container.innerHTML = '<div class="text-center text-slate-400 py-4">Tidak ada data top mover</div>';
-                return;
-            }
-
-            container.innerHTML = '';
-            movers.forEach(stock => {
-                const changeClass = stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
-                const changeSign = stock.changePercent >= 0 ? '+' : '';
-                const item = document.createElement('div');
-                item.className = 'clickable-row flex items-center justify-between p-3 rounded-lg hover:bg-surface-variant/20 transition-colors cursor-pointer';
-                item.setAttribute('data-code', stock.symbol);
-                item.addEventListener('click', () => {
-                    if (window.parent) window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: stock.symbol }, '*');
-                });
-                item.innerHTML = `
-                    <span class="text-base font-bold text-on-surface tracking-wide">${stock.symbol}</span>
-                    <div class="text-right">
-                        <div class="text-base font-semibold">${stock.price.toLocaleString('id-ID')}</div>
-                        <div class="text-xs font-bold ${changeClass}">${changeSign}${stock.changePercent.toFixed(2)}%</div>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-
-            // Tambahkan info jumlah saham yang diproses
-            if (data.total_stocks_processed) {
-                const info = document.createElement('div');
-                info.className = 'text-center text-[10px] text-slate-500 mt-3';
-                info.innerText = `Berdasarkan ${data.total_stocks_processed} saham | update ${new Date(data.timestamp).toLocaleTimeString('id-ID')}`;
-                container.appendChild(info);
-            }
-        } catch (error) {
-            console.error("Error top mover:", error);
-            container.innerHTML = '<div class="text-center text-red-400 py-4">Gagal memuat data</div>';
+        if (!container) return;
+        container.innerHTML = '';
+        topMoverItems = [];
+        for (let i = 0; i < 10; i++) {
+            const card = document.createElement('div');
+            card.className = 'clickable-row flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer';
+            card.style.opacity = '0.6';
+            card.innerHTML = `
+                <span class="text-base font-bold text-on-surface tracking-wide">---</span>
+                <div class="text-right">
+                    <div class="text-base font-semibold">---</div>
+                    <div class="text-xs font-bold">---</div>
+                </div>
+            `;
+            container.appendChild(card);
+            topMoverItems.push(card);
         }
     }
 
-    // ========== SCREENING FUNCTIONS (tetap 28 saham) ==========
+    async function updateTopMover() {
+        if (!topMoverContainer) {
+            topMoverContainer = document.getElementById('topmover-list');
+            if (!topMoverContainer) return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/top_movers?limit=10`);
+            if (!response.ok) throw new Error('Gagal fetch');
+            const data = await response.json();
+            const movers = data.top_movers || [];
+            for (let i = 0; i < topMoverItems.length; i++) {
+                const card = topMoverItems[i];
+                if (i < movers.length) {
+                    const stock = movers[i];
+                    const changeClass = stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400';
+                    const changeSign = stock.changePercent >= 0 ? '+' : '';
+                    card.style.opacity = '1';
+                    card.querySelector('span:first-child').textContent = stock.symbol;
+                    card.querySelector('.text-right .text-base').textContent = stock.price.toLocaleString('id-ID');
+                    card.querySelector('.text-right .text-xs').innerHTML = `${changeSign}${stock.changePercent.toFixed(2)}%`;
+                    card.querySelector('.text-right .text-xs').className = `text-xs font-bold ${changeClass}`;
+                    if (!card.hasAttribute('data-listener')) {
+                        card.addEventListener('click', () => {
+                            if (window.parent) window.parent.postMessage({ type: 'OPEN_STOCK', stockCode: stock.symbol }, '*');
+                        });
+                        card.setAttribute('data-listener', 'true');
+                    }
+                } else {
+                    card.style.opacity = '0.6';
+                    card.querySelector('span:first-child').textContent = '---';
+                    card.querySelector('.text-right .text-base').textContent = '---';
+                    card.querySelector('.text-right .text-xs').innerHTML = '---';
+                }
+            }
+            let infoDiv = topMoverContainer.querySelector('.info-update');
+            if (!infoDiv) {
+                infoDiv = document.createElement('div');
+                infoDiv.className = 'text-center text-[10px] text-slate-500 mt-3 info-update';
+                topMoverContainer.appendChild(infoDiv);
+            }
+            infoDiv.innerText = `Update: ${new Date(data.timestamp).toLocaleTimeString('id-ID')} (${data.total_stocks_processed || 0} saham)`;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // ========== SCREENING FUNCTIONS (tetap sama) ==========
     async function loadAllStocks() {
         const results = [];
         const batchSize = 5;
@@ -635,6 +655,7 @@
     });
 
     // ========== START ==========
+    buildTopMoverCards();
     updateTopMover();
     runScreening();
     setInterval(updateTopMover, 30000);

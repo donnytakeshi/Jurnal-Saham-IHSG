@@ -10,14 +10,12 @@
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .positive { color: #67d9cb; }
         .negative { color: #ff5e5e; }
-        
         .card {
             background: #181c21;
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 16px;
         }
-        
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -26,12 +24,10 @@
             padding-bottom: 8px;
             border-bottom: 1px solid #2a2a2a;
         }
-        
         .section-title { font-weight: 600; font-size: 14px; letter-spacing: 0.5px; }
         .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
         .badge-bullish { background: #67d9cb20; color: #67d9cb; }
         .badge-bearish { background: #ff5e5e20; color: #ff5e5e; }
-        
         .stock-row {
             display: flex;
             justify-content: space-between;
@@ -48,18 +44,14 @@
             padding-right: 8px;
         }
         .stock-row:last-child { border-bottom: none; }
-        
         .stock-code { font-weight: 700; color: white; font-size: 14px; }
         .stock-name { font-size: 10px; color: #6b7280; margin-top: 2px; }
         .price { font-weight: 600; color: white; font-size: 13px; }
         .change { font-size: 11px; font-weight: 600; margin-top: 2px; }
-        
         .status-badge { font-size: 11px; background: #2a2a2a; border-radius: 20px; padding: 4px 12px; display: inline-block; }
         .status-badge.online { background: #67d9cb20; color: #67d9cb; }
         .status-badge.offline { background: #ff5e5e20; color: #ff5e5e; }
-        
         .last-update { font-size: 10px; color: #6b7280; text-align: center; margin-top: 8px; }
-        
         .sentiment-bar {
             height: 4px;
             background: #2a2a2a;
@@ -70,7 +62,6 @@
         }
         .sentiment-bar-adv { background: #67d9cb; height: 100%; }
         .sentiment-bar-dec { background: #ff5e5e; height: 100%; }
-        
         .sector-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -84,7 +75,6 @@
         }
         .sector-name { font-size: 10px; color: #6b7280; text-transform: uppercase; }
         .sector-value { font-size: 14px; font-weight: 600; margin-top: 4px; }
-        
         .two-columns { display: block; }
     </style>
 </head>
@@ -113,9 +103,7 @@
         <div class="section-title text-green-400">Top Gainers</div>
         <span class="badge badge-bullish">BULLISH</span>
     </div>
-    <div id="gainers-list">
-        <div class="stock-row"><div class="text-slate-500 text-center w-full">Loading...</div></div>
-    </div>
+    <div id="gainers-list"></div>
 </div>
 
 <!-- Top Losers Card -->
@@ -124,9 +112,7 @@
         <div class="section-title text-red-400">Top Losers</div>
         <span class="badge badge-bearish">BEARISH</span>
     </div>
-    <div id="losers-list">
-        <div class="stock-row"><div class="text-slate-500 text-center w-full">Loading...</div></div>
-    </div>
+    <div id="losers-list"></div>
 </div>
 
 <!-- Market Sentiment Card -->
@@ -159,7 +145,7 @@
 <div id="last-update" class="last-update">--</div>
 
 <script>
-    const API_URL = 'https://ihsg-api-cphs.onrender.com'; // Sesuaikan dengan URL backend Anda
+    const API_URL = 'https://ihsg-api-cphs.onrender.com';
     
     const sectorStocks = {
         tech: ["TLKM", "GOTO", "ERAA", "TOWR"],
@@ -175,6 +161,10 @@
     ];
     
     let allQuotes = [];
+    let gainerRows = [];
+    let loserRows = [];
+    let gainersListElem = null;
+    let losersListElem = null;
     
     function openStockInCekEmiten(stockCode) {
         if (window.parent) window.parent.postMessage({ type: 'OPEN_STOCK', stockCode }, '*');
@@ -199,17 +189,10 @@
     }
     
     function getTopGainers() {
-        return [...allQuotes]
-            .filter(q => q.changePercent > 0)
-            .sort((a, b) => b.changePercent - a.changePercent)
-            .slice(0, 10);
+        return [...allQuotes].filter(q => q.changePercent > 0).sort((a,b) => b.changePercent - a.changePercent).slice(0,10);
     }
-    
     function getTopLosers() {
-        return [...allQuotes]
-            .filter(q => q.changePercent < 0)
-            .sort((a, b) => a.changePercent - b.changePercent)
-            .slice(0, 10);
+        return [...allQuotes].filter(q => q.changePercent < 0).sort((a,b) => a.changePercent - b.changePercent).slice(0,10);
     }
     
     function getSectorPerformance() {
@@ -243,28 +226,50 @@
         return names[code] || code;
     }
     
-    function renderStockRow(stock, isGainer) {
-        const row = document.createElement('div');
-        row.className = 'stock-row';
-        row.innerHTML = `
-            <div>
-                <div class="stock-code">${stock.code}</div>
-                <div class="stock-name">${getStockName(stock.code)}</div>
-            </div>
-            <div class="text-right">
-                <div class="price">${formatNumber(stock.price)}</div>
-                <div class="change ${isGainer ? 'positive' : 'negative'}">${stock.changePercent > 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%</div>
-            </div>
-        `;
-        row.addEventListener('click', () => openStockInCekEmiten(stock.code));
-        return row;
+    function buildInitialTable() {
+        gainersListElem = document.getElementById('gainers-list');
+        losersListElem = document.getElementById('losers-list');
+        gainersListElem.innerHTML = '';
+        losersListElem.innerHTML = '';
+        gainerRows = [];
+        loserRows = [];
+        
+        for (let i = 0; i < 10; i++) {
+            const row = document.createElement('div');
+            row.className = 'stock-row';
+            row.innerHTML = `
+                <div>
+                    <div class="stock-code">---</div>
+                    <div class="stock-name">---</div>
+                </div>
+                <div class="text-right">
+                    <div class="price">---</div>
+                    <div class="change">---</div>
+                </div>
+            `;
+            gainersListElem.appendChild(row);
+            gainerRows.push(row);
+        }
+        for (let i = 0; i < 10; i++) {
+            const row = document.createElement('div');
+            row.className = 'stock-row';
+            row.innerHTML = `
+                <div>
+                    <div class="stock-code">---</div>
+                    <div class="stock-name">---</div>
+                </div>
+                <div class="text-right">
+                    <div class="price">---</div>
+                    <div class="change">---</div>
+                </div>
+            `;
+            losersListElem.appendChild(row);
+            loserRows.push(row);
+        }
     }
     
-    async function renderTop10() {
+    async function updateTop10Data() {
         const statusSpan = document.getElementById('api-status');
-        statusSpan.textContent = "Memuat...";
-        statusSpan.className = "status-badge online";
-        
         try {
             await fetchAllQuotes();
             if (!allQuotes.length) throw new Error("Tidak ada data");
@@ -272,16 +277,60 @@
             const gainers = getTopGainers();
             const losers = getTopLosers();
             
-            const gainersDiv = document.getElementById('gainers-list');
-            const losersDiv = document.getElementById('losers-list');
-            gainersDiv.innerHTML = '';
-            losersDiv.innerHTML = '';
-            
-            if (gainers.length) gainers.forEach(g => gainersDiv.appendChild(renderStockRow(g, true)));
-            else gainersDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">No gainers</div></div>';
-            
-            if (losers.length) losers.forEach(l => losersDiv.appendChild(renderStockRow(l, false)));
-            else losersDiv.innerHTML = '<div class="stock-row"><div class="text-slate-500 text-center w-full">No losers</div></div>';
+            // Update gainers
+            for (let i = 0; i < gainerRows.length; i++) {
+                const stock = gainers[i];
+                const row = gainerRows[i];
+                if (stock) {
+                    const codeDiv = row.querySelector('.stock-code');
+                    const nameDiv = row.querySelector('.stock-name');
+                    const priceDiv = row.querySelector('.price');
+                    const changeDiv = row.querySelector('.change');
+                    codeDiv.textContent = stock.code;
+                    nameDiv.textContent = getStockName(stock.code);
+                    priceDiv.textContent = formatNumber(stock.price);
+                    const changeVal = stock.changePercent;
+                    const changeSign = changeVal >= 0 ? '+' : '';
+                    changeDiv.textContent = `${changeSign}${changeVal.toFixed(2)}%`;
+                    changeDiv.className = `change ${changeVal >= 0 ? 'positive' : 'negative'}`;
+                    if (!row.hasAttribute('data-listener')) {
+                        row.addEventListener('click', () => openStockInCekEmiten(stock.code));
+                        row.setAttribute('data-listener', 'true');
+                    }
+                } else {
+                    row.querySelector('.stock-code').textContent = '---';
+                    row.querySelector('.stock-name').textContent = '---';
+                    row.querySelector('.price').textContent = '---';
+                    row.querySelector('.change').textContent = '---';
+                }
+            }
+            // Update losers
+            for (let i = 0; i < loserRows.length; i++) {
+                const stock = losers[i];
+                const row = loserRows[i];
+                if (stock) {
+                    const codeDiv = row.querySelector('.stock-code');
+                    const nameDiv = row.querySelector('.stock-name');
+                    const priceDiv = row.querySelector('.price');
+                    const changeDiv = row.querySelector('.change');
+                    codeDiv.textContent = stock.code;
+                    nameDiv.textContent = getStockName(stock.code);
+                    priceDiv.textContent = formatNumber(stock.price);
+                    const changeVal = stock.changePercent;
+                    const changeSign = changeVal >= 0 ? '+' : '';
+                    changeDiv.textContent = `${changeSign}${changeVal.toFixed(2)}%`;
+                    changeDiv.className = `change ${changeVal >= 0 ? 'positive' : 'negative'}`;
+                    if (!row.hasAttribute('data-listener')) {
+                        row.addEventListener('click', () => openStockInCekEmiten(stock.code));
+                        row.setAttribute('data-listener', 'true');
+                    }
+                } else {
+                    row.querySelector('.stock-code').textContent = '---';
+                    row.querySelector('.stock-name').textContent = '---';
+                    row.querySelector('.price').textContent = '---';
+                    row.querySelector('.change').textContent = '---';
+                }
+            }
             
             const total = gainers.length + losers.length;
             const advPct = total ? (gainers.length / total) * 100 : 0;
@@ -294,14 +343,18 @@
             
             const sectorPerf = getSectorPerformance();
             const formatSector = (val) => `${val > 0 ? '+' : ''}${val.toFixed(1)}%`;
-            document.getElementById('sector-tech').innerHTML = formatSector(sectorPerf.tech || 0);
-            document.getElementById('sector-tech').className = `sector-value ${(sectorPerf.tech || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('sector-energy').innerHTML = formatSector(sectorPerf.energy || 0);
-            document.getElementById('sector-energy').className = `sector-value ${(sectorPerf.energy || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('sector-health').innerHTML = formatSector(sectorPerf.health || 0);
-            document.getElementById('sector-health').className = `sector-value ${(sectorPerf.health || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('sector-finance').innerHTML = formatSector(sectorPerf.finance || 0);
-            document.getElementById('sector-finance').className = `sector-value ${(sectorPerf.finance || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            const secTech = document.getElementById('sector-tech');
+            secTech.innerHTML = formatSector(sectorPerf.tech || 0);
+            secTech.className = `sector-value ${(sectorPerf.tech || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            const secEnergy = document.getElementById('sector-energy');
+            secEnergy.innerHTML = formatSector(sectorPerf.energy || 0);
+            secEnergy.className = `sector-value ${(sectorPerf.energy || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            const secHealth = document.getElementById('sector-health');
+            secHealth.innerHTML = formatSector(sectorPerf.health || 0);
+            secHealth.className = `sector-value ${(sectorPerf.health || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            const secFinance = document.getElementById('sector-finance');
+            secFinance.innerHTML = formatSector(sectorPerf.finance || 0);
+            secFinance.className = `sector-value ${(sectorPerf.finance || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`;
             
             document.getElementById('last-update').innerHTML = `Last update: ${new Date().toLocaleTimeString('id-ID')}`;
             statusSpan.textContent = `Connected (${allQuotes.length})`;
@@ -309,13 +362,12 @@
         } catch (err) {
             statusSpan.textContent = "Cek API";
             statusSpan.className = "status-badge offline";
-            document.getElementById('gainers-list').innerHTML = '<div class="stock-row"><div class="text-red-400 text-center w-full">⚠️ Gagal memuat data. Periksa koneksi API.</div></div>';
-            document.getElementById('losers-list').innerHTML = '<div class="stock-row"><div class="text-red-400 text-center w-full">⚠️ Pastikan server backend berjalan.</div></div>';
         }
     }
     
-    renderTop10();
-    setInterval(renderTop10, 15000);
+    buildInitialTable();
+    updateTop10Data();
+    setInterval(updateTop10Data, 30000);
 </script>
 </body>
 </html>
